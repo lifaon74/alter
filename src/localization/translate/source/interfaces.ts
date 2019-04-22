@@ -1,6 +1,5 @@
-import { IAsyncSource } from '../../../../observables/source/interfaces';
-import { IPromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/interfaces';
 import { ITranslateParams } from '../service/interfaces';
+import { IAsyncSource, IPromiseCancelToken } from '@lifaon/observables/public';
 
 export interface ITranslateSource extends IAsyncSource<string> {
   emit(value: string, params?: ITranslateParams): Promise<this>;

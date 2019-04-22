@@ -1,18 +1,10 @@
-import { IReadonlyList } from '../../../../misc/readonly-list/interfaces';
 import { INavigationState } from './state/interfaces';
 import { INavigation, INavigationExtendedKeyValueMap, INavigationKeyValueMap, INavigationNavigateKeyValueMap, INavigationNavigateOptions } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
-import { ReadonlyList } from '../../../../misc/readonly-list/implementation';
-import { NotificationsObservable } from '../../../../notifications/core/notifications-observable/implementation';
 import { NavigationState, NormalizeURL } from './state/implementation';
-import { INotificationsObservable, INotificationsObservableContext} from '../../../../notifications/core/notifications-observable/interfaces';
-import { INotification } from '../../../../notifications/core/notification/interfaces';
-import { IObserver } from '../../../../core/observer/interfaces';
-import { IPipe } from '../../../../core/observable-observer/interfaces';
-import { INotificationsObserver } from '../../../../notifications/core/notifications-observer/interfaces';
-import { mapNotificationNames } from '../../../../operators/aggregateNotificationNames';
-import { PropertyCallInterceptor } from '../../../../classes/properties';
-import { KeyValueMapKeys } from '../../../../notifications/core/interfaces';
+import { INotification, INotificationsObservable, INotificationsObservableContext, INotificationsObserver, IObserver, IPipe, IReadonlyList, KeyValueMapKeys, KeyValueMapToNotifications, NotificationsObservable, ReadonlyList } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { PropertyCallInterceptor } from '@lifaon/observables/classes/properties';
+
 
 
 
@@ -391,8 +383,9 @@ export function NavigationForward(): Promise<void> {
 }
 
 
-export function navigationPipe(): IPipe<IObserver<INotification<INavigationKeyValueMap>>, INotificationsObservable<INavigationNavigateKeyValueMap>> {
-  return mapNotificationNames<KeyValueMapKeys<INavigationKeyValueMap>, 'navigate', INavigationNavigateKeyValueMap['navigate']>(['back', 'forward', 'push', 'refresh', 'replace'], 'navigate');
+export function navigationPipe(): IPipe<IObserver<KeyValueMapToNotifications<INavigationKeyValueMap>>, INotificationsObservable<INavigationNavigateKeyValueMap>> {
+  throw 'TODO'; // TODO
+  // return mapNotificationNames<KeyValueMapKeys<INavigationKeyValueMap>, 'navigate', INavigationNavigateKeyValueMap['navigate']>(['back', 'forward', 'push', 'refresh', 'replace'], 'navigate');
 }
 
 
@@ -447,11 +440,12 @@ class Navigation extends NotificationsObservable<INavigationKeyValueMap> impleme
   }
 
 
-  addListener<K extends keyof INavigationExtendedKeyValueMap>(name: K, callback: (value: INavigationExtendedKeyValueMap[K]) => void): INotificationsObserver<INavigationExtendedKeyValueMap> {
+  addListener<K extends keyof INavigationExtendedKeyValueMap>(name: K, callback: (value: INavigationExtendedKeyValueMap[K]) => void): INotificationsObserver<K, INavigationExtendedKeyValueMap[K]> {
     if (name === 'navigate') {
-      return this.pipeThrough(navigationPipe()).addListener('navigate', callback as (value: INavigationState) => void);
+      return this.pipeThrough(navigationPipe())
+        .addListener('navigate', callback as (value: INavigationState) => void) as any;
     } else {
-      return super.addListener<KeyValueMapKeys<INavigationKeyValueMap>>(name as any, callback as (value: INavigationState) => void);
+      return super.addListener<any>(name as any, callback as (value: INavigationState) => void);
     }
   }
 

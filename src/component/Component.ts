@@ -1,13 +1,12 @@
-import { Constructor } from '../../classes/factory';
 import { ITemplate } from '../template/interfaces';
 import { GetOrCreateNodeStateObservable } from '../custom-node/node-state-observable/implementation';
 import { IStyle } from '../style/interfaces';
-import { INotificationsObservable, INotificationsObservableContext } from '../../notifications/core/notifications-observable/interfaces';
-import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
-import { NotificationsObservable } from '../../notifications/core/notifications-observable/public';
 import { GetNodeDOMState } from '../custom-node/node-state-observable/mutations';
 import { AttributeChangedCallback, ConnectedCallBack, DisconnectedCallBack } from './custom-element/interfaces';
 import { ICustomElementOptions, RegisterCustomElement } from './custom-element/implementation';
+import { INotificationsObservable, INotificationsObservableContext, NotificationsObservable } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';
+import { Constructor } from '../classes/interfaces';
 
 
 // export type TComponentConstructorArgs = [IComponentOptions];

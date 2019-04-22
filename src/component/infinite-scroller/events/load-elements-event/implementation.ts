@@ -1,5 +1,5 @@
-import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
 import { ILoadElementsEvent, ILoadElementsEventInit, TLoadElementsEventType } from './interfaces';
+import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 export const LOAD_ELEMENTS_EVENT_PRIVATE = Symbol('load-elements-event-private');
 

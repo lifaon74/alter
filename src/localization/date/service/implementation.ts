@@ -1,7 +1,8 @@
-import { INotificationsObservableContext } from '../../../../notifications/core/notifications-observable/interfaces';
 import { IDateService, IDateServiceKeyValueMap } from './interfaces';
-import { INotificationsObservableInternal, NotificationsObservable } from '../../../../notifications/core/notifications-observable/implementation';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
+import { INotificationsObservableInternal, NotificationsObservable } from '@lifaon/observables/notifications/core/notifications-observable/implementation';
+import { INotificationsObservableContext } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+
 
 
 

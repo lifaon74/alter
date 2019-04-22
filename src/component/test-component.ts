@@ -1,5 +1,4 @@
 import { fromString as TemplateFromString } from '../template/implementation';
-import { Source } from '../../observables/source/implementation';
 import { Attribute, CustomElement } from './custom-element/implementation';
 import { Component, IComponent, IComponentContext, OnInit } from './Component';
 import { NodeStateObservable } from '../custom-node/node-state-observable/implementation';
@@ -8,12 +7,7 @@ import { Router } from './router/implementation';
 import { IRoute } from './router/route/interfaces';
 import { Route } from './router/route/implementation';
 import { translateService } from '../localization/translate/service/implementation';
-import { IObserver } from '../../core/observer/interfaces';
-import { Observer } from '../../core/observer/public';
-import { AttachNode } from '../custom-node/node-state-observable/mutations';
-import { InfiniteScroller} from './infinite-scroller/implementation';
-import { testInfiniteScroller } from './infinite-scroller/test';
-import { testSwipeObservable } from '../../notifications/observables/events-observable/swipe/implementation';
+import { IObserver, Source } from '@lifaon/observables/public';
 
 function getFetchProxyURL(url: string): string {
   // return 'https://bypasscors.herokuapp.com/api/?url=' + encodeURIComponent(url);

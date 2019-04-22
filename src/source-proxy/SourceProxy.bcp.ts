@@ -1,7 +1,6 @@
-import { ISource } from '../../observables/source/interfaces';
-import { Source } from '../../observables/source/implementation';
+import { ISource, Source } from '@lifaon/observables/public';
 import { DeepMap, IDeepMap } from '../classes/DeepMap';
-import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
+import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';
 
 function testSourceProxyOld(): void {
 

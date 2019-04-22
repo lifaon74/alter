@@ -1,13 +1,11 @@
 import { ITranslateSource } from './interfaces';
-import { ASYNC_SOURCE_PRIVATE, AsyncSource, AsyncSourceEmit, IAsyncSourcePrivate } from '../../../../observables/source/implementation';
 import { ITranslateParams, ITranslateServiceKeyValueMap } from '../service/interfaces';
-import { IPromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/interfaces';
-import { IObservablePrivate, OBSERVABLE_PRIVATE } from '../../../../core/observable/implementation';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
-import { IObserver } from '../../../../core/observer/interfaces';
 import { translateService } from '../service/implementation';
-import { INotification } from '../../../../notifications/core/notification/interfaces';
-import { ISource } from '../../../../observables/source/interfaces';
+import { ASYNC_SOURCE_PRIVATE, AsyncSource, AsyncSourceEmit, IAsyncSourcePrivate } from '@lifaon/observables/observables/distinct/source/implementation';
+import { IObservablePrivate, OBSERVABLE_PRIVATE } from '@lifaon/observables/core/observable/implementation';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { IObserver, IPromiseCancelToken, KeyValueMapToNotifications } from '@lifaon/observables/public';
+
 
 export const TRANSLATE_SOURCE_PRIVATE = Symbol('translate-source-private');
 
@@ -29,8 +27,8 @@ export function ConstructTranslateSource(source: ITranslateSource): void {
   (source as ITranslateSourceInternal)[TRANSLATE_SOURCE_PRIVATE].params = null;
   (source as ITranslateSourceInternal)[TRANSLATE_SOURCE_PRIVATE].emitPromise = Promise.resolve(this);
 
-  const localeChangeObserver: IObserver<INotification<ITranslateServiceKeyValueMap>> = translateService
-    .pipeTo((notification: INotification<ITranslateServiceKeyValueMap>) => {
+  const localeChangeObserver: IObserver<KeyValueMapToNotifications<ITranslateServiceKeyValueMap>> = translateService
+    .pipeTo((notification: KeyValueMapToNotifications<ITranslateServiceKeyValueMap>) => {
       switch (notification.name) {
         case 'translations-change':
         case 'locale-change':

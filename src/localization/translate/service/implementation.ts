@@ -1,9 +1,7 @@
 import { ITranslateParams, ITranslateService, ITranslateServiceKeyValueMap, TTranslateMany, TTranslations, TTranslationsLoaderCallback, TTranslationsRaw } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
-import { INotificationsObservableInternal, NotificationsObservable } from '../../../../notifications/core/notifications-observable/implementation';
-import { INotificationsObservableContext } from '../../../../notifications/core/notifications-observable/interfaces';
-import { IPromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/interfaces';
-import { PromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/implementation';
+import { INotificationsObservableContext, IPromiseCancelToken, NotificationsObservable, PromiseCancelToken } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { INotificationsObservableInternal } from '@lifaon/observables/notifications/core/notifications-observable/implementation';
 
 
 export const TRANSLATE_SERVICE_PRIVATE = Symbol('translate-service-private');

@@ -1,21 +1,18 @@
-import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
-import { IObservableContext } from '../../../../../core/observable/interfaces';
-import { Observable } from '../../../../../core/observable/implementation';
 import { IQueryParamsObservable, IQueryParamsObservableOptions, TEmitOnObserve, TQueryParamChanges } from './interfaces';
-import { IObserver } from '../../../../../core/observer/interfaces';
 import { navigation } from '../implementation';
-import { INotificationsObserver } from '../../../../../notifications/core/notifications-observer/interfaces';
 import { INavigationState } from '../state/interfaces';
+import { INotificationsObserver, IObservableContext, IObserver, Observable } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 export const QUERY_PARAMS_OBSERVABLE_PRIVATE = Symbol('query-params-observable-private');
 
 export interface IQueryParamsObservablePrivate<T extends string[]> {
   context: IObservableContext<TQueryParamChanges<T>>;
-  names: Readonly<T>;
+  names: T;
   emitOnObserve: TEmitOnObserve;
   timer: any | null;
   url: URL | null;
-  navigationObserver: INotificationsObserver<Record<'navigate', INavigationState>>;
+  navigationObserver: INotificationsObserver<'navigate', INavigationState>;
   updating: boolean;
 }
 
@@ -35,7 +32,7 @@ export function ConstructQueryParamsObservable<T extends string[]>(
   const privates: IQueryParamsObservablePrivate<T> = (observable as IQueryParamsObservableInternal<T>)[QUERY_PARAMS_OBSERVABLE_PRIVATE];
 
   privates.context = context;
-  privates.names = Object.freeze(names) as Readonly<T>;
+  privates.names = names.slice() as T;
 
   if (options.emitOnObserve === void 0) {
     privates.emitOnObserve = 'none';

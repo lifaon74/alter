@@ -1,5 +1,4 @@
-import { IAsyncSource } from '../../../../observables/source/interfaces';
-import { IPromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/interfaces';
+import { IAsyncSource, IPromiseCancelToken } from '@lifaon/observables/public';
 
 export interface IDateFormatSource extends IAsyncSource<string> {
   emit(date: number | Date, options?: Intl.DateTimeFormatOptions): Promise<this>;

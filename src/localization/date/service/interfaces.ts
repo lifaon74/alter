@@ -1,5 +1,6 @@
-import { INotificationsObservable } from '../../../../notifications/core/notifications-observable/interfaces';
-import DateTimeFormatOptions = Intl.DateTimeFormatOptions;
+import { INotificationsObservable } from '@lifaon/observables/public';
+
+export type DateTimeFormatOptions = Intl.DateTimeFormatOptions;
 
 // export type TDateServiceEvents = 'locale-change';
 

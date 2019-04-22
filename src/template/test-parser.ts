@@ -10,6 +10,7 @@ import { parseTemplate } from './generators/template-generator/parser';
 import { fromString, Template } from './implementation';
 import { parseEventListenerAttribute } from './generators/element-node-generator/attribute/event/parser';
 import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../custom-node/node-state-observable/mutations';
+import { NotificationsObserver, Source } from '@lifaon/observables/public';
 
 function testTextParser() {
   const template: string = `a {{ data.b }} c`;
@@ -178,7 +179,7 @@ function testTemplateBuilder() {
     ifSource: new Source<boolean>(),
     itemsSource: new Source<Source<string>[]>(),
     textSource: new Source<string>(),
-    onClickObserver: new NotificationsObserver<Record<'click', MouseEvent>>('click', (event: MouseEvent) => {
+    onClickObserver: new NotificationsObserver<'click', MouseEvent>('click', (event: MouseEvent) => {
       event.preventDefault();
       console.log(event);
     }).activate(),

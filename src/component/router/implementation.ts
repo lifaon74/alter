@@ -1,14 +1,11 @@
-import { IPromiseCancelToken } from '../../../notifications/observables/promise-observable/promise-cancel-token/interfaces';
 import { IPathMatcherResult } from '../path-matcher/interfaces';
-import { PromiseCancelToken } from '../../../notifications/observables/promise-observable/promise-cancel-token/implementation';
 import { AttachNode, DestroyChildNodes } from '../../custom-node/node-state-observable/mutations';
 import { navigation, NavigationNavigate } from './navigation/implementation';
 import { IRoute, IRoutePathEntry, TRoutePath } from './route/interfaces';
 import { IRouter, IRouterNavigateOptions, IRouterRoutePathParams } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { IReadonlyList } from '../../../misc/readonly-list/interfaces';
-import { ReadonlyList } from '../../../misc/readonly-list/public';
-import { Reason } from '../../../misc/reason/implementation';
+import { IPromiseCancelToken, IReadonlyList, PromiseCancelToken, ReadonlyList, Reason } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
+
 
 // export interface Route {
 //   path?: string;

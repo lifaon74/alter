@@ -1,11 +1,9 @@
 import { IPathMatcher } from '../../path-matcher/interfaces';
-import { IReadonlyList } from '../../../../misc/readonly-list/interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 import { PathMatcher } from '../../path-matcher/implementation';
-import { ReadonlyList } from '../../../../misc/readonly-list/implementation';
 import { htmlElementConstructorsToTagNamesMap } from '../../elements-list';
-import { NotificationsObservable } from '../../../../notifications/core/notifications-observable/implementation';
 import { IRoute, IRouteKeyValueMap, IRouteOptions, TRouteContext } from './interfaces';
+import { IReadonlyList, NotificationsObservable, ReadonlyList } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 
 
 export const ROUTE_PRIVATE = Symbol('route-private');

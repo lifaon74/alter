@@ -1,7 +1,7 @@
 import { INavigationNavigateOptions } from './navigation/interfaces';
-import { IReadonlyList } from '../../../misc/readonly-list/interfaces';
 import { IRoute } from './route/interfaces';
 import { IPathMatcherParams } from '../path-matcher/interfaces';
+import { IReadonlyList } from '@lifaon/observables/public';
 
 
 export interface IRouterNavigateOptions extends INavigationNavigateOptions {

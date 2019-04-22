@@ -1,5 +1,5 @@
-import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
 import { INavigationState, INavigationStateOptions } from './interfaces';
+import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 export const NAVIGATION_STATE_PRIVATE = Symbol('navigation-state-private');
 

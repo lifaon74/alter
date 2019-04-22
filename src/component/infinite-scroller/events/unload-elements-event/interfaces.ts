@@ -1,4 +1,4 @@
-import { IReadonlyList } from '../../../../../misc/readonly-list/interfaces';
+import { IReadonlyList } from '@lifaon/observables/public';
 
 export type TUnloadElementsEventType = 'unload-before' | 'unload-after' | 'clear';
 

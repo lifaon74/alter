@@ -1,7 +1,7 @@
-import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
 import { IUnloadElementsEvent, IUnloadElementsEventInit, TUnloadElementsEventType } from './interfaces';
-import { IReadonlyList } from '../../../../../misc/readonly-list/interfaces';
-import { ReadonlyList } from '../../../../../misc/readonly-list/public';
+import { IReadonlyList, ReadonlyList } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
+
 
 export const UNLOAD_ELEMENTS_EVENT_PRIVATE = Symbol('unload-elements-event-private');
 

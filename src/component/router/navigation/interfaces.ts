@@ -1,7 +1,6 @@
 import { INavigationState } from './state/interfaces';
-import { IReadonlyList } from '../../../../misc/readonly-list/interfaces';
-import { INotificationsObservable } from '../../../../notifications/core/notifications-observable/interfaces';
-import { INotificationsObserver } from '../../../../notifications/core/notifications-observer/interfaces';
+import { INotificationsObservable, INotificationsObserver, IReadonlyList } from '@lifaon/observables/public';
+
 
 // export type TNavigationEvents = 'push' | 'refresh' | 'replace' | 'error' | 'back' | 'forward';
 
@@ -42,6 +41,6 @@ export interface INavigation extends INotificationsObservable<INavigationKeyValu
 
   resetHistory(): void;
 
-  addListener<K extends keyof INavigationExtendedKeyValueMap>(name: K, callback: (value: INavigationExtendedKeyValueMap[K]) => void): INotificationsObserver<INavigationExtendedKeyValueMap>;
+  addListener<K extends keyof INavigationExtendedKeyValueMap>(name: K, callback: (value: INavigationExtendedKeyValueMap[K]) => void): INotificationsObserver<K, INavigationExtendedKeyValueMap[K]>;
 }
 

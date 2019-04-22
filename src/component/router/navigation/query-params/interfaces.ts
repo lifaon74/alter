@@ -1,4 +1,4 @@
-import { IObservable, IObservableConstructor } from '../../../../../core/observable/interfaces';
+import { IObservable, IObservableConstructor } from '@lifaon/observables/public';
 
 export interface IQueryParamsChange {
   previous: string | null;

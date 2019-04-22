@@ -1,13 +1,11 @@
 import { CustomElement } from '../custom-element/implementation';
 import { AttachNode, DestroyNodeSafe } from '../../custom-node/node-state-observable/mutations';
-import { EventsObservable } from '../../../notifications/observables/events-observable/implementation';
-import { INotificationsObserver } from '../../../notifications/core/notifications-observer/interfaces';
 import { CyclicTypedVectorArray } from '../../classes/cyclic/CyclicTypedVectorArray';
-import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { IInfiniteScroller, IInfiniteScrollerContentLimitStrategy, TInfiniteScrollerDirection } from './interfaces';
-import { IEventsObservable } from '../../../notifications/observables/events-observable/interfaces';
 import { LoadElementsEvent } from './events/load-elements-event/implementation';
 import { UnloadElementsEvent } from './events/unload-elements-event/implementation';
+import { IEventsObservable, EventsObservable, INotificationsObserver } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 
 
 export function DecodeCSSTransformMatrix<T extends (Float32Array | Float64Array)>(matrix: T, transformString: string): T {
@@ -75,17 +73,17 @@ export interface IInfiniteScrollerPrivate {
   appendAfterList: [HTMLElement[], () => void, () => void][];
 
   wheelTarget: number | null;
-  wheelObserver: INotificationsObserver<Record<'wheel', WheelEvent>>;
+  wheelObserver: INotificationsObserver<'wheel', WheelEvent>;
 
-  touchStartObserver: INotificationsObserver<Record<'touchstart', TouchEvent>>;
-  touchMoveObserver: INotificationsObserver<Record<'touchmove', TouchEvent>>;
-  touchEndObserver: INotificationsObserver<Record<'touchend', TouchEvent>>;
+  touchStartObserver: INotificationsObserver<'touchstart', TouchEvent>;
+  touchMoveObserver: INotificationsObserver<'touchmove', TouchEvent>;
+  touchEndObserver: INotificationsObserver<'touchend', TouchEvent>;
   touchCurrentPosition: number;
   coords: CyclicTypedVectorArray<Float64Array>;
 
-  mouseDownObserver: INotificationsObserver<Record<'mousedown', MouseEvent>>;
-  mouseMoveObserver: INotificationsObserver<Record<'mousemove', MouseEvent>>;
-  mouseUpObserver: INotificationsObserver<Record<'mouseup', MouseEvent>>;
+  mouseDownObserver: INotificationsObserver<'mousedown', MouseEvent>;
+  mouseMoveObserver: INotificationsObserver<'mousemove', MouseEvent>;
+  mouseUpObserver: INotificationsObserver<'mouseup', MouseEvent>;
   mouseStartPosition: number;
   mouseCurrentPosition: number;
 }

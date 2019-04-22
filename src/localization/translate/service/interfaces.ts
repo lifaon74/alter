@@ -1,6 +1,5 @@
-import { INotificationsObservable } from '../../../../notifications/core/notifications-observable/interfaces';
-import { IPromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/interfaces';
-import { PromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/implementation';
+
+import { INotificationsObservable, IPromiseCancelToken, PromiseCancelToken } from '@lifaon/observables/public';
 
 // export type TTranslateServiceEvents = 'locale-change' | 'translations-change';
 

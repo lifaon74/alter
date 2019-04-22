@@ -1,7 +1,6 @@
-import { INotificationsObservable, INotificationsObservableContext } from '../../../../notifications/core/notifications-observable/interfaces';
-import { IReadonlyList } from '../../../../misc/readonly-list/interfaces';
 import { IPathMatcher, IPathMatcherParams } from '../../path-matcher/interfaces';
 import { HTMLElementConstructor } from '../../../custom-node/helpers/NodeHelpers';
+import { INotificationsObservable, INotificationsObservableContext, IReadonlyList } from '@lifaon/observables/public';
 
 // export type TRouteNotificationNames = 'activate';
 // export type TRouteNotificationValue = any;

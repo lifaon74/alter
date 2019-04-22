@@ -1,12 +1,10 @@
-import { ASYNC_SOURCE_PRIVATE, AsyncSource, AsyncSourceEmit, IAsyncSourcePrivate } from '../../../../observables/source/implementation';
 import { IDateFormatSource } from './interfaces';
-import { IPromiseCancelToken } from '../../../../notifications/observables/promise-observable/promise-cancel-token/interfaces';
-import { IObservablePrivate, OBSERVABLE_PRIVATE } from '../../../../core/observable/implementation';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
-import { IObserver } from '../../../../core/observer/interfaces';
 import { dateService } from '../service/implementation';
 import { IDateServiceKeyValueMap } from '../service/interfaces';
-import { INotificationsObserver } from '../../../../notifications/core/notifications-observer/interfaces';
+import { ASYNC_SOURCE_PRIVATE, AsyncSource, AsyncSourceEmit, IAsyncSourcePrivate } from '@lifaon/observables/observables/distinct/source/implementation';
+import { IObservablePrivate, OBSERVABLE_PRIVATE } from '@lifaon/observables/core/observable/implementation';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { INotificationsObserver, IObserver, IPromiseCancelToken } from '@lifaon/observables/public';
 
 export const DATE_FORMAT_SOURCE_PRIVATE = Symbol('date-format-source-private');
 
@@ -30,7 +28,7 @@ export function ConstructDateFormatSource(source: IDateFormatSource): void {
   (source as IDateFormatSourceInternal)[DATE_FORMAT_SOURCE_PRIVATE].stringifiedOptions = null;
   (source as IDateFormatSourceInternal)[DATE_FORMAT_SOURCE_PRIVATE].emitPromise = Promise.resolve(this);
 
-  const localeChangeObserver: INotificationsObserver<IDateServiceKeyValueMap> = dateService
+  const localeChangeObserver: INotificationsObserver<'locale-change', void> = dateService
     .addListener('locale-change', () => {
       DateFormatSourceEmitSuper(source);
     });
