@@ -1,8 +1,6 @@
 import { ExtendableHTMLElement } from './helpers/ExtendableHTMLElement';
 import { AttachNode, DestroyNodeSafe } from './node-state-observable/mutations';
 import { NodeStateObservable } from './node-state-observable/implementation';
-import { TimerObservable } from '../../observables/timer-observable/implementation';
-import { mapPipe } from '../../operators/pipes/mapPipe';
 import { AddCustomNodeCompleteSupportForNode } from './node-state-observable/interceptors';
 import { ContainerNode } from './container-node/implementation';
 import { DynamicTextNode } from './dynamic-node/dynamic-text-node/implementation';
@@ -12,16 +10,10 @@ import { DynamicProperty } from './dynamic-node/dynamic-element-node/dynamic-pro
 import { DynamicClass } from './dynamic-node/dynamic-element-node/dynamic-class/implementation';
 import { DynamicClassList } from './dynamic-node/dynamic-element-node/dynamic-class-list/implementation';
 import { DynamicStyleList } from './dynamic-node/dynamic-element-node/dynamic-style-list/implementation';
-import { IObservable } from '../../core/observable/interfaces';
 import { DynamicForLoopNode } from './dynamic-node/dynamic-for-loop-node/implementation';
-import { Observable } from '../../core/observable/public';
-import { Pipe } from '../../core/observable-observer/implementation';
-import { IPipe } from '../../core/observable-observer/interfaces';
-import { IObserver } from '../../core/observer/interfaces';
-import { Expression } from '../../observables/expression/implementation';
-import { ISource } from '../../observables/source/interfaces';
-import { Source } from '../../observables/source/implementation';
 import { DynamicStyle } from './dynamic-node/dynamic-element-node/dynamic-style/implementation';
+import { Expression, IObservable, IObserver, IPipe, ISource, mapPipe, Pipe, Source, TimerObservable } from '@lifaon/observables/public';
+
 
 function testExtendableHTMLElement() {
   class A extends ExtendableHTMLElement {
@@ -182,7 +174,7 @@ function testDynamicForLoopNode() {
     container.appendChild(new Text('item: '));
     container.appendChild(new DynamicTextNode().observe(item).activate());
     container.appendChild(new Text(', index: '));
-    container.appendChild(new DynamicTextNode().observe(index as any).activate());
+    container.appendChild(new DynamicTextNode().observe(index as unknown as IObservable<string>).activate());
     return container;
   });
 
@@ -541,7 +533,7 @@ export function testCustomNode() {
   AddCustomNodeCompleteSupportForNode();
 
   // testExtendableHTMLElement();
-  // testNodeStateObservable();
+  testNodeStateObservable();
 
   // testContainerNode();
 
@@ -551,7 +543,7 @@ export function testCustomNode() {
   // testDynamicProperty();
   // testDynamicClass();
   // testDynamicClassList();
-  testDynamicStyle();
+  // testDynamicStyle();
   // testDynamicStyleList();
 
   // testDynamicForLoopNode();

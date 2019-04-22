@@ -1,5 +1,5 @@
 import { DispatchEventInSubTree, NodeStateObservableDispatchEvent } from './implementation';
-import { Preventable } from '../../../notifications/core/preventable/implementation';
+import { Preventable } from '@lifaon/observables/public';
 
 
 export type DOMState = 'attached' | 'attaching' | 'detached' | 'detaching' | 'destroying' | 'destroyed';

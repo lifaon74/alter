@@ -1,4 +1,4 @@
-import { IObserver } from '../../../../../core/observer/interfaces';
+import { IObserver } from '@lifaon/observables/public';
 
 export interface IDynamicStyleConstructor {
   new(element: HTMLElement, name: string): IDynamicStyle;

@@ -1,9 +1,9 @@
-import { ObserverFactory } from '../../../../core/observer/implementation';
 import { BindObserverWithNodeStateObservable } from '../ObserverNode';
 import { IDynamicConditionalNode, IDynamicConditionalNodeConstructor, } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 import { ContainerNode } from '../../container-node/implementation';
 import { AttachNode, DetachNode } from '../../node-state-observable/mutations';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { ObserverFactory } from '@lifaon/observables/core/observer/implementation';
 
 
 export const DYNAMIC_CONDITIONAL_NODE_PRIVATE = Symbol('dynamic-conditional-node-private');

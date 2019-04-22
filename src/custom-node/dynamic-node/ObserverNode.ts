@@ -1,6 +1,6 @@
-import { IObserver } from '../../../core/observer/interfaces';
 import { GetOrCreateNodeStateObservable } from '../node-state-observable/implementation';
 import { DOMState, GetNodeDOMState } from '../node-state-observable/mutations';
+import { IObserver } from '@lifaon/observables/public';
 
 
 export function BindObserverWithNodeStateObservable<T>(observer: IObserver<T>, node: Node): void {

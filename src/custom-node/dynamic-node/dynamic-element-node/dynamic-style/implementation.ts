@@ -1,8 +1,8 @@
-import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
-import { Observer } from '../../../../../core/observer/implementation';
+import { Observer } from '@lifaon/observables/public';
 import { IDynamicStyle, IDynamicStyleConstructor, TDynamicStyleValue } from './interfaces';
 import { BindObserverWithNodeStateObservable } from '../../ObserverNode';
 import { ExtractUnit } from '../helpers';
+import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 export const DYNAMIC_STYLE_PRIVATE = Symbol('dynamic-style-private');
 

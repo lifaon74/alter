@@ -1,8 +1,6 @@
-import { INotificationsObservable } from '../../../notifications/core/notifications-observable/interfaces';
-import { IPreventable } from '../../../notifications/core/preventable/interfaces';
+import { INotificationsObservable, IPreventable } from '@lifaon/observables/public';
 
 // export type TNodeStateObservableNotificationName = 'beforeAttach' | 'beforeDetach' | 'afterAttach' | 'afterDetach' | 'destroy' | 'connect' | 'disconnect';
-
 export type TNodeStateObservablePreventableType = 'attach' | 'detach' | 'afterAttach' | 'afterDetach';
 // export type TNodeStateObservableNotificationType = IPreventable<TNodeStateObservablePreventableType> | undefined;
 

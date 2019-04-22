@@ -1,6 +1,6 @@
-import { ObserverFactory } from '../../../../core/observer/implementation';
 import { BindObserverWithNodeStateObservable } from '../ObserverNode';
 import { IDynamicTextNode, IDynamicTextNodeConstructor } from './interfaces';
+import { ObserverFactory } from '@lifaon/observables/core/observer/implementation';
 
 // export const DYNAMIC_TEXT_NODE_PRIVATE = Symbol('dynamic-text-node-private');
 //

@@ -1,9 +1,9 @@
-import { IEventsObservable, IEventsObservableConstructor, IEventsObservableKeyValueMapDefault } from '../../../../../notifications/observables/events-observable/interfaces';
+import { EventsObservableKeyValueMapGeneric, IEventsObservable, IEventsObservableConstructor } from '@lifaon/observables/public';
 
 export interface IDynamicEventListenerConstructor extends IEventsObservableConstructor {
   new(target: Element, name: string): IDynamicEventListener;
 }
 
-export interface IDynamicEventListener extends IEventsObservable<IEventsObservableKeyValueMapDefault, Element> {
+export interface IDynamicEventListener extends IEventsObservable<EventsObservableKeyValueMapGeneric, Element> {
 
 }

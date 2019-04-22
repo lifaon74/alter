@@ -1,4 +1,4 @@
-import { EnumToString } from '../../../helpers';
+import { EnumToString } from '../../helpers';
 
 export type HTMLElementConstructor = typeof HTMLElement;
 

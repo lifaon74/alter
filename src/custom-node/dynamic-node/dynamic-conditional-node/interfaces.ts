@@ -1,6 +1,6 @@
 import { IDynamicNode } from '../interfaces';
 import { IContainerNode } from '../../container-node/interfaces';
-import { IObserver } from '../../../../core/observer/interfaces';
+import { IObserver } from '@lifaon/observables/public';
 
 export interface IDynamicConditionalNodeConstructor {
   new<N extends Node>(createNode: () => N): IDynamicConditionalNode<N>;

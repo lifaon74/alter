@@ -1,8 +1,7 @@
-import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
-import { Observer } from '../../../../../core/observer/implementation';
+import { Observer } from '@lifaon/observables/public';
 import { IDynamicProperty, IDynamicPropertyConstructor } from './interfaces';
-import { GetOrCreateNodeStateObservable } from '../../../node-state-observable/implementation';
 import { BindObserverWithNodeStateObservable } from '../../ObserverNode';
+import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 export const DYNAMIC_PROPERTY_PRIVATE = Symbol('dynamic-property-private');
 

@@ -1,13 +1,10 @@
-import { INotificationsObservableInternal, NotificationsObservable, NotificationsObservableDispatch } from '../../../notifications/core/notifications-observable/implementation';
-import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { IObservablePrivate, OBSERVABLE_PRIVATE } from '../../../core/observable/implementation';
-import { INotification } from '../../../notifications/core/notification/interfaces';
-import { IObserver } from '../../../core/observer/interfaces';
 import { INodeStateObservable, INodeStateObservableKeyValueMap, TNodeState, TNodeStateObservablePreventableType } from './interfaces';
-import { IPreventable } from '../../../notifications/core/preventable/interfaces';
-import { Preventable } from '../../../notifications/core/preventable/implementation';
-import { Observer } from '../../../core/observer/public';
-import { DOMChangeObservable } from '../../../observables/dom-change/implementations';
+import { IObserver, IPreventable, KeyValueMapToNotifications, NotificationsObservable, Observer, Preventable } from '@lifaon/observables/public';
+import { INotificationsObservableInternal, NotificationsObservableDispatch } from '@lifaon/observables/notifications/core/notifications-observable/implementation';
+import { DOMChangeObservable } from '@lifaon/observables/observables/dom-change/implementations';
+import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
+import { IObservablePrivate, OBSERVABLE_PRIVATE } from '@lifaon/observables/core/observable/implementation';
+
 
 export const NODE_STATE_OBSERVABLE_PRIVATE = Symbol('node-state-observable-private');
 
@@ -47,7 +44,7 @@ const StaticDOMChangeObservable = new DOMChangeObservable();
 export function ConstructNodeStateObservable(observable: INodeStateObservable, node: Node): void {
   ConstructClassWithPrivateMembers(observable, NODE_STATE_OBSERVABLE_PRIVATE);
   const privates: INodeStateObservablePrivate = (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
-  const observablePrivates: IObservablePrivate<INotification<INodeStateObservableKeyValueMap>> = (observable as INodeStateObservableInternal)[OBSERVABLE_PRIVATE];
+  const observablePrivates: IObservablePrivate<KeyValueMapToNotifications<INodeStateObservableKeyValueMap>> = (observable as INodeStateObservableInternal)[OBSERVABLE_PRIVATE];
 
   privates.node = node;
   privates.referenceNode = null;
@@ -144,13 +141,13 @@ export function ConstructNodeStateObservable(observable: INodeStateObservable, n
   NodeStateObservableWeakMap.get(node).push(observable);
 
   const onObserveHook = observablePrivates.onObserveHook;
-  (observable as INodeStateObservableInternal)[OBSERVABLE_PRIVATE].onObserveHook = (observer: IObserver<INotification<INodeStateObservableKeyValueMap>>) => {
+  (observable as INodeStateObservableInternal)[OBSERVABLE_PRIVATE].onObserveHook = (observer: IObserver<KeyValueMapToNotifications<INodeStateObservableKeyValueMap>>) => {
     NodeStateObservableUseDOMObserverUpdate(observable);
     onObserveHook(observer);
   };
 
   const onUnobserveHook = observablePrivates.onUnobserveHook;
-  (observable as INodeStateObservableInternal)[OBSERVABLE_PRIVATE].onUnobserveHook = (observer: IObserver<INotification<INodeStateObservableKeyValueMap>>) => {
+  (observable as INodeStateObservableInternal)[OBSERVABLE_PRIVATE].onUnobserveHook = (observer: IObserver<KeyValueMapToNotifications<INodeStateObservableKeyValueMap>>) => {
     NodeStateObservableUseDOMObserverUpdate(observable);
     onUnobserveHook(observer);
   };

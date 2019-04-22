@@ -1,4 +1,4 @@
-import { IObserver } from '../../../../../core/observer/interfaces';
+import { IObserver } from '@lifaon/observables/public';
 import { TExtractClassNamesFromAny } from '../helpers';
 
 export interface IDynamicClassListConstructor {

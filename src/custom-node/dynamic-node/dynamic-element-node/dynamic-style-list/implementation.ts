@@ -1,8 +1,8 @@
 import { IDynamicStyleList, IDynamicStyleListConstructor, TDynamicStyleListValue } from './interfaces';
 import { BindObserverWithNodeStateObservable } from '../../ObserverNode';
-import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
 import { ExtractStylesFromAny } from '../helpers';
-import { Observer } from '../../../../../core/observer/implementation';
+import { Observer } from '@lifaon/observables/public';
+import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 export const DYNAMIC_StyleList_PRIVATE = Symbol('dynamic-style-list-private');
 

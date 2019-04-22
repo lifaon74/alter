@@ -1,12 +1,10 @@
-import { ObserverFactory } from '../../../../core/observer/implementation';
-import { GetOrCreateNodeStateObservable } from '../../node-state-observable/implementation';
 import { BindObserverWithNodeStateObservable } from '../ObserverNode';
 import { IDynamicForLoopNode, IDynamicForLoopNodeConstructor, TForLoopNodeCreateNodeCallback } from './interfaces';
 import { ContainerNode } from '../../container-node/implementation';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 import { DestroyNodeSafe, AttachNode } from '../../node-state-observable/mutations';
-import { ISource } from '../../../../observables/source/interfaces';
-import { Source } from '../../../../observables/source/implementation';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { ISource, Source } from '@lifaon/observables/public';
+import { ObserverFactory } from '@lifaon/observables/core/observer/implementation';
 
 
 export const DYNAMIC_FOR_LOOP_NODE_PRIVATE = Symbol('dynamic-for-loop-node-private');

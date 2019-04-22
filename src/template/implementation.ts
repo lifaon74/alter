@@ -14,7 +14,7 @@ import { DynamicEventListener } from '../custom-node/dynamic-node/dynamic-elemen
 import { ContainerNode } from '../custom-node/container-node/implementation';
 import { DynamicStyle } from '../custom-node/dynamic-node/dynamic-element-node/dynamic-style/implementation';
 import { NotificationsObserver } from '@lifaon/observables/public';
-import { $scope, $expression, $observable } from '../helpers/observables-snippets';
+import { $scope, $expression, $observable } from '../misc/helpers/observables-snippets';
 
 const defaultRequire: TTemplateRequireFunction = async (name: string) => {
   switch (name) {

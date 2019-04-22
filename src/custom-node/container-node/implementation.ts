@@ -2,12 +2,12 @@ import { VirtualNodeList } from '../collections/VirtualNodeList';
 import { VirtualHTMLCollection } from '../collections/VirtualHTMLCollection';
 import { UUID } from '../../classes/UUID';
 import { INodeStateObservable } from '../node-state-observable/interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { NodeStateObservable } from '../node-state-observable/implementation';
 import { ChildNodesIterator, ChildNodesIteratorReversed, IterableQuerySelector, PickElementsFromIterator } from '../helpers/NodeHelpers';
-import { IPreventable } from '../../../notifications/core/preventable/interfaces';
 import { IContainerNode } from './interfaces';
 import { IsValidXMLName } from '../../classes/tokenizers/xml';
+import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
+import { IPreventable } from '@lifaon/observables/public';
 
 
 

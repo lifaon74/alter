@@ -1,6 +1,6 @@
 export type UpdatableCollectionFunction<T> = () => ArrayLike<T>;
 
-export class UpdatableCollection<T> implements ArrayLike<T> {
+export abstract class UpdatableCollection<T> implements ArrayLike<T> {
   protected _length: number;
   protected _updateFunction: UpdatableCollectionFunction<T>;
 

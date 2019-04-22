@@ -44,14 +44,15 @@
     "http-server": "^0.11.1",
     "markdown-toc": "^1.2.0",
     "nodemon": "^1.18.10",
-    "@lifaon/observables": "^1.1.0",
     "rimraf": "^2.6.3",
-    "rollup-plugin-node-resolve": "^3.4.0",
+    "rollup-plugin-node-resolve": "^4.2.3",
     "rxjs": "^6.4.0",
     "typescript": "^3.4.3",
     "typescript-tuple": "^2.2.1",
     "uglify-es": "^3.3.9",
     "vinyl-source-stream": "latest"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@lifaon/observables": "latest"
+  }
 }
