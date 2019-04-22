@@ -1,0 +1,32 @@
+:host {
+  display: block;
+
+  & > .title {
+    display: block;
+  }
+}
+
+//:host > .item {
+//  display: block;
+//  width: 400px;
+//}
+//
+//:host > .item > .title {
+//  display: block;
+//}
+//
+//:host > .item > .content {
+//
+//}
+//
+//:host > .item > .content > .photo {
+//
+//}
+//
+//:host > .item > .content > .photo > img {
+//  width: 100%;
+//}
+//
+//:host > .item > .content > .video > video {
+//  width: 100%;
+//}
