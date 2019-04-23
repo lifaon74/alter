@@ -34,7 +34,7 @@ function testExtendableHTMLElement() {
 function testNodeStateObservable() {
   const node = document.createElement('div');
 
-  const observable = new NodeStateObservable(node)/*.useDOMObserver()*/
+  const observable = new NodeStateObservable(node).useDOMObserver()
     .on('connect', () => {
       console.log('connect');
     })

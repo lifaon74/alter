@@ -1,5 +1,3 @@
-
-
 import { parseText } from './generators/text-node-generator/parser';
 import { parseStaticAttribute } from './generators/element-node-generator/attribute/static/parser';
 import { parseBindAttribute } from './generators/element-node-generator/attribute/bind/parser';
