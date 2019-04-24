@@ -1,5 +1,5 @@
 import { UUID } from '../classes/UUID';
-import { GetOrCreateNodeStateObservable } from '../custom-node/node-state-observable/implementation';
+import { NodeStateObservableOf } from '../custom-node/node-state-observable/implementation';
 import { IStyle, TStyleFunction } from './interfaces';
 
 /**
@@ -88,7 +88,7 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
   return new Style((element: Element): HTMLStyleElement => {
     element.setAttribute(id, '');
 
-    const nodeStateObservable = GetOrCreateNodeStateObservable(element);
+    const nodeStateObservable = NodeStateObservableOf(element);
 
     function onConnect() {
       // console.log('connect');

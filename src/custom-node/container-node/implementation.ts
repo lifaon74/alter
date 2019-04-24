@@ -41,7 +41,7 @@ export function ConstructContainerNode(containerNode: IContainerNode, transparen
   privates.children = new VirtualHTMLCollection<Element>(() => Array.from(ContainerNodeChildElementsIterator(containerNode)));
 
   privates.stateObservable = new NodeStateObservable(containerNode)/*.useDOMObserver(true)*/;
-  privates.stateObservable.referenceNode = privates.startNode;
+  privates.stateObservable.reference = privates.startNode;
 
   privates.stateObservable
     .on('afterAttach', (preventable: IPreventable<'afterAttach'>) => {

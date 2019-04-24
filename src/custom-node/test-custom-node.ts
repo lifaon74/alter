@@ -34,7 +34,7 @@ function testExtendableHTMLElement() {
 function testNodeStateObservable() {
   const node = document.createElement('div');
 
-  const observable = new NodeStateObservable(node).useDOMObserver()
+  const observable = new NodeStateObservable(node)/*.useDOMObserver()*/
     .on('connect', () => {
       console.log('connect');
     })
@@ -48,8 +48,13 @@ function testNodeStateObservable() {
       }
     });
 
-  AttachNode(node, document.body);
-  // document.body.appendChild(node);
+  // new NodeStateObservable(node).useDOMObserver()
+  //   .on('connect', () => {
+  //     console.log('connect 2');
+  //   });
+
+  // AttachNode(node, document.body);
+  document.body.appendChild(node);
 
   (window as any).observable = observable;
   (window as any).node = node;
@@ -530,7 +535,7 @@ function testSourceProxy2(): void {
 
 
 export function testCustomNode() {
-  AddCustomNodeCompleteSupportForNode();
+  // AddCustomNodeCompleteSupportForNode();
 
   // testExtendableHTMLElement();
   testNodeStateObservable();

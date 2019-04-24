@@ -1,5 +1,5 @@
 import { ITemplate } from '../template/interfaces';
-import { GetOrCreateNodeStateObservable } from '../custom-node/node-state-observable/implementation';
+import { NodeStateObservableOf } from '../custom-node/node-state-observable/implementation';
 import { IStyle } from '../style/interfaces';
 import { GetNodeDOMState } from '../custom-node/node-state-observable/mutations';
 import { AttributeChangedCallback, ConnectedCallBack, DisconnectedCallBack } from './custom-element/interfaces';
@@ -100,7 +100,7 @@ export function InitComponent(component: IComponent, options: IComponentOptions)
     }
   });
 
-  const destroyObserver = GetOrCreateNodeStateObservable(component)
+  const destroyObserver = NodeStateObservableOf(component)
     .addListener('destroy', () => {
       destroyObserver.disconnect();
       if (typeof component.onDestroy === 'function') {

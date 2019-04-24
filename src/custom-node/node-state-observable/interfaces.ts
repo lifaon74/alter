@@ -3,31 +3,35 @@ import { INotificationsObservable, IPreventable } from '@lifaon/observables/publ
 /**
  * TYPES
  */
-// export type TNodeStateObservableNotificationName = 'beforeAttach' | 'beforeDetach' | 'afterAttach' | 'afterDetach' | 'destroy' | 'connect' | 'disconnect';
-export type TNodeStateObservablePreventableType = 'attach' | 'detach' | 'afterAttach' | 'afterDetach';
-// export type TNodeStateObservableNotificationType = IPreventable<TNodeStateObservablePreventableType> | undefined;
+
+export type TNodeStateObservableBeforeAttachPreventableType = 'attach' | 'afterAttach';
+export type TNodeStateObservableBeforeDetachPreventableType = 'detach' | 'afterDetach';
 
 export interface INodeStateObservableKeyValueMap {
-  beforeAttach: IPreventable<TNodeStateObservablePreventableType>;
-  beforeDetach: IPreventable<TNodeStateObservablePreventableType>;
-  afterAttach: IPreventable<TNodeStateObservablePreventableType>;
-  afterDetach: IPreventable<TNodeStateObservablePreventableType>;
-  destroy: undefined;
-  connect: undefined;
-  disconnect: undefined;
+  beforeAttach: IPreventable<TNodeStateObservableBeforeAttachPreventableType>;
+  beforeDetach: IPreventable<TNodeStateObservableBeforeDetachPreventableType>;
+  afterAttach: void;
+  afterDetach: void;
+  destroy: void;
+  connect: void;
+  disconnect: void;
 }
 
 export type TNodeState = 'connected' | 'disconnected' | 'destroyed';
+
 
 /**
  * INTERFACES
  */
 
 export interface INodeStateObservableConstructor {
-  for(node: Node): INodeStateObservable;
-
+  of(node: Node): INodeStateObservable;
   new(node: Node): INodeStateObservable;
 }
+
+// export interface INodeStateObservableConstructorProtected extends INodeStateObservableConstructor {
+//   new(node: Node): INodeStateObservable;
+// }
 
 
 /**
@@ -35,7 +39,6 @@ export interface INodeStateObservableConstructor {
  */
 export interface INodeStateObservable extends INotificationsObservable<INodeStateObservableKeyValueMap> {
   readonly state: TNodeState;
-  referenceNode: Node | null;
   useDOMObserver(use?: boolean): this;
 }
 

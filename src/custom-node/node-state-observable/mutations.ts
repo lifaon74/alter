@@ -1,5 +1,15 @@
-import { DispatchEventInSubTree, DispatchEventToAllNodeStateObservable } from './implementation';
-import { Preventable } from '@lifaon/observables/public';
+import { IPreventable, Preventable } from '@lifaon/observables/public';
+import {
+  ForEachNodeStateObservablesOfNode,
+  ForEachNodeStateObservablesOfNodeTree, NodeStateObservableOnMutationAfterAttach,
+  NodeStateObservableOnMutationAfterDetach,
+  NodeStateObservableOnMutationBeforeAttach, NodeStateObservableOnMutationBeforeDetach,
+  NodeStateObservableOnMutationConnect, NodeStateObservableOnMutationDestroy,
+  NodeStateObservableOnMutationDisconnect
+} from './implementation';
+import {
+  INodeStateObservable, TNodeStateObservableBeforeAttachPreventableType, TNodeStateObservableBeforeDetachPreventableType
+} from './interfaces';
 
 /**
  * A node may be in one of the following state:
@@ -55,13 +65,13 @@ export function ApplyAttach(node: Node, parent: Node, refNode: Node | null = nul
     const length: number = nodes.length;
     if ((length > 0) && node.ownerDocument.contains(nodes[0])) {
       for (let i = 0; i < length; i++) {
-        DispatchEventInSubTree(nodes[i], 'onConnect');
+        ForEachNodeStateObservablesOfNodeTree(nodes[i], NodeStateObservableOnMutationConnect);
       }
     }
   } else {
     parent.insertBefore(node, refNode);
     if (node.ownerDocument.contains(node)) {
-      DispatchEventInSubTree(node, 'onConnect');
+      ForEachNodeStateObservablesOfNodeTree(node, NodeStateObservableOnMutationConnect);
     }
   }
 }
@@ -81,13 +91,15 @@ export function AttachNode<N extends Node>(node: N, parent: Node, refNode: Node 
     const state: DOMState = GetNodeDOMState(node);
     if (state === 'detached') {
       NodeDOMStateMap.set(node, 'attaching');
-      const preventable = new Preventable<'attach' | 'afterAttach'>();
-      DispatchEventToAllNodeStateObservable(node, 'onBeforeAttach', preventable);
+      const preventable: IPreventable<TNodeStateObservableBeforeAttachPreventableType> = new Preventable<TNodeStateObservableBeforeAttachPreventableType>();
+      ForEachNodeStateObservablesOfNode(node, (observable: INodeStateObservable) => {
+        NodeStateObservableOnMutationBeforeAttach(observable, preventable);
+      });
       if (!preventable.isPrevented('attach')) {
         ApplyAttach(node, parent, refNode);
       }
       if (!preventable.isPrevented('afterAttach')) {
-        DispatchEventToAllNodeStateObservable(node, 'onAfterAttach');
+        ForEachNodeStateObservablesOfNode(node, NodeStateObservableOnMutationAfterAttach);
       }
       NodeDOMStateMap.set(node, 'attached');
       return node;
@@ -104,7 +116,7 @@ export function AttachNode<N extends Node>(node: N, parent: Node, refNode: Node 
  */
 export function ApplyDetach(node: Node): void {
   node.parentNode.removeChild(node);
-  DispatchEventInSubTree(node, 'onDisconnect');
+  ForEachNodeStateObservablesOfNodeTree(node, NodeStateObservableOnMutationDisconnect);
 }
 
 /**
@@ -116,12 +128,15 @@ export function DetachNode<N extends Node>(node: N): N {
   const state: DOMState = GetNodeDOMState(node);
   if (state === 'attached') {
     NodeDOMStateMap.set(node, 'detaching');
-    const preventable = new Preventable<'detach' | 'afterDetach'>();
+    const preventable: IPreventable<TNodeStateObservableBeforeDetachPreventableType> = new Preventable<TNodeStateObservableBeforeDetachPreventableType>();
+    ForEachNodeStateObservablesOfNode(node, (observable: INodeStateObservable) => {
+      NodeStateObservableOnMutationBeforeDetach(observable, preventable);
+    });
     if (!preventable.isPrevented('detach')) {
       ApplyDetach(node);
     }
     if (!preventable.isPrevented('afterDetach')) {
-      DispatchEventToAllNodeStateObservable(node, 'onAfterDetach');
+      ForEachNodeStateObservablesOfNode(node, NodeStateObservableOnMutationAfterDetach);
     }
     NodeDOMStateMap.set(node, 'detached');
     return node;
@@ -135,10 +150,13 @@ export function DetachNode<N extends Node>(node: N): N {
  * @param node
  */
 export function ApplyDestroy(node: Node): void {
-  const nodes: ArrayLike<Node> = (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) ? node.childNodes : [node];
-  const length: number = nodes.length;
-  for (let i = 0; i < length; i++) {
-    DispatchEventInSubTree(nodes[i], 'onDestroy');
+  if (node.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
+    const nodes: ArrayLike<Node> = node.childNodes;
+    for (let i = 0, length: number = nodes.length; i < length; i++) {
+      ForEachNodeStateObservablesOfNodeTree(nodes[i], NodeStateObservableOnMutationDestroy);
+    }
+  } else {
+    ForEachNodeStateObservablesOfNodeTree(node, NodeStateObservableOnMutationDestroy);
   }
 }
 

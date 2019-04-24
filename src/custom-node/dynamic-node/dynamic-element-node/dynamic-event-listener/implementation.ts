@@ -1,7 +1,7 @@
 import { IDynamicEventListener } from './interfaces';
 import { EventsObservable, EventsObservableKeyValueMapGeneric, INotification, IObserver } from '@lifaon/observables/public';
 import { DOMState, GetNodeDOMState } from '../../../node-state-observable/mutations';
-import { GetOrCreateNodeStateObservable } from '../../../node-state-observable/implementation';
+import { NodeStateObservableOf } from '../../../node-state-observable/implementation';
 import { EVENTS_OBSERVABLE_PRIVATE, IEventsObservableInternal } from '@lifaon/observables/notifications/observables/events-observable/implementation';
 import { OBSERVABLE_PRIVATE, ObservableClearObservers } from '@lifaon/observables/core/observable/implementation';
 
@@ -29,7 +29,7 @@ export function ConstructDynamicEventListener(dynamicEventListener: IDynamicEven
     onObserveHook(observer);
   };
 
-  const observer = GetOrCreateNodeStateObservable((dynamicEventListener as IDynamicEventListenerInternal)[EVENTS_OBSERVABLE_PRIVATE].target)
+  const observer = NodeStateObservableOf((dynamicEventListener as IDynamicEventListenerInternal)[EVENTS_OBSERVABLE_PRIVATE].target)
     .addListener('destroy', () => {
       observer.disconnect();
       ObservableClearObservers<INotification<string, Event>>(dynamicEventListener);

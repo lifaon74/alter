@@ -6,7 +6,7 @@ export type HTMLElementConstructor = typeof HTMLElement;
  * Creates an iterator over a list composed of 'node' and its nextSiblings
  * @param node
  */
-export function* NodeIterator(node: Node | null): IterableIterator<Node> {
+export function * NodeIterator(node: Node | null): IterableIterator<Node> {
   while (node !== null) {
     yield node;
     node = node.nextSibling;
@@ -17,7 +17,7 @@ export function* NodeIterator(node: Node | null): IterableIterator<Node> {
  * Creates an iterator over a list composed of 'node' and its previousSibling
  * @param node
  */
-export function* NodeIteratorReversed(node: Node | null): IterableIterator<Node> {
+export function * NodeIteratorReversed(node: Node | null): IterableIterator<Node> {
   while (node !== null) {
     yield node;
     node = node.previousSibling;
@@ -44,7 +44,7 @@ export function ChildNodesIteratorReversed(parent: Node): IterableIterator<Child
  * Returns an iterator retuning Element only, from a Node iterator.
  * @param iterator
  */
-export function* PickElementsFromIterator(iterator: IterableIterator<Node>): IterableIterator<Element> {
+export function * PickElementsFromIterator(iterator: IterableIterator<Node>): IterableIterator<Element> {
   let result: IteratorResult<Node>;
   while (!(result = iterator.next()).done) {
     if (result.value.nodeType === Node.ELEMENT_NODE) {
@@ -54,7 +54,7 @@ export function* PickElementsFromIterator(iterator: IterableIterator<Node>): Ite
 }
 
 // Element, Document, DocumentFragment
-export function* IterableQuerySelector<E extends Element>(parent: ParentNode & Node, selectors: string): IterableIterator<E> {
+export function * IterableQuerySelector<E extends Element>(parent: ParentNode & Node, selectors: string): IterableIterator<E> {
   let filterFunction: (node: Element) => boolean;
 
   // only if selectors contains :scope
@@ -149,7 +149,7 @@ export function SetElementAttribute(element: Element, name: string, value: any =
     element.removeAttribute(name);
   } else {
     if (Array.isArray(type) && !type.includes(value)) {
-      throw new TypeError(`Expected ${EnumToString(type)} as ${element.constructor.name}.${name}`);
+      throw new TypeError(`Expected ${ EnumToString(type) } as ${ element.constructor.name }.${ name }`);
     }
     element.setAttribute(name, String(value));
   }
