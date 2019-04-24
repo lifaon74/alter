@@ -1,11 +1,13 @@
 import {
-  IReferenceNode, IReferenceNodeConstructor, TReferenceNodeConstructorArgs, TReferenceNodeMutation
+  ICommentReferenceNodeConstructor,
+  IReferenceNode, IReferenceNodeConstructor, ITextReferenceNodeConstructor, TReferenceNodeConstructorArgs,
+  TReferenceNodeMutation
 } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 import {
   Constructor, FactoryClass, GetSetSuperArgsFunction, HasFactoryWaterMark, IsFactoryClass
-} from '../../../classes/factory';
-import { IsObject } from '../../../helpers';
+} from '../../classes/factory';
+import { IsObject } from '../../helpers';
 
 
 export const REFERENCE_NODE_PRIVATE = Symbol('reference-node-private');
@@ -33,7 +35,7 @@ export function IsReferenceNode(value: any): value is IReferenceNode {
 
 const IS_REFERENCE_NODE_CONSTRUCTOR = Symbol('is-reference-node-constructor');
 export function IsReferenceNodeConstructor(value: any): value is IReferenceNodeConstructor {
-  return (typeof value === 'function') && ((value === ReferenceNodeComment) || (value === ReferenceNodeText) || HasFactoryWaterMark(value, IS_REFERENCE_NODE_CONSTRUCTOR));
+  return (typeof value === 'function') && ((value === CommentReferenceNode) || (value === TextReferenceNode) || HasFactoryWaterMark(value, IS_REFERENCE_NODE_CONSTRUCTOR));
 }
 
 
@@ -94,7 +96,7 @@ export function ReferenceNodeInferMutation(instance: IReferenceNode): TReference
       if (node === instance.node) {
         return 'none';
       } else if (
-        !(node instanceof ReferenceNode)
+        !IsReferenceNode(node)
         || (node.node !== targetNode)
       ) {
         break;
@@ -103,6 +105,20 @@ export function ReferenceNodeInferMutation(instance: IReferenceNode): TReference
     return 'move';
   }
 }
+
+export function ReferenceNodeNextVirtualSibling(instance: IReferenceNode): Node | null {
+  let node: Node = instance;
+  while (((node = node.nextSibling) !== null) && !IsReferenceNode(node)) {
+  }
+  return node;
+}
+
+export function ReferenceNodeStaticNextSibling(node: Node): Node | null {
+  return IsReferenceNode(node.nextSibling)
+    ? node.nextSibling.nextVirtualSibling
+    : node.nextSibling;
+}
+
 
 
 export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass: TBase) {
@@ -121,6 +137,11 @@ export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass
   // const setSuperArgs = GetSetSuperArgsFunction(IsFactoryClass(superClass));
 
   return FactoryClass(class ReferenceNode extends superClass implements IReferenceNode {
+
+    static nextSibling(node: Node): Node | null {
+      return ReferenceNodeStaticNextSibling(node);
+    }
+
     constructor(...args: any[]) {
       const [node]: TReferenceNodeConstructorArgs = args[0];
       super(...args.slice(1));
@@ -129,6 +150,10 @@ export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass
 
     get node(): Node {
       return ((this as unknown) as IReferenceNodeInternal)[REFERENCE_NODE_PRIVATE].node;
+    }
+
+    get nextVirtualSibling(): Node | null {
+      return ReferenceNodeNextVirtualSibling(this);
     }
 
     inferMutation(): TReferenceNodeMutation {
@@ -140,19 +165,21 @@ export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass
       return this;
     }
 
+
+
   })<TReferenceNodeConstructorArgs>('ReferenceNode', IS_REFERENCE_NODE_CONSTRUCTOR);
 }
 
-export const ReferenceNodeComment: IReferenceNodeConstructor = class ReferenceNodeComment extends ReferenceNodeFactory<typeof Comment>(Comment) {
-  constructor(node: Node) {
-    super([node], 'ref');
+export const CommentReferenceNode: ICommentReferenceNodeConstructor = class CommentReferenceNode extends ReferenceNodeFactory<typeof Comment>(Comment) {
+  constructor(node: Node, name: string = 'ref') {
+    super([node], name);
   }
 };
 
-export const ReferenceNodeText: IReferenceNodeConstructor = class ReferenceNodeText extends ReferenceNodeFactory<typeof Comment>(Comment) {
+export const TextReferenceNode: ITextReferenceNodeConstructor = class TextReferenceNode extends ReferenceNodeFactory<typeof Text>(Text) {
   constructor(node: Node) {
     super([node], '');
   }
 };
 
-export const ReferenceNode = ReferenceNodeComment;
+// export const ReferenceNode = ReferenceNodeComment;

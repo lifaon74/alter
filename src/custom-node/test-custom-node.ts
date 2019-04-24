@@ -536,11 +536,12 @@ function testSourceProxy2(): void {
 
 export function testCustomNode() {
   // AddCustomNodeCompleteSupportForNode();
+  NodeStateObservable.useDOMObserver = true;
 
   // testExtendableHTMLElement();
-  testNodeStateObservable();
+  // testNodeStateObservable();
 
-  // testContainerNode();
+  testContainerNode();
 
   // testDynamicTextNode();
   // testDynamicConditionalNode();

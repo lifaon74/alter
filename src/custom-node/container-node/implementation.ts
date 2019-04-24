@@ -3,15 +3,13 @@ import { VirtualHTMLCollection } from '../collections/VirtualHTMLCollection';
 import { UUID } from '../../classes/UUID';
 import { INodeStateObservable } from '../node-state-observable/interfaces';
 import { NodeStateObservable } from '../node-state-observable/implementation';
-import { ChildNodesIterator, ChildNodesIteratorReversed, IterableQuerySelector, PickElementsFromIterator } from '../helpers/NodeHelpers';
+import {
+  ChildNodesIterator, ChildNodesIteratorReversed, IterableQuerySelector, PickElementsFromIterator
+} from '../helpers/NodeHelpers';
 import { IContainerNode } from './interfaces';
 import { IsValidXMLName } from '../../classes/tokenizers/xml';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
-import { IPreventable } from '@lifaon/observables/public';
-
-
-
-
+import { ReferenceNodeStaticNextSibling } from '../reference-node/implementation';
 
 
 export const CONTAINER_NODE_PRIVATE = Symbol('container-node-private');
@@ -31,29 +29,27 @@ export interface IContainerNodeInternal extends IContainerNode {
 
 export function ConstructContainerNode(containerNode: IContainerNode, transparent: boolean = false): void {
   ConstructClassWithPrivateMembers(containerNode, CONTAINER_NODE_PRIVATE);
-  const privates: IContainerNodePrivate = (containerNode  as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
 
   privates.fragment = containerNode.ownerDocument.createDocumentFragment();
   privates.startNode = transparent ? containerNode.ownerDocument.createTextNode('') : containerNode.ownerDocument.createComment('START');
+  // privates.startNode = transparent ? new TextReferenceNode(containerNode) : new CommentReferenceNode(containerNode, 'START');
   privates.endNode = transparent ? containerNode.ownerDocument.createTextNode('') : containerNode.ownerDocument.createComment('END');
 
   privates.childNodes = new VirtualNodeList<ChildNode>(() => Array.from(ContainerNodeChildNodesIterator(containerNode)));
   privates.children = new VirtualHTMLCollection<Element>(() => Array.from(ContainerNodeChildElementsIterator(containerNode)));
 
-  privates.stateObservable = new NodeStateObservable(containerNode)/*.useDOMObserver(true)*/;
-  privates.stateObservable.reference = privates.startNode;
+  privates.stateObservable = new NodeStateObservable(containerNode);
 
   privates.stateObservable
-    .on('afterAttach', (preventable: IPreventable<'afterAttach'>) => {
+    .on('afterAttach', () => {
       // console.log('afterAttach');
-      preventable.prevent('afterAttach');
       privates.fragment.insertBefore(privates.startNode, privates.fragment.firstChild); // push startNode as first child of fragment
       privates.fragment.appendChild(privates.endNode);
-      containerNode.parentNode.insertBefore(privates.fragment, Object.getOwnPropertyDescriptor(Node.prototype, 'nextSibling').get.call(containerNode)); // fragment becomes empty
+      containerNode.parentNode.insertBefore(privates.fragment, ReferenceNodeStaticNextSibling(containerNode)); // fragment becomes empty
     })
-    .on('afterDetach', (preventable: IPreventable<'afterDetach'>) => {
+    .on('afterDetach', () => {
       // console.log('afterDetach');
-      preventable.prevent('afterDetach');
       let node: Node = privates.startNode.nextSibling;
       while ((node !== null) && (node !== privates.endNode)) {
         privates.fragment.appendChild(node);
@@ -71,7 +67,7 @@ export function ConstructContainerNode(containerNode: IContainerNode, transparen
  * @param containerNode
  * @constructor
  */
-export function *ContainerNodeChildNodesIteratorAttached(containerNode: IContainerNode): IterableIterator<ChildNode> {
+export function * ContainerNodeChildNodesIteratorAttached(containerNode: IContainerNode): IterableIterator<ChildNode> {
   let node: Node | null = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.nextSibling;
   while ((node !== null) && (node !== (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode)) {
     yield node as ChildNode;
@@ -101,7 +97,7 @@ export function ContainerNodeChildNodesIterator(containerNode: IContainerNode): 
 
 /** ContainerNodeChildNodesIteratorReversed **/
 
-export function *ContainerNodeChildNodesIteratorAttachedReversed(containerNode: IContainerNode): IterableIterator<ChildNode> {
+export function * ContainerNodeChildNodesIteratorAttachedReversed(containerNode: IContainerNode): IterableIterator<ChildNode> {
   let node: Node | null = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode.previousSibling;
   while ((node !== null) && (node !== (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode)) {
     yield node as ChildNode;
@@ -136,7 +132,7 @@ export function ContainerNodeChildElementsIteratorReversed(containerNode: IConta
 
 /** ContainerNodeIterableQuerySelector **/
 
-export function *ContainerNodeIterableQuerySelectorAttached<E extends Element>(containerNode: IContainerNode, selectors: string): IterableIterator<E> {
+export function * ContainerNodeIterableQuerySelectorAttached<E extends Element>(containerNode: IContainerNode, selectors: string): IterableIterator<E> {
   const children: Node[] = Array.from(ContainerNodeChildNodesIteratorAttached(containerNode));
   const iterator: IterableIterator<E> = IterableQuerySelector<E>((containerNode as any).parentElement, selectors);
   let result: IteratorResult<E>;
@@ -164,10 +160,6 @@ export function ContainerNodeIterableQuerySelector<E extends Element>(containerN
     ? ContainerNodeIterableQuerySelectorDetached(containerNode, selectors)
     : ContainerNodeIterableQuerySelectorAttached(containerNode, selectors);
 }
-
-
-
-
 
 
 export function ContainerNodeClearChildNodes(containerNode: IContainerNode): void {
@@ -518,7 +510,7 @@ export function ContainerNodeGetElementsByTagName(containerNode: IContainerNode,
 }
 
 export function ContainerNodeGetElementById(containerNode: IContainerNode, elementId: string): Element | null {
-  return containerNode.querySelector(`#${elementId}`);
+  return containerNode.querySelector(`#${ elementId }`);
 }
 
 export function ContainerNodeClosest(containerNode: IContainerNode, selector: string): Element | null {
@@ -528,7 +520,6 @@ export function ContainerNodeClosest(containerNode: IContainerNode, selector: st
     return containerNode.parentElement.closest(selector);
   }
 }
-
 
 
 export class ContainerNode extends Comment implements IContainerNode {

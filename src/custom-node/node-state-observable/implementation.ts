@@ -9,8 +9,8 @@ import {
 import { DOMChangeObservable } from '@lifaon/observables/observables/dom-change/implementations';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 import { IDOMChangeObservable } from '@lifaon/observables/observables/dom-change/interfaces';
-import { IReferenceNode, TReferenceNodeMutation } from './reference-node/interfaces';
-import { ReferenceNode, ReferenceNodeUpdate } from './reference-node/implementation';
+import { IReferenceNode, TReferenceNodeMutation } from '../reference-node/interfaces';
+import { ReferenceNodeUpdate, CommentReferenceNode } from '../reference-node/implementation';
 
 
 export const NODE_STATE_OBSERVABLE_PRIVATE = Symbol('node-state-observable-private');
@@ -242,7 +242,7 @@ export function NodeStateObservableActivateDOMObserver(observable: INodeStateObs
 
   if (!privates.domChangeObserver.activated) {
     if (privates.referenceNode === null) {
-      privates.referenceNode = new ReferenceNode(privates.node);
+      privates.referenceNode = new CommentReferenceNode(privates.node);
     }
     privates.referenceNode.update();
     privates.domChangeObserver.activate();
