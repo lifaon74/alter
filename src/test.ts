@@ -9,6 +9,6 @@ export function test() {
   // testParser();
   // testCustomNode();
   // testTranslatePipe();
-  testDateFormatPipe();
-  // testNumberFormatPipe();
+  // testDateFormatPipe();
+  testNumberFormatPipe();
 }

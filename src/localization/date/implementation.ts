@@ -32,7 +32,8 @@ export class DateFormatService extends LocalizationService<IDateFormatServiceKey
 
 
 export type TDatePredefinedFormat = 'minimal' | 'short' | 'medium' | 'long' | 'full'
-  | 'minimalDate' | 'shortDate' | 'mediumDate' | 'longDate' | 'fullDate';
+  | 'minimalDate' | 'shortDate' | 'mediumDate' | 'longDate' | 'fullDate'
+  | 'shortTime' | 'mediumTime' | 'longTime';
 // https://angular.io/api/common/DatePipe
 
 // 'short': equivalent to 'M/d/yy, h:mm a' (6/15/15, 9:03 AM).
@@ -84,6 +85,7 @@ export function DateFormatToDateTimeFormatOptions(format: TDatePredefinedFormat)
         hour: 'numeric', minute: 'numeric', second: 'numeric',
         timeZoneName: 'short'
       };
+
     case 'minimalDate':
       return {
         year: '2-digit', month: 'numeric', day: 'numeric',
@@ -103,6 +105,20 @@ export function DateFormatToDateTimeFormatOptions(format: TDatePredefinedFormat)
     case 'fullDate':
       return {
         year: 'numeric', month: 'long', day: 'numeric', weekday: 'long'
+      };
+
+    case 'shortTime':
+      return {
+        hour: 'numeric', minute: 'numeric'
+      };
+    case 'mediumTime':
+      return {
+        hour: 'numeric', minute: 'numeric', second: 'numeric',
+      };
+    case 'longTime':
+      return {
+        hour: 'numeric', minute: 'numeric', second: 'numeric',
+        timeZoneName: 'short'
       };
     default:
       throw new TypeError(`Unknown date format: ${format}`);

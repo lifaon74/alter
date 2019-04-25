@@ -1,5 +1,5 @@
 import { DestroyNode } from '../custom-node/node-state-observable/mutations';
-import { Constructor } from '../classes/interfaces';
+import { Constructor } from '../classes/factory';
 
 
 /**

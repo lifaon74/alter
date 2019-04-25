@@ -1,6 +1,6 @@
 import { GetElementAttribute, HTMLElementConstructor, SetElementAttribute, TElementAttributeType } from '../../custom-node/helpers/NodeHelpers';
 import { htmlElementConstructors, htmlElementConstructorsToTagNamesMap, RegisterHTMLElement } from '../elements-list';
-import { Constructor } from '../../classes/interfaces';
+import { Constructor } from '../../classes/factory';
 
 
 /**

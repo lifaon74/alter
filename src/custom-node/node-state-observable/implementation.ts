@@ -4,11 +4,9 @@ import {
 } from './interfaces';
 import {
   INotificationsObservableContext, IObserver, IPreventable, NotificationsObservable,
-  Observer
+  Observer, DOMChangeObservable, IDOMChangeObservable
 } from '@lifaon/observables/public';
-import { DOMChangeObservable } from '@lifaon/observables/observables/dom-change/implementations';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
-import { IDOMChangeObservable } from '@lifaon/observables/observables/dom-change/interfaces';
 import { IReferenceNode, TReferenceNodeMutation } from '../reference-node/interfaces';
 import { ReferenceNodeUpdate, CommentReferenceNode } from '../reference-node/implementation';
 
