@@ -1,12 +1,12 @@
-import { fromString as TemplateFromString } from '../template/implementation';
+import { templateFromString as TemplateFromString } from '../template/implementation';
 import { Attribute, CustomElement } from './custom-element/implementation';
 import { Component, IComponent, IComponentContext, OnInit } from './Component';
 import { NodeStateObservable } from '../custom-node/node-state-observable/implementation';
-import { fromString as StyleFromString } from '../style/implementation';
+import { styleFromString as StyleFromString } from '../style/implementation';
 import { Router } from './router/implementation';
 import { IRoute } from './router/route/interfaces';
 import { Route } from './router/route/implementation';
-import { translateService } from '../localization/translate/service/implementation';
+import { translateService } from '../localization/translate/implementation';
 import { IObserver, Source } from '@lifaon/observables/public';
 
 function getFetchProxyURL(url: string): string {

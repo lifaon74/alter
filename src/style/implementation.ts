@@ -1,6 +1,7 @@
 import { UUID } from '../classes/UUID';
 import { NodeStateObservableOf } from '../custom-node/node-state-observable/implementation';
 import { IStyle, TStyleFunction } from './interfaces';
+import { INodeStateObservable } from '../custom-node/node-state-observable/interfaces';
 
 /**
  * Creates an HTMLStyleElement with 'css' inside
@@ -88,7 +89,7 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
   return new Style((element: Element): HTMLStyleElement => {
     element.setAttribute(id, '');
 
-    const nodeStateObservable = NodeStateObservableOf(element);
+    const nodeStateObservable: INodeStateObservable = NodeStateObservableOf(element);
 
     function onConnect() {
       // console.log('connect');
@@ -161,8 +162,8 @@ export function StyleURLToStyleInstance(url: string): Promise<IStyle> {
     .then(StyleStringToStyleInstance);
 }
 
-export const fromString = StyleStringToStyleInstance;
-export const fromURL = StyleURLToStyleInstance;
+export const styleFromString = StyleStringToStyleInstance;
+export const styleFromURL = StyleURLToStyleInstance;
 
 export class Style implements IStyle {
   public readonly insert: TStyleFunction;

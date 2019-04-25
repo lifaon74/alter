@@ -188,8 +188,8 @@ export function TemplateURLToTemplateInstance(
     });
 }
 
-export const fromString = TemplateStringToTemplateInstance;
-export const fromURL = TemplateURLToTemplateInstance;
+export const templateFromString = TemplateStringToTemplateInstance;
+export const templateFromURL = TemplateURLToTemplateInstance;
 
 export class Template implements ITemplate {
 

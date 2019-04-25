@@ -5,7 +5,7 @@ import { DefaultModule } from './module/implementation';
 import { parseElementNode } from './generators/element-node-generator/parser';
 import { parseCommandAttribute } from './generators/element-node-generator/attribute/commands/parser';
 import { parseTemplate } from './generators/template-generator/parser';
-import { fromString, Template } from './implementation';
+import { templateFromString, Template } from './implementation';
 import { parseEventListenerAttribute } from './generators/element-node-generator/attribute/event/parser';
 import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../custom-node/node-state-observable/mutations';
 import { NotificationsObserver, Source } from '@lifaon/observables/public';
@@ -183,7 +183,7 @@ function testTemplateBuilder() {
     }).activate(),
   };
 
-  const template = fromString(templateString);
+  const template = templateFromString(templateString);
   template.insert(data, document.body)
     .then(() => {
       (window as any).data = data;

@@ -1,2 +1,2 @@
 export * from './interfaces';
-export { Template, fromString, fromURL } from './implementation';
+export { Template, templateFromString, templateFromURL } from './implementation';

@@ -29,7 +29,7 @@ export function polyfillIntl(locales: string[] = []): Promise<void> {
 
       const _reject = (message: string) => {
         clear();
-        reject(new Error('Failed to load polyfill : ' + message));
+        reject(new Error('Failed to load polyfill: ' + message));
       };
 
 

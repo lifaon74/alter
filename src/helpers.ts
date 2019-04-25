@@ -1,3 +1,4 @@
+import { IPromiseCancelToken, TPromiseType } from '@lifaon/observables/public';
 
 export function noop() {}
 
@@ -29,4 +30,17 @@ export function MathClosestTo(targetValue: number, ...values: number[]): number 
 
 export function IsObject(value: any): value is object {
   return (typeof value === 'object') && (value !== null);
+}
+
+
+export function wrapToken<CB extends (...args: any[]) => any>(callback: CB, token?: IPromiseCancelToken): (...args: Parameters<CB>) => Promise<TPromiseType<ReturnType<CB>>> {
+  if (token === void 0) {
+    return function (...args: Parameters<CB>): Promise<TPromiseType<ReturnType<CB>>> {
+      return new Promise<TPromiseType<ReturnType<CB>>>((resolve: any) => {
+        resolve(callback.apply(this, args));
+      });
+    };
+  } else {
+    return token.wrap<CB>(callback);
+  }
 }

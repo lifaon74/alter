@@ -6,7 +6,7 @@ import { AttributeChangedCallback, ConnectedCallBack, DisconnectedCallBack } fro
 import { ICustomElementOptions, RegisterCustomElement } from './custom-element/implementation';
 import { INotificationsObservable, INotificationsObservableContext, NotificationsObservable } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';
-import { Constructor } from '../classes/interfaces';
+import { Constructor } from '../classes/factory';
 
 
 // export type TComponentConstructorArgs = [IComponentOptions];
