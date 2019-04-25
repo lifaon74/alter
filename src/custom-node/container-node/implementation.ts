@@ -65,7 +65,6 @@ export function ConstructContainerNode(containerNode: IContainerNode, transparen
 /**
  * Iterates over the list of child nodes of a ContainerNode when it is attached to the DOM
  * @param containerNode
- * @constructor
  */
 export function * ContainerNodeChildNodesIteratorAttached(containerNode: IContainerNode): IterableIterator<ChildNode> {
   let node: Node | null = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.nextSibling;
@@ -78,7 +77,6 @@ export function * ContainerNodeChildNodesIteratorAttached(containerNode: IContai
 /**
  * Iterates over the list of child nodes of a ContainerNode when it is detached from the DOM
  * @param containerNode
- * @constructor
  */
 export function ContainerNodeChildNodesIteratorDetached(containerNode: IContainerNode): IterableIterator<ChildNode> {
   return ChildNodesIterator((containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment);
@@ -153,7 +151,6 @@ export function ContainerNodeIterableQuerySelectorDetached<E extends Element>(co
  * Creates an iterator over a list composed of the nodes matching 'selectors'
  * @param containerNode
  * @param selectors
- * @constructor
  */
 export function ContainerNodeIterableQuerySelector<E extends Element>(containerNode: IContainerNode, selectors: string): IterableIterator<E> {
   return ((containerNode as any).parentNode === null)

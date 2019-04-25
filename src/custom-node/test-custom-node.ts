@@ -1,5 +1,5 @@
 import { ExtendableHTMLElement } from './helpers/ExtendableHTMLElement';
-import { AttachNode, DestroyNodeSafe } from './node-state-observable/mutations';
+import { AttachNode, AttachNodeSafe, DestroyNodeSafe, DetachNode } from './node-state-observable/mutations';
 import { NodeStateObservable } from './node-state-observable/implementation';
 import { AddCustomNodeCompleteSupportForNode } from './node-state-observable/interceptors';
 import { ContainerNode } from './container-node/implementation';
@@ -90,7 +90,7 @@ function testDynamicTextNode() {
 
   setTimeout(() => {
     DestroyNodeSafe(node);
-  }, 1000);
+  }, 3000);
 }
 
 
@@ -100,6 +100,11 @@ function testDynamicConditionalNode() {
   const node = new DynamicConditionalNode(() => new Text('if - hello'));
   AttachNode(node, document.body);
 
+  let visible: boolean = false;
+  new TimerObservable(500)
+    .pipeThrough(mapPipe<void, boolean>(() => (visible = !visible)))
+    .pipeTo(node);
+
   (window as any).node = node;
 }
 
@@ -107,22 +112,29 @@ function testDynamicAttribute() {
   const node = document.createElement('my-element');
   AttachNode(node, document.body);
 
-  const observer = new DynamicAttribute(node, 'my-attribute').activate();
-  observer.emit('attr-value');
+  const dynamicAttribute = new DynamicAttribute(node, 'my-attribute').activate();
+  dynamicAttribute.emit('attr-value');
+
+  new TimerObservable(1000)
+    .pipeThrough(mapPipe<void, string>(() => new Date().toISOString()))
+    .pipeTo(dynamicAttribute);
 
   (window as any).node = node;
-  (window as any).observer = observer;
+  (window as any).observer = dynamicAttribute;
 }
 
 function testDynamicProperty() {
   const node = document.createElement('input');
   AttachNode(node, document.body);
 
-  const observer = new DynamicProperty<any>(node, 'readonly').activate();
-  observer.emit(true);
+  const dynamicProperty = new DynamicProperty<any>(node, 'readonly').activate();
+  dynamicProperty.emit(true);
+
+  const dynamicProperty2 = new DynamicProperty<any>(node, 'DisaBled').activate();
+  dynamicProperty2.emit(true);
 
   (window as any).node = node;
-  (window as any).observer = observer;
+  (window as any).observer = dynamicProperty;
 }
 
 function testDynamicClass() {
@@ -142,6 +154,7 @@ function testDynamicClassList() {
 
   const observer = new DynamicClassList(node).activate();
   observer.emit('class1 class2');
+  // observer.emit({ 'class1 class2': true });
 
   (window as any).node = node;
   (window as any).observer = observer;
@@ -536,12 +549,17 @@ function testSourceProxy2(): void {
 
 export function testCustomNode() {
   // AddCustomNodeCompleteSupportForNode();
-  NodeStateObservable.useDOMObserver = true;
+  // NodeStateObservable.useDOMObserver = true;
+
+  (window as any).AttachNode = AttachNodeSafe;
+  (window as any).DetachNode = DetachNode;
+  (window as any).DestroyNode = DestroyNodeSafe;
+
 
   // testExtendableHTMLElement();
   // testNodeStateObservable();
 
-  testContainerNode();
+  // testContainerNode();
 
   // testDynamicTextNode();
   // testDynamicConditionalNode();

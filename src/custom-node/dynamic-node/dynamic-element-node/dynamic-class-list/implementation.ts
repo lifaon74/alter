@@ -51,7 +51,7 @@ export function DynamicClassListOnEmit(dynamicClassList: IDynamicClassList, valu
  */
 export function DiffPreviousClassNames(previousClassNames: Set<string>, classNames: Set<string>): string[] {
   const nextClassNames: string[] = [];
-  const iterator: IterableIterator<string> = classNames.values();
+  const iterator: Iterator<string> = classNames.values();
   let result: IteratorResult<string>;
   while (!(result = iterator.next()).done) {
     if (previousClassNames.has(result.value)) {

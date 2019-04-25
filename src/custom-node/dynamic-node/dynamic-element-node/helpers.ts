@@ -68,7 +68,7 @@ export function ExtractClassNamesFromObject(object: { [key: string]: boolean }, 
 
 /**
  * Extracts a list of class names from a string.
- * Expects string of well formed class names, or throws
+ * Expects string of well formed class names (separated by spaces), or throws
  * @param input
  * @param classNames
  */

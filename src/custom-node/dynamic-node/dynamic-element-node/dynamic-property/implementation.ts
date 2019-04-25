@@ -42,6 +42,7 @@ export function GetCaseInsensitiveProperty(name: string, object: any): string | 
   }
 }
 
+
 export function DynamicPropertyOnEmit<T>(dynamicProperty: IDynamicProperty<T>, value: T): void {
   const name: string | null = GetCaseInsensitiveProperty(
     (dynamicProperty as IDynamicPropertyInternal<T>)[DYNAMIC_PROPERTY_PRIVATE].name,
