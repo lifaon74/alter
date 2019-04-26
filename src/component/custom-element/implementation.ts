@@ -1,4 +1,4 @@
-import { GetElementAttribute, HTMLElementConstructor, SetElementAttribute, TElementAttributeType } from '../../custom-node/helpers/NodeHelpers';
+import { GetElementAttribute, SetElementAttribute, TElementAttributeType } from '../../custom-node/helpers/NodeHelpers';
 import { htmlElementConstructors, htmlElementConstructorsToTagNamesMap, RegisterHTMLElement } from '../elements-list';
 import { Constructor } from '../../classes/factory';
 
@@ -7,7 +7,7 @@ import { Constructor } from '../../classes/factory';
  * Returns the main HTMLElement constructor of a class (ex: HTMLInputElement)
  * @param target
  */
-export function GetCustomElementHTMLElementConstructor<TFunction extends HTMLElementConstructor>(target: TFunction): TFunction | null {
+export function GetCustomElementHTMLElementConstructor<TFunction extends Constructor<HTMLElement>>(target: TFunction): TFunction | null {
   let superClass: any = target;
   const objectPrototype: any = Object.getPrototypeOf(Object);
   do {
@@ -20,7 +20,12 @@ export function GetCustomElementHTMLElementConstructor<TFunction extends HTMLEle
   } while (true);
 }
 
-export function GetCustomElementObservedAttributes(target: HTMLElementConstructor): Set<string> {
+/**
+ * Returns the list of all the observedAttributes of a CustomElement
+ * @param target
+ * @param stopOnFirstMatch
+ */
+export function GetCustomElementObservedAttributes(target: Constructor<HTMLElement>, stopOnFirstMatch: boolean = true): Set<string> {
   const observedAttributes: Set<string> = new Set<string>();
   let superClass: any = target;
   const objectPrototype: any = Object.getPrototypeOf(Object);
@@ -40,6 +45,10 @@ export function GetCustomElementObservedAttributes(target: HTMLElementConstructo
       for (let i = 0, l = values.length; i < l; i++) {
         observedAttributes.add(values[i]);
       }
+
+      if (stopOnFirstMatch) {
+        break;
+      }
     }
     superClass = Object.getPrototypeOf(superClass);
   }
@@ -48,12 +57,13 @@ export function GetCustomElementObservedAttributes(target: HTMLElementConstructo
 }
 
 export interface ICustomElementOptions {
-  name: string;
-  extends?: string | null;
-  observedAttributes?: Iterable<string>;
+  name: string; // tag name
+  extends?: string | null; // optional extended tag names
+  observedAttributes?: Iterable<string>; // optional list of observed attributes
 }
 
-export function RegisterCustomElement<TFunction extends HTMLElementConstructor>(target: TFunction, options: ICustomElementOptions): void {
+export function RegisterCustomElement<TFunction extends Constructor<HTMLElement>>(target: TFunction, options: ICustomElementOptions): void {
+  // if observedAttributes is present, extracts static observedAttributes and remap the function
   if (options.observedAttributes !== void 0) {
     const observedAttributes: Set<string> = GetCustomElementObservedAttributes(target);
 
@@ -76,7 +86,7 @@ export function RegisterCustomElement<TFunction extends HTMLElementConstructor>(
   const elementConstructor: TFunction | null = GetCustomElementHTMLElementConstructor<TFunction>(target);
   if (elementConstructor === null) {
     throw new TypeError(`The class '${target.name}' must extend an HTMLElement.`);
-  } else if (elementConstructor !== HTMLElement) {
+  } else if (elementConstructor !== HTMLElement) { // child class of HTMLElement => must set the proper 'extends'
     const tagNames: Set<string> = htmlElementConstructorsToTagNamesMap.get(elementConstructor);
 
     if (options.extends === void 0) {
@@ -138,7 +148,7 @@ export function Attribute(options: AttributeOptions) {
 
 
     if (options.observe !== false) {
-      const observedAttributes: Set<string> = GetCustomElementObservedAttributes(target.constructor as HTMLElementConstructor);
+      const observedAttributes: Set<string> = GetCustomElementObservedAttributes(target.constructor as Constructor<HTMLElement>);
       observedAttributes.add(propertyKey);
 
       Object.defineProperty(target.constructor, 'observedAttributes', {

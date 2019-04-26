@@ -1,22 +1,24 @@
 import {
   INotificationsObservableContext, KeyValueMapKeys, NotificationsObservable
 } from '@lifaon/observables/public';
-import { ILocalizationService, ILocalizationServiceKeyValueMap } from './interfaces';
+import {
+  ILocalizationService, LocalizationServiceKeyValueMapConstraint
+} from './interfaces';
 import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';
 
 
 export const LOCALIZATION_SERVICE_PRIVATE = Symbol('localization-service-private');
 
-export interface ILocalizationServicePrivate<TKVMap extends ILocalizationServiceKeyValueMap> {
+export interface ILocalizationServicePrivate<TKVMap extends LocalizationServiceKeyValueMapConstraint<TKVMap>> {
   context: INotificationsObservableContext<TKVMap>;
   locale: string;
 }
 
-export interface ILocalizationServiceInternal<TKVMap extends ILocalizationServiceKeyValueMap> extends ILocalizationService<TKVMap> {
+export interface ILocalizationServiceInternal<TKVMap extends LocalizationServiceKeyValueMapConstraint<TKVMap>> extends ILocalizationService<TKVMap> {
   [LOCALIZATION_SERVICE_PRIVATE]: ILocalizationServicePrivate<TKVMap>;
 }
 
-export function ConstructLocalizationService<TKVMap extends ILocalizationServiceKeyValueMap>(service: ILocalizationService<TKVMap>, context: INotificationsObservableContext<TKVMap>): void {
+export function ConstructLocalizationService<TKVMap extends LocalizationServiceKeyValueMapConstraint<TKVMap>>(service: ILocalizationService<TKVMap>, context: INotificationsObservableContext<TKVMap>): void {
   ConstructClassWithPrivateMembers(service, LOCALIZATION_SERVICE_PRIVATE);
   (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].context = context;
   (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].locale = null;
@@ -24,12 +26,12 @@ export function ConstructLocalizationService<TKVMap extends ILocalizationService
   LocalizationServiceSetLocale<TKVMap>(service, window.navigator.language || 'en');
 }
 
-export function LocalizationServiceSetLocale<TKVMap extends ILocalizationServiceKeyValueMap>(service: ILocalizationService<TKVMap>, locale: string): void {
+export function LocalizationServiceSetLocale<TKVMap extends LocalizationServiceKeyValueMapConstraint<TKVMap>>(service: ILocalizationService<TKVMap>, locale: string): void {
   (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].locale = locale;
   (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].context.dispatch('locale-change' as KeyValueMapKeys<TKVMap>);
 }
 
-export abstract class LocalizationService<TKVMap extends ILocalizationServiceKeyValueMap> extends NotificationsObservable<TKVMap> implements ILocalizationService<TKVMap> {
+export abstract class LocalizationService<TKVMap extends LocalizationServiceKeyValueMapConstraint<TKVMap>> extends NotificationsObservable<TKVMap> implements ILocalizationService<TKVMap> {
 
   protected constructor() {
     let context: INotificationsObservableContext<TKVMap> = void 0;

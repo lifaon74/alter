@@ -1,3 +1,7 @@
+/**
+ * Contains functions and helpers for Custom Element (elements that extend HTMLElement)
+ */
+
 export interface ConnectedCallBack {
   connectedCallback(): void;
 }

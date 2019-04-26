@@ -228,6 +228,7 @@ export function Component(options: IComponentOptions) {
       }
     };
 
+    // RegisterCustomElement creates an instance of the component, so we need to disabled the init
     disabledComponentInit.add(_class);
     RegisterCustomElement(_class, options);
     disabledComponentInit.delete(_class);
@@ -235,47 +236,6 @@ export function Component(options: IComponentOptions) {
     return _class;
   };
 }
-
-// export function Component(options: IComponentOptions) {
-//   return <T extends Constructor<HTMLElement>>(target: T) => {
-//     const _class = class Component extends target implements IComponent {
-//       public readonly data: any;
-//       public readonly attributeListener: INotificationsObservable<string, any>;
-//
-//       public readonly onInit: () => void;
-//       public readonly onDestroy: () => void;
-//       public readonly onConnected: () => void;
-//       public readonly onDisconnected: () => void;
-//
-//       constructor(...args: any[]) {
-//         super(...args);
-//         ConstructComponent(this, options);
-//       }
-//
-//       connectedCallback(): void {
-//         if (typeof this.onConnected === 'function') {
-//           this.onConnected();
-//         }
-//       }
-//
-//       disconnectedCallback(): void {
-//         if (typeof this.onDisconnected === 'function') {
-//           this.onDisconnected.call(this);
-//         }
-//       }
-//
-//       attributeChangedCallback(attrName: string, oldVal: string, newVal: string): void {
-//         console.log('change');
-//       }
-//
-//     };
-//
-//     RegisterCustomElement(_class, options);
-//
-//     return _class;
-//   };
-// }
-//
 
 
 // export function HostBind(attributeName: string, options: ITemplateBuildOptions = {}) {

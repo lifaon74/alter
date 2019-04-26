@@ -3,6 +3,11 @@ import { Constructor } from '../classes/factory';
 
 
 /**
+ * Contains helpers which reference all elements: tag names, constructors, etc...
+ */
+
+
+/**
  * Returns the list of all the class which inherits of HTMLElement
  */
 function GetHTMLElementConstructors(items: Set<Constructor<HTMLElement>> = new Set<Constructor<HTMLElement>>()): Set<Constructor<HTMLElement>> {
@@ -15,6 +20,10 @@ function GetHTMLElementConstructors(items: Set<Constructor<HTMLElement>> = new S
   return items;
 }
 
+/**
+ * Returns the constructor for a specific tag name
+ * @param tagName
+ */
 function GetTagNameConstructor(tagName: string): Constructor<HTMLElement> {
   const element: HTMLElement = document.createElement(tagName);
   const _constructor: Constructor<HTMLElement> = element.constructor as any;

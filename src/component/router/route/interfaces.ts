@@ -1,6 +1,6 @@
 import { IPathMatcher, IPathMatcherParams } from '../../path-matcher/interfaces';
-import { HTMLElementConstructor } from '../../../custom-node/helpers/NodeHelpers';
 import { INotificationsObservable, INotificationsObservableContext, IReadonlyList } from '@lifaon/observables/public';
+import { Constructor } from '../../../classes/factory';
 
 // export type TRouteNotificationNames = 'activate';
 // export type TRouteNotificationValue = any;
@@ -20,7 +20,7 @@ export interface IRoute extends INotificationsObservable<IRouteKeyValueMap> {
 
 export interface IRouteOptions {
   path: string;
-  component?: string | HTMLElementConstructor | null;
+  component?: string | Constructor<HTMLElement> | null;
   children?: Iterable<IRoute>;
   routerId?: string | null;
   /**
