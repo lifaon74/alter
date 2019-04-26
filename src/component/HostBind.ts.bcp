@@ -1,0 +1,175 @@
+import { ITemplateBuildOptions } from '../template/interfaces';
+import {
+  PropertyDescriptorType, PropertyOrMethodDecoratorWrapper
+} from '@lifaon/observables/classes/properties';
+import { NormalizeTemplateBuildOptions, TemplateCodeToTemplateDebuggableFunction } from '../template/implementation';
+import {
+  Expression, IObservable, IObserver, Observer
+} from '@lifaon/observables/public';
+import { IAttributeGenerator } from '../template/generators/element-node-generator/attribute/interfaces';
+import { parseAttribute } from '../template/generators/element-node-generator/attribute/parser';
+import { TemplateGenerator } from '../template/generators/template-generator/implementation';
+import { ITemplateGenerator } from '../template/generators/template-generator/interfaces';
+import { noop } from '../helpers';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export type THostBindOptionsMode = 'source' | 'destination' | 'expression' | 'observable' | 'observer' | 'auto';
+
+export interface IHostBindOptions extends ITemplateBuildOptions {
+  mode?: THostBindOptionsMode;
+}
+
+export function NormalizeHostBindOptions(options: IHostBindOptions): IHostBindOptions {
+  const _options: IHostBindOptions = NormalizeTemplateBuildOptions(options);
+
+  if (options.mode === void 0) {
+    _options.mode = 'auto';
+  } else if (['value', 'expression', 'observable', 'auto'].includes(options.mode)) {
+    _options.mode = options.mode;
+  } else {
+    throw new TypeError(`Expected 'value', 'expression', 'observable' or 'auto' as options.mode`);
+  }
+
+  return _options;
+}
+
+export function HostBind(attributeName: string, options: IHostBindOptions = {}): PropertyDecorator {
+  return PropertyOrMethodDecoratorWrapper(<T>(
+    target: Object,
+    propertyKey: string,
+    type: PropertyDescriptorType,
+    descriptor: Readonly<TypedPropertyDescriptor<T>>
+  ) => {
+    options = NormalizeHostBindOptions(options);
+
+    const data: { value?: IObservable<T> | IObserver<T> } = {};
+    const container = document.createElement('div');
+    container.innerHTML = `<div ${ attributeName }="data.value"></div>`;
+    const attributeGenerator: IAttributeGenerator = parseAttribute(container.firstElementChild.attributes[0], options.module);
+    const templateGenerator: ITemplateGenerator = new TemplateGenerator([attributeGenerator]);
+
+    debugger;
+
+    let resolveData: () => void = noop;
+    const resolveDataPromise = new Promise<Node>((resolve: any) => {
+      resolveData = () => {
+        setTimeout(() => {
+          console.log(target, data);
+          resolve(data);
+        }, 10);
+      };
+    });
+    const newDescriptor: TypedPropertyDescriptor<T> = {
+      configurable: descriptor.configurable,
+      enumerable: descriptor.enumerable
+    };
+
+    if ('value' in descriptor) {
+      // newDescriptor.get = function (): T {
+      //   data.source
+      //   return descriptor.get.call(this);
+      // };
+
+      // newDescriptor.set = function (value: T): void {
+      //   if (options.mode === 'auto') {
+      //     if (IsObservable(value)) {
+      //       options.mode = 'observable';
+      //     } else if (typeof value === 'function') {
+      //       options.mode = 'expression';
+      //     }
+      //   }
+      //   switch (options.mode) {
+      //     case 'auto'
+      //   }
+      //   resolve(this);
+      //   return descriptor.set.call(this, value);
+      // };
+    } else if (typeof descriptor.get === 'function') { // getter => expression
+      if (options.mode === 'auto') {
+        options.mode = 'expression';
+      } else if (options.mode !== 'expression') {
+        throw new TypeError(`The property '${propertyKey}' is a getter, so the expected HostBind mode is 'expression', you set '${options.mode}' instead.`);
+      }
+
+      data.value = new Expression<T>(() => descriptor.get.call(target));
+      newDescriptor.get = descriptor.get;
+
+      if (typeof descriptor.set === 'function') {
+        throw new TypeError(`The HostBind mode for the property '${propertyKey}' is '${options.mode}', not no setter is expected.`);
+      }
+
+      resolveData();
+    } else if (typeof descriptor.set === 'function') {  // setter only => destination
+      if (options.mode === 'auto') {
+        options.mode = 'destination';
+      } else if (options.mode !== 'destination') {
+        throw new TypeError(`The property '${propertyKey}' is a setter, so the expected HostBind mode is 'destination', you set '${options.mode}' instead.`);
+      }
+
+      data.value = new Observer<T>((value: T) => descriptor.set.call(value));
+      newDescriptor.set = descriptor.set;
+
+      resolveData();
+    }
+
+
+    // newDescriptor.get = function (): T {
+    //   Object.defineProperty(data, 'data.source.value', {
+    //     get: data.source.value
+    //   });
+    //   return descriptor.get.call(this);
+    // };
+
+    // newDescriptor.set = function (value: T): void {
+    //   if (options.mode === 'auto') {
+    //     if (IsObservable(value)) {
+    //       options.mode = 'observable';
+    //     } else if () {
+    //
+    //     }
+    //   }
+    //   switch (options.mode) {
+    //     case 'auto'
+    //   }
+    //   resolve(this);
+    //   return descriptor.set.call(this, value);
+    // };
+
+
+    TemplateCodeToTemplateDebuggableFunction(
+      templateGenerator.generate(['node'].concat(options.constantsToImport))
+    )((name: string) => { // require function
+      if (name === options.dataSourceName) {
+        return resolveDataPromise
+      } else if (name === 'node') {
+        return Promise.resolve(target);
+      } else {
+        return options.require(name);
+      }
+    });
+
+
+
+    return {
+      descriptor: newDescriptor,
+      type: type,
+    };
+  });
+}
+

@@ -16,6 +16,7 @@ import { DynamicStyle } from '../custom-node/dynamic-node/dynamic-element-node/d
 import { NotificationsObserver } from '@lifaon/observables/public';
 import { $scope, $expression, $observable } from '../misc/helpers/observables-snippets';
 
+
 const defaultRequire: TTemplateRequireFunction = async (name: string) => {
   switch (name) {
     case 'NotificationsObserver':
@@ -61,7 +62,7 @@ const defaultRequire: TTemplateRequireFunction = async (name: string) => {
   }
 };
 
-export function NormalizeBuildOptions(options: ITemplateBuildOptions): ITemplateBuildOptions {
+export function NormalizeTemplateBuildOptions(options: ITemplateBuildOptions): ITemplateBuildOptions {
   const _options: ITemplateBuildOptions = {};
 
   if (options.module === void 0) {
@@ -111,6 +112,7 @@ export function TemplateCodeToTemplateDebuggableFunction(lines: string[]): TTemp
 
     throw error;
   }
+  // console.log(fnc.toString());
   return (require: TTemplateRequireFunction) => {
     return new Promise<DocumentFragment>((resolve: any) => {
       // console.log(fnc);
@@ -156,7 +158,7 @@ export function TemplateStringToTemplateInstance(
   template: string,
   options: ITemplateBuildOptions = {},
 ): ITemplate {
-  options = NormalizeBuildOptions(options);
+  options = NormalizeTemplateBuildOptions(options);
   return new Template((data: TTemplateDataType) => {
       return TemplateCodeToTemplateDebuggableFunction(
         parseTemplate(template, options.module).generate(options.constantsToImport)

@@ -1,4 +1,4 @@
-import { CustomElement } from '../custom-element/implementation';
+import { CustomElement } from '../core/custom-element/implementation';
 import { AttachNode, DestroyNodeSafe } from '../../custom-node/node-state-observable/mutations';
 import { CyclicTypedVectorArray } from '../../classes/cyclic/CyclicTypedVectorArray';
 import { IInfiniteScroller, IInfiniteScrollerContentLimitStrategy, TInfiniteScrollerDirection } from './interfaces';

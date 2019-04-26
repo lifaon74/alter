@@ -4,7 +4,7 @@ import { TElementNodeGeneratorChildren } from '../element-node-generator/interfa
 import { IndentLines, ScopeLines } from '../snipets';
 
 
-export const defaultConstantsToImport: string[] = [
+export const defaultConstantsToImport = [
   'NotificationsObserver',
   'AttachNode',
   'DetachNode',
@@ -24,22 +24,24 @@ export const defaultConstantsToImport: string[] = [
   '$observable',
   '$expression',
   '$scope',
-];
+] as const;
 
-export function DetectConstantsToImport(lines: string[], constantsToImport: string[] = defaultConstantsToImport): string[] {
-  constantsToImport = constantsToImport.slice();
-  const _constantsToImport: string[] = [];
+export type TDefaultConstantsToImport = typeof defaultConstantsToImport[keyof typeof defaultConstantsToImport];
+
+export function DetectConstantsToImport(lines: string[], potentialConstantsToImport: Iterable<string> = defaultConstantsToImport): string[] {
+  const remainingConstantsToImport: string[] = Array.from(potentialConstantsToImport);
+  const constantsToImport: string[] = [];
   for (let i = 0, l = lines.length; i < l; i++) {
     const line: string = lines[i];
-    for (let j = 0; j < constantsToImport.length; j++) {
-      if (line.includes(constantsToImport[j])) {
-        _constantsToImport.push(constantsToImport[j]);
-        constantsToImport.splice(j, 1);
+    for (let j = 0; j < remainingConstantsToImport.length; j++) {
+      if (line.includes(remainingConstantsToImport[j])) {
+        constantsToImport.push(remainingConstantsToImport[j]);
+        remainingConstantsToImport.splice(j, 1);
         j--;
       }
     }
   }
-  return _constantsToImport;
+  return constantsToImport;
 }
 
 export function GenerateConstantsToImport(constantsToImport: string[]): string[] {

@@ -1,13 +1,15 @@
 import { templateFromString as TemplateFromString } from '../template/implementation';
-import { Attribute, CustomElement } from './custom-element/implementation';
-import { Component, IComponent, IComponentContext, OnInit } from './Component';
+import { Attribute, CustomElement } from './core/custom-element/implementation';
+import { IComponent, IComponentContext, OnInit } from './core/component/interfaces';
 import { NodeStateObservable } from '../custom-node/node-state-observable/implementation';
 import { styleFromString as StyleFromString } from '../style/implementation';
 import { Router } from './router/implementation';
 import { IRoute } from './router/route/interfaces';
 import { Route } from './router/route/implementation';
 import { translateService } from '../localization/translate/implementation';
-import { IObserver, Source } from '@lifaon/observables/public';
+import { IObserver, ISource, Source } from '@lifaon/observables/public';
+import { HostBind, HostBinding } from './core/host-binding/implementation';
+import { Component } from './core/component/decorator';
 
 function getFetchProxyURL(url: string): string {
   // return 'https://bypasscors.herokuapp.com/api/?url=' + encodeURIComponent(url);
@@ -93,7 +95,7 @@ interface IItem {
   template: TemplateFromString(`
 <!--    <span>{{ $translate('name') }}</span>-->
     <div class="item" *for="let item of data.items">
-      item
+      {{ item.type }}
     </div>
   `),
   style: StyleFromString(`
@@ -105,19 +107,43 @@ interface IItem {
       display: block;
       width: 400px;
     }
-  `)
+  `),
+  host: [
+    new HostBinding('[class.static]', () => true)
+  ]
 })
 class AppNineGag extends HTMLElement implements IComponent {
   protected context: IComponentContext;
 
+
+
+  // @HostBind('[class...]')
+  // get className(): string {
+  //   return 'class-' + Math.floor(Math.random() * 1e15).toString(16);
+  // }
+
+  @HostBind('[class...]')
+  public className: string;
+
+  // @HostBind('[class...]')
+  // public className: ISource<string> = new Source<string>();
+
   constructor() {
     super();
+
+
+
   }
 
   onCreate(context: IComponentContext) {
+    console.log('create !!!!');
     this.context = context;
     this.context.data.items = new Source<IItem[]>().emit([]);
     console.log('on create app nine');
+
+    this.className = 'class-1';
+    this.className = 'class-2';
+    // this.className.emit(true);
   }
 
   onInit() {
@@ -148,8 +174,6 @@ class AppNineGag extends HTMLElement implements IComponent {
       });
   }
 }
-
-
 
 
 

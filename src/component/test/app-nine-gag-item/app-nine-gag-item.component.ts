@@ -1,4 +1,4 @@
-import { Component, IComponent, IComponentContext } from '../../Component';
+import { Component, IComponent, IComponentContext } from '../../core/component/Component';
 import { templateFromString as TemplateFromString } from '../../../template/implementation';
 import { styleFromString as StyleFromString, styleFromURL as StyleFromURL } from '../../../style/implementation';
 import { ISource, Source, Observer } from '@lifaon/observables/public';

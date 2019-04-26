@@ -1,4 +1,4 @@
-import { AttributeChangedCallback, ConnectedCallBack, DisconnectedCallBack } from '../custom-element/interfaces';
+import { AttributeChangedCallback, ConnectedCallBack, DisconnectedCallBack } from '../core/custom-element/interfaces';
 
 export type TInfiniteScrollerDirection = 'vertical' | 'horizontal';
 
