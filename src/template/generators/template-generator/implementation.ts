@@ -22,6 +22,7 @@ export const defaultConstantsToImport = [
   'DynamicEventListener',
 
   '$observable',
+  '$observer',
   '$expression',
   '$scope',
 ] as const;

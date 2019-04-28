@@ -6,8 +6,9 @@ export type THostBindingOnResolveResultValue = any | IObservable<any> | IObserve
 export type THostBindingOnResolveResult = TPromiseOrValue<THostBindingOnResolveResultValue>;
 export type THostBindingOnResolve = (node: Element) => THostBindingOnResolveResult;
 
-export interface IHostBindingOptions extends ITemplateBuildOptions {
+// export type THostBindOptionsMode = 'source' | 'destination' | 'expression' | 'observable' | 'observer' | 'auto';
 
+export interface IHostBindingOptions extends ITemplateBuildOptions {
 }
 
 export interface IHostBindingConstructor {
@@ -17,7 +18,7 @@ export interface IHostBindingConstructor {
 export interface IHostBinding {
  readonly attributeName: string;
 
- resolve(node: Element): void;
+ resolve(node: Element): Promise<void>;
 
 }
 

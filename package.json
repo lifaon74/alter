@@ -53,6 +53,6 @@
     "vinyl-source-stream": "latest"
   },
   "dependencies": {
-    "@lifaon/observables": "latest"
+    "@lifaon/observables": "^1.1.2"
   }
 }

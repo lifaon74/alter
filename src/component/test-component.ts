@@ -7,7 +7,7 @@ import { Router } from './router/implementation';
 import { IRoute } from './router/route/interfaces';
 import { Route } from './router/route/implementation';
 import { translateService } from '../localization/translate/implementation';
-import { IObserver, ISource, Source } from '@lifaon/observables/public';
+import { INotification, IObserver, ISource, Source, Observer } from '@lifaon/observables/public';
 import { HostBind, HostBinding } from './core/host-binding/implementation';
 import { Component } from './core/component/decorator';
 
@@ -37,7 +37,8 @@ function fetchProxy(input: RequestInfo, init?: RequestInit): Promise<Response> {
   template: TemplateFromString(`
     <!--<div>{{ data.greetings }}</div>-->
     <!--<div>{{ data.date }}</div>-->
-    <app-nine-gag/>
+  <!--    <app-nine-gag/>-->
+
   `),
   style: StyleFromString(`
     :host {
@@ -94,9 +95,9 @@ interface IItem {
   name: 'app-nine-gag',
   template: TemplateFromString(`
 <!--    <span>{{ $translate('name') }}</span>-->
-    <div class="item" *for="let item of data.items">
-      {{ item.type }}
-    </div>
+<!--    <div class="item" *for="let item of data.items">-->
+<!--      {{ item.type }}-->
+<!--    </div>-->
   `),
   style: StyleFromString(`
     :host {
@@ -107,32 +108,13 @@ interface IItem {
       display: block;
       width: 400px;
     }
-  `),
-  host: [
-    new HostBinding('[class.static]', () => true)
-  ]
+  `)
 })
 class AppNineGag extends HTMLElement implements IComponent {
   protected context: IComponentContext;
 
-
-
-  // @HostBind('[class...]')
-  // get className(): string {
-  //   return 'class-' + Math.floor(Math.random() * 1e15).toString(16);
-  // }
-
-  @HostBind('[class...]')
-  public className: string;
-
-  // @HostBind('[class...]')
-  // public className: ISource<string> = new Source<string>();
-
   constructor() {
     super();
-
-
-
   }
 
   onCreate(context: IComponentContext) {
@@ -140,10 +122,6 @@ class AppNineGag extends HTMLElement implements IComponent {
     this.context = context;
     this.context.data.items = new Source<IItem[]>().emit([]);
     console.log('on create app nine');
-
-    this.className = 'class-1';
-    this.className = 'class-2';
-    // this.className.emit(true);
   }
 
   onInit() {
@@ -420,6 +398,72 @@ function testStyle() {
 }
 
 
+function testHostBinding() {
+
+  @Component({
+    name: 'app-test-host-binding',
+    template: TemplateFromString(``),
+    style: StyleFromString(`
+    :host {
+      display: block;
+    }
+  `),
+    host: [
+      // new HostBinding('[class.static]', () => true)
+    ]
+  })
+  class AppTestHostBinding extends HTMLTextAreaElement implements IComponent {
+    protected context: IComponentContext;
+
+
+    @HostBind('[class...]')
+    get className(): string {
+      // return 'class-' + Math.floor(Math.random() * 1e15).toString(16);
+      return 'class-' + Math.floor(Date.now() / 1000);
+    }
+
+    @HostBind('[attr.attr-a]')
+    public attrA: string;
+
+    @HostBind('[attr.attr-b]')
+    public attrB: ISource<string>;
+
+
+    @HostBind('(click)')
+    set onClick(event: MouseEvent) {
+      console.log('click', event);
+    }
+
+    @HostBind('(focus)')
+    public onFocus: IObserver<INotification<'focus', FocusEvent>>;
+
+    constructor() {
+      super();
+      console.log('construct');
+    }
+
+    @HostBind('(keydown)')
+    onKeyDown(event: KeyboardEvent) {
+      console.log('keydown', event);
+    }
+
+    onCreate(context: IComponentContext) {
+      this.attrA = 'value-a1';
+      this.attrA = 'value-a2';
+
+      this.attrB = new Source<string>().emit('value-b1');
+
+      this.onFocus = new Observer<INotification<'focus', FocusEvent>>((notification: INotification<'focus', FocusEvent>) => {
+        console.log('focus', notification);
+      }).activate();
+    }
+  }
+
+  document.body.innerHTML = `
+    <textarea is="app-test-host-binding">awdawd</textarea>
+  `;
+}
+
 function test9GagPage(){
   document.body.innerHTML = `
     <app-nine-gag/>
@@ -440,6 +484,7 @@ export function testComponent() {
 
   // testInfiniteScroller();
   // testSwipeObservable();
-  test9GagPage();
+  testHostBinding();
+  // test9GagPage();
 
 }

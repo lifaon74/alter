@@ -37,18 +37,16 @@ export function ConstructComponent(component: IComponent, options: IComponentOpt
 }
 
 export function InitComponent(component: IComponent, options: IComponentOptions): void {
+  if (typeof component.onCreate === 'function') {
+    component.onCreate.call(component, (component as IComponentInternal)[COMPONENT_PRIVATE].context);
+  }
+
   const constructorPrivates: IComponentConstructorPrivate = AccessComponentConstructorPrivates(component.constructor as Constructor<IComponent>);
-   // TODO maybe async
 
   Promise.all([
     Promise.all(
       constructorPrivates.hostBindings.map((hostBinding: IHostBinding) => hostBinding.resolve(component))
-    ).then(() => {
-      console.warn(component);
-      if (typeof component.onCreate === 'function') {
-        component.onCreate.call(component, (component as IComponentInternal)[COMPONENT_PRIVATE].context);
-      }
-    }),
+    ),
     LoadComponentTemplate(component, options.template),
     LoadComponentStyle(component, options.style),
   ]).then(() => {
@@ -172,13 +170,13 @@ export function ComponentFactory<TBase extends Constructor<HTMLElement>>(superCl
     }
 
     connectedCallback(): void {
-      if (typeof this.onConnected === 'function') {
+      if ((typeof this.onConnected === 'function') && this.isConnected) {
         this.onConnected();
       }
     }
 
     disconnectedCallback(): void {
-      if (typeof this.onDisconnected === 'function') {
+      if ((typeof this.onDisconnected === 'function') && !this.isConnected) {
         this.onDisconnected.call(this);
       }
     }
