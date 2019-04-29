@@ -1,4 +1,4 @@
-import { IPathMatcher, IPathMatcherParams } from '../../path-matcher/interfaces';
+import { IPathMatcher, IPathMatcherParams } from '../path-matcher/interfaces';
 import { INotificationsObservable, INotificationsObservableContext, IReadonlyList } from '@lifaon/observables/public';
 import { Constructor } from '../../../classes/factory';
 

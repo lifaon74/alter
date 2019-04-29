@@ -1135,6 +1135,16 @@ function testSourceProxy2() {
 
 const objectObservers: WeakMap<object, object> = new WeakMap<object, object>();
 
+function IsArrayIndex(propertyName: PropertyKey): number {
+  if (typeof propertyName === 'symbol') {
+    return -1
+  } else if (typeof propertyName === 'string') {
+    propertyName = Number(propertyName);
+  }
+
+  return (Number.isInteger(propertyName) && (propertyName >= 0)) ? propertyName : -1;
+}
+
 function CreateUniqObjectObserver<T extends object>(
   source: T,
   onSet: (path: PropertyKey[], value: any) => void,
@@ -1149,6 +1159,22 @@ function CreateUniqObjectObserver<T extends object>(
       },
       set: (target: any, propertyName: PropertyKey, value: any, receiver: any) => {
         const _path: PropertyKey[] = path.concat(propertyName);
+
+        if (Array.isArray(target)) {
+          const index: number = IsArrayIndex(propertyName);
+          if (index !== -1) {
+            if (index > target.length) {
+              console.log('fix length: add more items');
+              for (let i = target.length; i < index; i++) {
+                onSet(path.concat(String(i)), void 0);
+              }
+            }
+          }
+        }
+
+        if ((propertyName === 'length') && Array.isArray(target)) {
+          console.error(`UPDATE LENGTH`, target.length, value);
+        }
 
         if ((typeof value === 'object') && (value !== null)) {
           value = CreateUniqObjectObserver(value, onSet, onDelete, _path);
@@ -1299,34 +1325,66 @@ function testSourceProxy3() {
       c: ['c0', 'c1', 'c2']
     });
 
-    console.log(typeof data.data.c === 'object'); // true
-    console.log('c' in data.data); // true
-    console.log(Object.keys(data.data)); // ['c']
-    console.log(Array.isArray(data.data.c)); // true
-    console.log('slice' in data.data.c); // true
-    console.log('----');
+    function eq(a: any, b: any): boolean {
+      return Object.is(a, b) || (JSON.stringify(a) === JSON.stringify(b));
+    }
+
+    if (typeof data.data.c !== 'object') {
+      throw new Error(`typeof data.data.c !== 'object'`);
+    }
+
+    if (!('c' in data.data)) {
+      throw new Error(`!('c' in data.data)`);
+    }
+
+    if (!eq(Object.keys(data.data), ['c'])) {
+      throw new Error(`!eq(Object.keys(data.data), ['c'])`);
+    }
+
+    if (!Array.isArray(data.data.c)) {
+      throw new Error(`!Array.isArray(data.data.c`);
+    }
+
+    if (!('slice' in data.data.c)) {
+      throw new Error(`!('slice' in data.data.c)`);
+    }
+
+    console.log('-------------------------');
 
 
     data.observe(['c'])
       .pipeTo((value: any) => {
-        console.log('c', value);
+        console.log('c changed', value);
       }).activate();
 
     data.observe(['c', 0])
       .pipeTo((value: any) => {
-        console.log('c[0]', value);
+        console.log('c[0] changed', value);
       }).activate();
 
+    console.log('-----');
     data.data.c[0] = 'c0-2'; // c[0] => c0-2
+    console.log('-----');
+    data.data.c[10] = 'c10-0'; // c[0] => c0-2
+    console.log('-----');
     data.data.c = ['c0-3', 'c1-3']; // c[0] => c0-3, c => ['c0-3', 'c1-3']
+    console.log('-----');
     data.data.c = 'c'; // c => c, c[0] => void 0
+    console.log('-----');
     data.data.c = ['c0-4', 'c1-4']; // c[0] => c0-4, c => ['c0-4', 'c1-4']
+    console.log('-----');
     data.data.c.shift(); // c[0] => c1-4
+    console.log('-----');
     data.data.c.unshift('c-unshift'); // c[0] => c-unshift
+    console.log('-----');
     data.data.c.length = 0; // WARN problem
+    console.log('-----');
     data.data.c = []; // c[0] => void 0
+    console.log('-----');
     data.data.c.push('c-push'); // c[0] => c-push
+    console.log('-----');
     data.data.c = [2, 1]; // c[0] => 2, c => [2, 1]
+    console.log('-----');
     data.data.c.sort(); // c[0] => 1
   }
 

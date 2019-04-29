@@ -2,53 +2,52 @@ import { ITemplate } from '../../../template/interfaces';
 import { NodeStateObservableOf } from '../../../custom-node/node-state-observable/implementation';
 import { IStyle } from '../../../style/interfaces';
 import { GetNodeDOMState } from '../../../custom-node/node-state-observable/mutations';
-import { RegisterCustomElement } from '../custom-element/implementation';
 import {
   INotificationsObservable, INotificationsObservableContext, NotificationsObservable
 } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { Constructor, FactoryClass, HasFactoryWaterMark } from '../../../classes/factory';
+import { Constructor } from '../../../classes/factory';
 import {
   IComponent, IComponentContext, IComponentContextAttributeListenerKeyValueMap, IComponentOptions
 } from './interfaces';
 import { IHostBinding } from '../host-binding/interfaces';
-import { IsHostBinding } from '../host-binding/implementation';
+import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from './decorator';
 
 
 export const COMPONENT_PRIVATE = Symbol('component-private');
 
-export interface IComponentPrivate {
-  context: IComponentContext;
+export interface IComponentPrivate<T extends object> {
+  context: IComponentContext<T>;
 }
 
-export interface IComponentInternal extends IComponent {
-  [COMPONENT_PRIVATE]: IComponentPrivate;
+export interface IComponentInternal<T extends object> extends IComponent<T> {
+  [COMPONENT_PRIVATE]: IComponentPrivate<T>;
 }
 
 
-export const disabledComponentInit: WeakSet<Constructor<IComponent>> = new WeakSet<Constructor<IComponent>>();
-export function ConstructComponent(component: IComponent, options: IComponentOptions): void {
+export const disabledComponentInit: WeakSet<Constructor<IComponent<any>>> = new WeakSet<Constructor<IComponent<any>>>();
+export function ConstructComponent<T extends object>(component: IComponent<T>, options: IComponentOptions): void {
   ConstructClassWithPrivateMembers(component, COMPONENT_PRIVATE);
-  (component as IComponentInternal)[COMPONENT_PRIVATE].context = new ComponentContext();
+  (component as IComponentInternal<T>)[COMPONENT_PRIVATE].context = new ComponentContext();
 
   if (!disabledComponentInit.has(component.constructor as any)) {
-    InitComponent(component, options);
+    InitComponent<T>(component, options);
   }
 }
 
-export function InitComponent(component: IComponent, options: IComponentOptions): void {
+export function InitComponent<T extends object>(component: IComponent<T>, options: IComponentOptions): void {
   if (typeof component.onCreate === 'function') {
-    component.onCreate.call(component, (component as IComponentInternal)[COMPONENT_PRIVATE].context);
+    component.onCreate.call(component, (component as IComponentInternal<T>)[COMPONENT_PRIVATE].context);
   }
 
-  const constructorPrivates: IComponentConstructorPrivate = AccessComponentConstructorPrivates(component.constructor as Constructor<IComponent>);
+  const constructorPrivates: IComponentConstructorPrivate = AccessComponentConstructorPrivates(component.constructor as Constructor<IComponent<T>>);
 
   Promise.all([
     Promise.all(
       constructorPrivates.hostBindings.map((hostBinding: IHostBinding) => hostBinding.resolve(component))
     ),
-    LoadComponentTemplate(component, options.template),
-    LoadComponentStyle(component, options.style),
+    LoadComponentTemplate<T>(component, options.template),
+    LoadComponentStyle<T>(component, options.style),
   ]).then(() => {
     if ((typeof component.onInit === 'function') && (GetNodeDOMState(component) === 'attached')) {
       component.onInit.call(component);
@@ -64,18 +63,18 @@ export function InitComponent(component: IComponent, options: IComponentOptions)
     }).activate();
 }
 
-export function LoadComponentTemplate(component: IComponent, template?: Promise<ITemplate> | ITemplate): Promise<void> {
+export function LoadComponentTemplate<T extends object>(component: IComponent<T>, template?: Promise<ITemplate> | ITemplate): Promise<void> {
   if (template) {
     return Promise.resolve(template)
       .then((template: ITemplate) => {
-        return template.insert((component as IComponentInternal)[COMPONENT_PRIVATE].context.data, component, 'clear');
+        return template.insert((component as IComponentInternal<T>)[COMPONENT_PRIVATE].context.data, component, 'clear');
       });
   } else {
     return Promise.resolve();
   }
 }
 
-export function LoadComponentStyle(component: IComponent, style?: Promise<IStyle> | IStyle): Promise<any> {
+export function LoadComponentStyle<T extends object>(component: IComponent<T>, style?: Promise<IStyle> | IStyle): Promise<any> {
   if (style) {
     return Promise.resolve(style)
       .then((style: IStyle) => {
@@ -86,110 +85,47 @@ export function LoadComponentStyle(component: IComponent, style?: Promise<IStyle
   }
 }
 
-export function OnComponentAttributeChange(component: IComponent, name: string, oldValue: string, newValue: string): void {
-  const context = ((component as IComponentInternal)[COMPONENT_PRIVATE].context as any)._context;
+export function OnComponentAttributeChange<T extends object>(component: IComponent<T>, name: string, oldValue: string, newValue: string): void {
+  const context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap> = ((component as IComponentInternal<T>)[COMPONENT_PRIVATE].context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].context;
   context.dispatch(name, { previous: oldValue, current: newValue }); // TODO improve
 }
 
 /*------------------------------*/
 
-export class ComponentContext implements IComponentContext {
-  public readonly data: any;
-  public readonly attributeListener: INotificationsObservable<IComponentContextAttributeListenerKeyValueMap>;
 
-  private _context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>;
+export const COMPONENT_CONTEXT_PRIVATE = Symbol('component-context-private');
+
+export interface IComponentContextPrivate<T extends object> {
+  data: T;
+  attributeListener: INotificationsObservable<IComponentContextAttributeListenerKeyValueMap>;
+  context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>;
+}
+
+export interface IComponentContextInternal<T extends object> extends IComponentContext<T> {
+  [COMPONENT_CONTEXT_PRIVATE]: IComponentContextPrivate<T>;
+}
+
+export function ConstructComponentContext<T extends object>(context: IComponentContext<T>): void {
+  ConstructClassWithPrivateMembers(context, COMPONENT_PRIVATE);
+  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data = {} as T;
+  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].attributeListener = new NotificationsObservable((_context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>) => {
+    (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].context = _context;
+  });
+}
+
+export class ComponentContext<T extends object> implements IComponentContext<T> {
 
   constructor() {
-    this.data = {};
-    this.attributeListener = new NotificationsObservable((context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>) => {
-      this._context = context;
-    });
+    ConstructComponentContext(this);
   }
-}
 
-
-/*------------------------------*/
-
-
-export const COMPONENT_CONSTRUCTOR_PRIVATE = Symbol('component-constructor-private');
-
-export interface IComponentConstructorPrivate {
-  hostBindings: IHostBinding[];
-}
-
-export interface IComponentConstructorInternal {
-  [COMPONENT_CONSTRUCTOR_PRIVATE]: IComponentConstructorPrivate;
-}
-
-const IS_COMPONENT_CONSTRUCTOR = Symbol('is-component-constructor');
-export function IsComponentConstructor(value: any): boolean {
-  return (typeof value === 'function')
-    && HasFactoryWaterMark(value, IS_COMPONENT_CONSTRUCTOR);
-}
-
-export function AccessComponentConstructorPrivates(_class: Constructor<HTMLElement>): IComponentConstructorPrivate {
-  if (!(COMPONENT_CONSTRUCTOR_PRIVATE in _class)) {
-    ConstructClassWithPrivateMembers(_class, COMPONENT_CONSTRUCTOR_PRIVATE);
-    ((_class as unknown) as IComponentConstructorInternal)[COMPONENT_CONSTRUCTOR_PRIVATE].hostBindings = [];
+  get data(): T {
+    return ((this as unknown) as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data;
   }
-  return ((_class as unknown) as IComponentConstructorInternal)[COMPONENT_CONSTRUCTOR_PRIVATE];
-}
 
-export function InitComponentConstructor(_class: Constructor<HTMLElement>, options: IComponentOptions): void {
-  // RegisterCustomElement may create an instance of the component, so we need to disabled the init
-  disabledComponentInit.add(_class);
-  RegisterCustomElement(_class, options);
-  disabledComponentInit.delete(_class);
-
-  const privates: IComponentConstructorPrivate = AccessComponentConstructorPrivates(_class);
-
-  if (Array.isArray(options.host)) {
-    for (let i = 0, l = options.host.length; i < l; i++) {
-      if (IsHostBinding(options.host[i])) {
-        privates.hostBindings.push(options.host[i]);
-      } else {
-        throw new TypeError(`Expected HostBinding at index ${i} of options.host`);
-      }
-    }
-  } else if (options.host !== void 0) {
-    throw new TypeError(`Expected array as options.host`);
+  get attributeListener(): INotificationsObservable<IComponentContextAttributeListenerKeyValueMap> {
+    return ((this as unknown) as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].attributeListener;
   }
-}
-
-export function ComponentFactory<TBase extends Constructor<HTMLElement>>(superClass: TBase, options: IComponentOptions) {
-  const _class = FactoryClass(class Component extends superClass implements IComponent {
-    public readonly onCreate: (context: IComponentContext) => void;
-    public readonly onInit: () => void;
-    public readonly onDestroy: () => void;
-    public readonly onConnected: () => void;
-    public readonly onDisconnected: () => void;
-
-    constructor(...args: any[]) {
-      super(...args.slice(1));
-      ConstructComponent(this, options);
-    }
-
-    connectedCallback(): void {
-      if ((typeof this.onConnected === 'function') && this.isConnected) {
-        this.onConnected();
-      }
-    }
-
-    disconnectedCallback(): void {
-      if ((typeof this.onDisconnected === 'function') && !this.isConnected) {
-        this.onDisconnected.call(this);
-      }
-    }
-
-    attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
-      OnComponentAttributeChange(this, name, oldValue, newValue);
-    }
-  })<[]>('Component', IS_COMPONENT_CONSTRUCTOR);
-
-
-  InitComponentConstructor(_class, options);
-
-  return _class;
 }
 
 

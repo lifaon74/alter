@@ -1,4 +1,4 @@
-import { IPathMatcherResult } from '../path-matcher/interfaces';
+import { IPathMatcherResult } from './path-matcher/interfaces';
 import { AttachNode, DestroyChildNodes } from '../../custom-node/node-state-observable/mutations';
 import { navigation, NavigationNavigate } from './navigation/implementation';
 import { IRoute, IRoutePathEntry, TRoutePath } from './route/interfaces';

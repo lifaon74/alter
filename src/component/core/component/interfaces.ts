@@ -4,10 +4,11 @@ import { IStyle } from '../../../style/interfaces';
 import { INotificationsObservable } from '@lifaon/observables/public';
 import { IHostBinding } from '../host-binding/interfaces';
 
+export type TComponentDataGeneric = { [key: string]: any };
 
-export interface IComponent extends HTMLElement {
+export interface IComponent<T extends object> extends HTMLElement {
   // readonly data: any;
-  readonly onCreate?: (context: IComponentContext) => void;
+  readonly onCreate?: (context: IComponentContext<T>) => void;
   readonly onInit?: () => void;
   readonly onDestroy?: () => void;
   readonly onConnected?: () => void;
@@ -20,8 +21,8 @@ export interface IComponentOptions extends ICustomElementOptions {
   host?: IHostBinding[];
 }
 
-export interface OnCreate {
-  onCreate(context: IComponentContext): void;
+export interface OnCreate<T extends object> {
+  onCreate(context: IComponentContext<T>): void;
 }
 
 export interface OnInit {
@@ -45,8 +46,8 @@ export interface OnDisconnected {
 /*---------------------------*/
 
 
-export interface IComponentContext {
-  readonly data: any;
+export interface IComponentContext<T extends object> {
+  readonly data: T;
   readonly attributeListener: INotificationsObservable<IComponentContextAttributeListenerKeyValueMap>;
 }
 

@@ -1,5 +1,5 @@
-import { IPathMatcher } from '../../path-matcher/interfaces';
-import { PathMatcher } from '../../path-matcher/implementation';
+import { IPathMatcher } from '../path-matcher/interfaces';
+import { PathMatcher } from '../path-matcher/implementation';
 import { htmlElementConstructorsToTagNamesMap } from '../../elements-list';
 import { IRoute, IRouteKeyValueMap, IRouteOptions, TRouteContext } from './interfaces';
 import { IReadonlyList, NotificationsObservable, ReadonlyList } from '@lifaon/observables/public';

@@ -48,18 +48,18 @@ interface INineGagItem {
   `),
   style: StyleFromURL('./app-nine-gag-item.component.css')
 })
-class AppNineGagItem extends HTMLElement implements IComponent {
+class AppNineGagItem extends HTMLElement implements IComponent<any> {
 
   public item: ISource<INineGagItem>;
 
-  protected context: IComponentContext;
+  protected context: IComponentContext<any>;
 
   constructor() {
     super();
     this.item = new Source();
   }
 
-  onCreate(context: IComponentContext) {
+  onCreate(context: IComponentContext<any>) {
     this.context = context;
     this.context.data.item = this.item;
 

@@ -1,15 +1,16 @@
 import { templateFromString as TemplateFromString } from '../template/implementation';
 import { Attribute, CustomElement } from './core/custom-element/implementation';
-import { IComponent, IComponentContext, OnInit } from './core/component/interfaces';
+import { IComponent, IComponentContext, OnDestroy, OnInit } from './core/component/interfaces';
 import { NodeStateObservable } from '../custom-node/node-state-observable/implementation';
 import { styleFromString as StyleFromString } from '../style/implementation';
 import { Router } from './router/implementation';
 import { IRoute } from './router/route/interfaces';
 import { Route } from './router/route/implementation';
 import { translateService } from '../localization/translate/implementation';
-import { INotification, IObserver, ISource, Source, Observer } from '@lifaon/observables/public';
-import { HostBind, HostBinding } from './core/host-binding/implementation';
+import { INotification, IObserver, ISource, Observer, Source } from '@lifaon/observables/public';
+import { HostBinding } from './core/host-binding/implementation';
 import { Component } from './core/component/decorator';
+import { HostBind } from './core/host-binding/decorator';
 
 function getFetchProxyURL(url: string): string {
   // return 'https://bypasscors.herokuapp.com/api/?url=' + encodeURIComponent(url);
@@ -46,14 +47,14 @@ function fetchProxy(input: RequestInfo, init?: RequestInit): Promise<Response> {
     }
   `)
 })
-class AppHome extends HTMLElement implements IComponent {
+class AppHome extends HTMLElement implements IComponent<any> {
   protected _timer: IObserver<void>;
 
   constructor() {
     super();
   }
 
-  onCreate(context: IComponentContext) {
+  onCreate(context: IComponentContext<any>) {
     console.log('create home');
     // context.data.greetings = $translate('translate.greetings');
     // context.data.date = new DateFormatSource();
@@ -110,14 +111,14 @@ interface IItem {
     }
   `)
 })
-class AppNineGag extends HTMLElement implements IComponent {
-  protected context: IComponentContext;
+class AppNineGag extends HTMLElement implements IComponent<any> {
+  protected context: IComponentContext<any>;
 
   constructor() {
     super();
   }
 
-  onCreate(context: IComponentContext) {
+  onCreate(context: IComponentContext<any>) {
     console.log('create !!!!');
     this.context = context;
     this.context.data.items = new Source<IItem[]>().emit([]);
@@ -169,7 +170,7 @@ class AppNineGag extends HTMLElement implements IComponent {
     }
   `)
 })
-class AppUsers extends HTMLElement implements IComponent {
+class AppUsers extends HTMLElement implements IComponent<any> {
   constructor() {
     super();
   }
@@ -195,7 +196,7 @@ class AppUsers extends HTMLElement implements IComponent {
     }
   `)
 })
-class AppUser extends HTMLElement implements IComponent {
+class AppUser extends HTMLElement implements IComponent<any>, OnInit, OnDestroy {
   constructor() {
     super();
   }
@@ -267,13 +268,13 @@ function testAlterComponent1() {
     }
   `)
   })
-  class AppInput extends HTMLElement implements IComponent, OnInit {
-    public readonly context: IComponentContext;
+  class AppInput extends HTMLElement implements IComponent<any>, OnInit {
+    public readonly context: IComponentContext<any>;
 
     @Attribute({ type: 'boolean' })
     public value: boolean;
 
-    constructor(context: IComponentContext) {
+    constructor(context: IComponentContext<any>) {
       super();
       this.context = context;
 
@@ -409,11 +410,11 @@ function testHostBinding() {
     }
   `),
     host: [
-      // new HostBinding('[class.static]', () => true)
+      new HostBinding('[attr.static]', () => 'value-static')
     ]
   })
-  class AppTestHostBinding extends HTMLTextAreaElement implements IComponent {
-    protected context: IComponentContext;
+  class AppTestHostBinding extends HTMLTextAreaElement implements IComponent<any> {
+    protected context: IComponentContext<any>;
 
 
     @HostBind('[class...]')
@@ -430,8 +431,8 @@ function testHostBinding() {
 
 
     @HostBind('(click)')
-    set onClick(event: MouseEvent) {
-      console.log('click', event);
+    set onClick(notification: INotification<'click', MouseEvent>) {
+      console.log('click', notification);
     }
 
     @HostBind('(focus)')
@@ -443,11 +444,11 @@ function testHostBinding() {
     }
 
     @HostBind('(keydown)')
-    onKeyDown(event: KeyboardEvent) {
-      console.log('keydown', event);
+    onKeyDown(notification: INotification<'keydown', KeyboardEvent>) {
+      console.log('keydown', notification);
     }
 
-    onCreate(context: IComponentContext) {
+    onCreate(context: IComponentContext<any>) {
       this.attrA = 'value-a1';
       this.attrA = 'value-a2';
 
@@ -484,7 +485,7 @@ export function testComponent() {
 
   // testInfiniteScroller();
   // testSwipeObservable();
-  testHostBinding();
+  // testHostBinding();
   // test9GagPage();
 
 }

@@ -21,6 +21,12 @@ export interface IQueryParamsObservableConstructor extends IObservableConstructo
 export type TEmitOnObserve = 'always' | 'changes' | 'none';
 
 export interface IQueryParamsObservableOptions {
+  /**
+   * Specify what action to perform when a new Observer observes this QueryParamsObservable:
+   *  - always: emits immediately for this observer a TQueryParamChanges<T> based on the current state of the URL and the observed query param names.
+   *  - changes: emits immediately for this observer a TQueryParamChanges<T> based on the current state of the URL and the observed query param names ONLY if changes occurred since last emit
+   *  - none (default): emits nothing for this observer, until next change is detected.
+   */
   emitOnObserve?: TEmitOnObserve;
 }
 

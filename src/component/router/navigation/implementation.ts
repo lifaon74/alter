@@ -4,6 +4,8 @@ import { NavigationState, NormalizeURL } from './state/implementation';
 import { INotification, INotificationsObservable, INotificationsObservableContext, INotificationsObserver, IObserver, IPipe, IReadonlyList, KeyValueMapKeys, KeyValueMapToNotifications, NotificationsObservable, ReadonlyList } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { PropertyCallInterceptor } from '@lifaon/observables/classes/properties';
+import { IsObject } from '../../../helpers';
+import { mapNotificationNames } from '@lifaon/observables/operators/aggregateNotificationNames';
 
 
 
@@ -35,7 +37,11 @@ function ConstructNavigation(navigation: INavigation, context: INotificationsObs
   (navigation as INavigationInternal)[NAVIGATION_PRIVATE].context = context;
 
   if (typeof historyLimit === 'number') {
-    (navigation as INavigationInternal)[NAVIGATION_PRIVATE].historyLimit = historyLimit;
+    if (Number.isNaN(historyLimit)) {
+      throw new TypeError(`Expected a real number as historyLimit, found NaN`);
+    } else {
+      (navigation as INavigationInternal)[NAVIGATION_PRIVATE].historyLimit = historyLimit;
+    }
   } else {
     throw new TypeError(`Expected number as historyLimit`);
   }
@@ -92,7 +98,6 @@ function NavigationHistoryInterceptor(navigation: INavigation): (() => void) {
         const result: any = native.apply(target, args);
         NavigationHistoryOnReplace(navigation, CreateNavigationState(args[2]));
         NavigationHistoryUpdateLastLength();
-        // return native.apply(target, args);
         return result;
       })
   );
@@ -103,7 +108,6 @@ function NavigationHistoryInterceptor(navigation: INavigation): (() => void) {
         const result: any = native.apply(target, args);
         NavigationHistoryOnBack(navigation);
         NavigationHistoryUpdateLastLength();
-        // return native.apply(target, args);
         return result;
       })
   );
@@ -130,8 +134,8 @@ function CreateNavigationState(url: string): INavigationState {
 
 function CompareNavigationStateWithHistoryState(navigationState: any, historyState: any = nativeHistory.state): boolean {
   return (
-    ((typeof navigationState === 'object') && (navigationState !== null))
-    && ((typeof navigationState === 'object') && (historyState !== null))
+    IsObject<{ id: number }>(navigationState)
+    && IsObject<{ id: number }>(historyState)
     && (navigationState.id === historyState.id)
   );
 }
@@ -384,8 +388,7 @@ export function NavigationForward(): Promise<void> {
 
 
 export function navigationPipe(): IPipe<IObserver<KeyValueMapToNotifications<INavigationKeyValueMap>>, INotificationsObservable<INavigationNavigateKeyValueMap>> {
-  throw 'TODO'; // TODO
-  // return mapNotificationNames<KeyValueMapKeys<INavigationKeyValueMap>, 'navigate', INavigationNavigateKeyValueMap['navigate']>(['back', 'forward', 'push', 'refresh', 'replace'], 'navigate');
+  return mapNotificationNames<INavigationKeyValueMap, 'navigate'>(['back', 'forward', 'push', 'refresh', 'replace'], 'navigate');
 }
 
 
@@ -435,6 +438,20 @@ class Navigation extends NotificationsObservable<INavigationKeyValueMap> impleme
     return ((((this as unknown) as INavigationInternal)[NAVIGATION_PRIVATE].historyIndex + 1) < ((this as unknown) as INavigationInternal)[NAVIGATION_PRIVATE].history.length);
   }
 
+
+  push(url: string | URL): Promise<void> {
+    return NavigationNavigate(url, { replaceState: false });
+  }
+
+  replace(url: string | URL): Promise<void> {
+    return NavigationNavigate(url, { replaceState: true });
+  }
+
+  refresh(): Promise<void> {
+    return NavigationNavigate(window.location.href, { replaceState: true });
+  }
+
+
   resetHistory(): void {
     NavigationHistoryReset(this);
   }
@@ -450,7 +467,7 @@ class Navigation extends NotificationsObservable<INavigationKeyValueMap> impleme
   }
 
 
-  resume(): string {
+  debug(): string {
     return ((this as unknown) as INavigationInternal)[NAVIGATION_PRIVATE].history.map((url, index) => ('-' + ((index === ((this as unknown) as INavigationInternal)[NAVIGATION_PRIVATE].historyIndex) ? '> ' : '  ') + url.toString())).join('\n');
   }
 

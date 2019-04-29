@@ -3,6 +3,7 @@ import { testTranslatePipe } from './localization/translate/test';
 import { testDateFormatPipe } from './localization/date/test';
 import { testNumberFormatPipe } from './localization/number/test';
 import { testComponent } from './component/test-component';
+import { testSourceProxy } from './source-proxy/SourceProxy';
 // import { testParser } from './template/test-parser';
 
 
@@ -12,5 +13,6 @@ export function test() {
   // testTranslatePipe();
   // testDateFormatPipe();
   // testNumberFormatPipe();
-  testComponent();
+  // testComponent();
+  testSourceProxy();
 }

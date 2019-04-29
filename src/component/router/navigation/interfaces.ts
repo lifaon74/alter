@@ -39,6 +39,10 @@ export interface INavigation extends INotificationsObservable<INavigationKeyValu
   forward(): Promise<void>;
   canForward(): boolean;
 
+  push(url: string | URL): Promise<void>;
+  replace(url: string | URL): Promise<void>;
+  refresh(): Promise<void>;
+
   resetHistory(): void;
 
   addListener<K extends keyof INavigationExtendedKeyValueMap>(name: K, callback: (value: INavigationExtendedKeyValueMap[K]) => void): INotificationsObserver<K, INavigationExtendedKeyValueMap[K]>;

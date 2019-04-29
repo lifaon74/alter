@@ -1,5 +1,5 @@
 import { IPathMatcher, IPathMatcherResult } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 
 
 export function NormalizeURLPath(path: string): string {
