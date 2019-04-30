@@ -1145,6 +1145,10 @@ function IsArrayIndex(propertyName: PropertyKey): number {
   return (Number.isInteger(propertyName) && (propertyName >= 0)) ? propertyName : -1;
 }
 
+/**
+ * PROBLEMS:
+ *  - 'get' properties like array.length cant be observed
+ */
 function CreateUniqObjectObserver<T extends object>(
   source: T,
   onSet: (path: PropertyKey[], value: any) => void,
@@ -1160,21 +1164,21 @@ function CreateUniqObjectObserver<T extends object>(
       set: (target: any, propertyName: PropertyKey, value: any, receiver: any) => {
         const _path: PropertyKey[] = path.concat(propertyName);
 
-        if (Array.isArray(target)) {
-          const index: number = IsArrayIndex(propertyName);
-          if (index !== -1) {
-            if (index > target.length) {
-              console.log('fix length: add more items');
-              for (let i = target.length; i < index; i++) {
-                onSet(path.concat(String(i)), void 0);
-              }
-            }
-          }
-        }
-
-        if ((propertyName === 'length') && Array.isArray(target)) {
-          console.error(`UPDATE LENGTH`, target.length, value);
-        }
+        // if (Array.isArray(target)) {
+        //   const index: number = IsArrayIndex(propertyName);
+        //   if (index !== -1) {
+        //     if (index > target.length) {
+        //       console.log('fix length: add more items');
+        //       for (let i = target.length; i < index; i++) {
+        //         onSet(path.concat(String(i)), void 0);
+        //       }
+        //     }
+        //   }
+        // }
+        //
+        // if ((propertyName === 'length') && Array.isArray(target)) {
+        //   console.error(`UPDATE LENGTH`, target.length, value);
+        // }
 
         if ((typeof value === 'object') && (value !== null)) {
           value = CreateUniqObjectObserver(value, onSet, onDelete, _path);
