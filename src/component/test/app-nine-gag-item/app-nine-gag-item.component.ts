@@ -1,9 +1,8 @@
 import { IComponent, IComponentContext } from '../../core/component/interfaces';
 import { Component } from '../../core/component/decorator';
-import { templateFromString as TemplateFromString } from '../../../template/implementation';
-import { styleFromString as StyleFromString, styleFromURL as StyleFromURL } from '../../../style/implementation';
-import { ISource, Source, Observer } from '@lifaon/observables/public';
-
+import { templateFromString } from '../../../template/implementation';
+import { styleFromRelativeURL } from '../../../style/implementation';
+import { ISource, Observer, Source } from '@lifaon/observables/public';
 
 
 // export type ISourceObject<T> = {
@@ -27,15 +26,15 @@ import { ISource, Source, Observer } from '@lifaon/observables/public';
 
 
 
-interface INineGagItem {
-  type: ISource<'video' | 'photo'>;
+export interface INineGagItem {
+  mediaType: ISource<'video' | 'photo'>;
   date: ISource<string>;
   sources: string[];
 }
 
 @Component({
   name: 'app-nine-gag-item',
-  template: TemplateFromString(`
+  template: templateFromString(`
     <div class="title">{{ data.item.title }}</div>
     <div class="content">
       <div class="photo" *if="$equal(data.item.type, 'photo')">
@@ -46,9 +45,10 @@ interface INineGagItem {
       </div>
     </div>
   `),
-  style: StyleFromURL('./app-nine-gag-item.component.css')
+  // @ts-ignore
+  style: styleFromRelativeURL(import.meta.url, './app-nine-gag-item.component.css')
 })
-class AppNineGagItem extends HTMLElement implements IComponent<any> {
+export class AppNineGagItem extends HTMLElement implements IComponent<any> {
 
   public item: ISource<INineGagItem>;
 

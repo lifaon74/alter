@@ -1,4 +1,5 @@
 import { IPromiseCancelToken, TPromiseType } from '@lifaon/observables/public';
+import { Path } from './classes/Path';
 
 export function noop() {}
 
@@ -32,6 +33,20 @@ export function IsObject<T extends object = object>(value: any): value is T {
   return (typeof value === 'object') && (value !== null);
 }
 
+export function AppendToSet<T>(set: Set<T>, values: Iterable<T>): Set<T> {
+  const iterator: Iterator<T> = values[Symbol.iterator]();
+  let result: IteratorResult<T>;
+  while (!(result = iterator.next()).done) {
+    set.add(result.value);
+  }
+  return set;
+}
+
+export function RelativeURLPath(moduleURL: string, path: string): string {
+  const url: URL = new URL(moduleURL, window.origin);
+  url.pathname = Path.unsplit(Path.resolvePathSegments(Path.split(path), Path.dirNamePathSegments(Path.split(url.pathname), false), false));
+  return url.href;
+}
 
 export function wrapToken<CB extends (...args: any[]) => any>(callback: CB, token?: IPromiseCancelToken): (...args: Parameters<CB>) => Promise<TPromiseType<ReturnType<CB>>> {
   if (token === void 0) {

@@ -11,6 +11,6 @@ export interface IBindDirectiveGeneratorConstructor extends IBindGeneratorConstr
 export interface IBindDirectiveGenerator extends IBindGenerator {
 }
 
-export interface IModuleBindDirective {
+export interface IBindDirectiveParser {
   parse(name: string, value: string, modifiers?: Set<TAttributeGeneratorModifiers>): IBindDirectiveGenerator | null;
 }

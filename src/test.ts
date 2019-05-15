@@ -13,6 +13,6 @@ export function test() {
   // testTranslatePipe();
   // testDateFormatPipe();
   // testNumberFormatPipe();
-  // testComponent();
-  testSourceProxy();
+  testComponent();
+  // testSourceProxy();
 }

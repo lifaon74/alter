@@ -1,6 +1,6 @@
 import { IForCommandGenerator } from './interfaces';
 import { ForCommandGenerator } from './implementation';
-import { IModuleCommand } from '../interfaces';
+import { ICommandParser } from '../interfaces';
 import { TAttributeGeneratorModifiers } from '../../interfaces';
 
 const selector: RegExp = new RegExp('^for$');
@@ -88,6 +88,6 @@ export function parseForCommandAttribute<T extends IForCommandGenerator>(name: s
   }
 }
 
-export const ModuleForCommand: IModuleCommand = {
+export const ForCommandParser: ICommandParser = {
   parse: parseForCommandAttribute,
 };

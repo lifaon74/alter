@@ -47,7 +47,8 @@ export interface OnDisconnected {
 
 
 export interface IComponentContext<T extends object> {
-  readonly data: T;
+  data: T;
+  readonly frozen: boolean;
   readonly attributeListener: INotificationsObservable<IComponentContextAttributeListenerKeyValueMap>;
 }
 

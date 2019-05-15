@@ -11,6 +11,8 @@ import { INotification, IObserver, ISource, Observer, Source } from '@lifaon/obs
 import { HostBinding } from './core/host-binding/implementation';
 import { Component } from './core/component/decorator';
 import { HostBind } from './core/host-binding/decorator';
+import { AppNineGagItem } from './test/app-nine-gag-item/app-nine-gag-item.component';
+import { AppItemList } from './test/app-item-list/app-item-list.component';
 
 function getFetchProxyURL(url: string): string {
   // return 'https://bypasscors.herokuapp.com/api/?url=' + encodeURIComponent(url);
@@ -87,7 +89,6 @@ class AppHome extends HTMLElement implements IComponent<any> {
 
 
 
-
 interface IItem {
   type: string;
 }
@@ -96,9 +97,9 @@ interface IItem {
   name: 'app-nine-gag',
   template: TemplateFromString(`
 <!--    <span>{{ $translate('name') }}</span>-->
-<!--    <div class="item" *for="let item of data.items">-->
-<!--      {{ item.type }}-->
-<!--    </div>-->
+    <div class="item" *for="let item of data.items">
+      {{ item.type }}
+    </div>
   `),
   style: StyleFromString(`
     :host {
@@ -471,6 +472,18 @@ function test9GagPage(){
   `;
 }
 
+function testAppItemList() {
+  const module = [
+    AppItemList,
+    AppNineGagItem
+  ];
+
+
+  document.body.innerHTML = `
+    <app-item-list/>
+  `;
+}
+
 export function testComponent() {
   NodeStateObservable.useDOMObserver = false;
 
@@ -487,5 +500,7 @@ export function testComponent() {
   // testSwipeObservable();
   // testHostBinding();
   // test9GagPage();
+
+  testAppItemList();
 
 }

@@ -1,7 +1,7 @@
 import { IBindClassDirectiveGenerator } from './interfaces';
 import { IsValidCSSIdentifier } from '../../../../../../../classes/tokenizers/css';
 import { BindClassDirectiveGenerator } from './implementation';
-import { IModuleBindDirective } from '../interfaces';
+import { IBindDirectiveParser } from '../interfaces';
 import { TAttributeGeneratorModifiers } from '../../../interfaces';
 
 const standardSelector: RegExp = new RegExp('^class\\.(.*)$');
@@ -27,6 +27,6 @@ export function parseBindClassDirective<T extends IBindClassDirectiveGenerator>(
   }
 }
 
-export const ModuleBindClassDirective: IModuleBindDirective = {
+export const BindClassDirectiveParser: IBindDirectiveParser = {
  parse: parseBindClassDirective,
 };

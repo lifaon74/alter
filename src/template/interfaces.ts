@@ -1,4 +1,4 @@
-import { IModule } from './module/interfaces';
+import { IParsers } from './generators/interfaces';
 
 export interface ITemplateConstructor {
   new(generate: TTemplateFunction): ITemplate;
@@ -10,8 +10,8 @@ export interface ITemplate {
 }
 
 export interface ITemplateBuildOptions {
-  module?: IModule;
-  constantsToImport?: string[];
+  parsers?: IParsers;
+  constantsToImport?: Iterable<string>;
   require?: TTemplateRequireFunction;
   dataSourceName?: string;
 }

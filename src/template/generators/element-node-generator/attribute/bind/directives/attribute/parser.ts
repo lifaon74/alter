@@ -1,6 +1,6 @@
 import { IBindAttributeDirectiveGenerator } from './interfaces';
 import { BindAttributeDirectiveGenerator } from './implementation';
-import { IModuleBindDirective } from '../interfaces';
+import { IBindDirectiveParser } from '../interfaces';
 import { TAttributeGeneratorModifiers } from '../../../interfaces';
 
 const standardSelector: RegExp = new RegExp('^attr\\.(.*)$');
@@ -25,6 +25,6 @@ export function parseBindAttributeDirective<T extends IBindAttributeDirectiveGen
   }
 }
 
-export const ModuleBindAttributeDirective: IModuleBindDirective = {
+export const BindAttributeDirectiveParser: IBindDirectiveParser = {
  parse: parseBindAttributeDirective,
 };

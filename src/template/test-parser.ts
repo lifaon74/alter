@@ -1,7 +1,6 @@
 import { parseText } from './generators/text-node-generator/parser';
 import { parseStaticAttribute } from './generators/element-node-generator/attribute/static/parser';
 import { parseBindAttribute } from './generators/element-node-generator/attribute/bind/parser';
-import { DefaultModule } from './module/implementation';
 import { parseElementNode } from './generators/element-node-generator/parser';
 import { parseCommandAttribute } from './generators/element-node-generator/attribute/commands/parser';
 import { parseTemplate } from './generators/template-generator/parser';
@@ -9,6 +8,7 @@ import { templateFromString, Template } from './implementation';
 import { parseEventListenerAttribute } from './generators/element-node-generator/attribute/event/parser';
 import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../custom-node/node-state-observable/mutations';
 import { NotificationsObserver, Source } from '@lifaon/observables/public';
+import { DefaultParsers } from './generators/default';
 
 function testTextParser() {
   const template: string = `a {{ data.b }} c`;
@@ -25,7 +25,7 @@ function testBindPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<a [href]="source"></a>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultModule).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
 }
 
 
@@ -33,42 +33,42 @@ function testBindClassPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [class.my-class]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultModule).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
 }
 
 function testBindClassSpreadPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [class...]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultModule).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
 }
 
 function testBindStylePropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [style.font-size.px]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultModule).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
 }
 
 function testBindStyleSpreadPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [style...]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultModule).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
 }
 
 function testIfCommandPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div *if="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseCommandAttribute(attr, DefaultModule).generate({ createNode: '' }).join('\n'));
+  console.log(parseCommandAttribute(attr, DefaultParsers).generate({ createNode: '' }).join('\n'));
 }
 
 function testForCommandPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div *for="let item of items; index as i"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseCommandAttribute(attr, DefaultModule).generate({ createNode: '' }).join('\n'));
+  console.log(parseCommandAttribute(attr, DefaultParsers).generate({ createNode: '' }).join('\n'));
 }
 
 function testEventListenerParser() {
@@ -89,7 +89,7 @@ function testElementParser() {
     *if="ifSource"
     >a {{ textSource }} c</a>
   `;
-  console.log(parseElementNode(container.firstElementChild, DefaultModule).generate().join('\n'));
+  console.log(parseElementNode(container.firstElementChild, DefaultParsers).generate().join('\n'));
 }
 
 function testTemplateParser() {
@@ -102,7 +102,7 @@ function testTemplateParser() {
     *if="ifSource"
     >a {{ textSource }} c</a>
   `;
-  console.log(parseTemplate(template, DefaultModule).generate().join('\n'));
+  console.log(parseTemplate(template, DefaultParsers).generate().join('\n'));
 }
 
 function testTemplateBuilder() {

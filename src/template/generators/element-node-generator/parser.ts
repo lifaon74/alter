@@ -1,11 +1,11 @@
-import { IModule } from '../../module/interfaces';
 import { IElementNodeGenerator, TElementNodeGeneratorChildren } from './interfaces';
 import { parseText } from '../text-node-generator/parser';
 import { ElementNodeGenerator } from './implementation';
 import { parseAttribute } from './attribute/parser';
+import { IParsers } from '../interfaces';
 
 
-export function parseChildNodes(node: Node, module: IModule): TElementNodeGeneratorChildren[] {
+export function parseChildNodes(node: Node, parsers: IParsers): TElementNodeGeneratorChildren[] {
   const children: TElementNodeGeneratorChildren[] = [];
   let childNode: Node | null = node.firstChild;
   while (childNode !== null) {
@@ -22,7 +22,7 @@ export function parseChildNodes(node: Node, module: IModule): TElementNodeGenera
         // TODO
         break;
       case Node.ELEMENT_NODE:
-        children.push(parseElementNode(childNode as Element, module));
+        children.push(parseElementNode(childNode as Element, parsers));
         break;
       default:
         console.warn(`Unsupported node's type: '${childNode.nodeType}'`);
@@ -34,14 +34,14 @@ export function parseChildNodes(node: Node, module: IModule): TElementNodeGenera
   return children;
 }
 
-export function parseElementNode(node: Element, module: IModule): IElementNodeGenerator {
+export function parseElementNode(node: Element, parsers: IParsers): IElementNodeGenerator {
   const generator: IElementNodeGenerator = new ElementNodeGenerator(node.tagName.toLowerCase());
 
   for (const attribute of Array.from(node.attributes)) {
-    generator.attributes.push(parseAttribute(attribute, module));
+    generator.attributes.push(parseAttribute(attribute, parsers));
   }
 
-  generator.children.push(...parseChildNodes(node, module));
+  generator.children.push(...parseChildNodes(node, parsers));
 
   return generator;
 }

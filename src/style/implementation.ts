@@ -2,6 +2,7 @@ import { UUID } from '../classes/UUID';
 import { NodeStateObservableOf } from '../custom-node/node-state-observable/implementation';
 import { IStyle, TStyleFunction } from './interfaces';
 import { INodeStateObservable } from '../custom-node/node-state-observable/interfaces';
+import { RelativeURLPath } from '../helpers';
 
 /**
  * Creates an HTMLStyleElement with 'css' inside
@@ -150,6 +151,7 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
 }
 
 
+
 export function StyleURLToStyleInstance(url: string): Promise<IStyle> {
   return fetch(url)
     .then((response: Response) => {
@@ -162,8 +164,13 @@ export function StyleURLToStyleInstance(url: string): Promise<IStyle> {
     .then(StyleStringToStyleInstance);
 }
 
+export function StyleRelativeURLToStyleInstance(moduleURL: string, url: string): Promise<IStyle> {
+  return StyleURLToStyleInstance(RelativeURLPath(moduleURL, url));
+}
+
 export const styleFromString = StyleStringToStyleInstance;
 export const styleFromURL = StyleURLToStyleInstance;
+export const styleFromRelativeURL = StyleRelativeURLToStyleInstance;
 
 export class Style implements IStyle {
   public readonly insert: TStyleFunction;

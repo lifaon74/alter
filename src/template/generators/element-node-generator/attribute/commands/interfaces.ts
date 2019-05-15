@@ -12,6 +12,6 @@ export interface ICommandGenerator extends IAttributeGenerator {
   readonly priority: number;
 }
 
-export interface IModuleCommand {
+export interface ICommandParser {
   parse(name: string, value: string, modifiers?: Set<TAttributeGeneratorModifiers>): ICommandGenerator | null;
 }

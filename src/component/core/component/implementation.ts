@@ -67,6 +67,7 @@ export function LoadComponentTemplate<T extends object>(component: IComponent<T>
   if (template) {
     return Promise.resolve(template)
       .then((template: ITemplate) => {
+        FreezeComponentContext((component as IComponentInternal<T>)[COMPONENT_PRIVATE].context);
         return template.insert((component as IComponentInternal<T>)[COMPONENT_PRIVATE].context.data, component, 'clear');
       });
   } else {
@@ -97,6 +98,7 @@ export const COMPONENT_CONTEXT_PRIVATE = Symbol('component-context-private');
 
 export interface IComponentContextPrivate<T extends object> {
   data: T;
+  frozen: boolean;
   attributeListener: INotificationsObservable<IComponentContextAttributeListenerKeyValueMap>;
   context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>;
 }
@@ -106,12 +108,32 @@ export interface IComponentContextInternal<T extends object> extends IComponentC
 }
 
 export function ConstructComponentContext<T extends object>(context: IComponentContext<T>): void {
-  ConstructClassWithPrivateMembers(context, COMPONENT_PRIVATE);
-  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data = {} as T;
+  ConstructClassWithPrivateMembers(context, COMPONENT_CONTEXT_PRIVATE);
+  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data = void 0;
+  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen = false;
   (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].attributeListener = new NotificationsObservable((_context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>) => {
     (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].context = _context;
   });
 }
+
+export function DeepFreeze<T>(value: T): Readonly<T> {
+  if ((typeof value === 'object') && (value !== null)) {
+    for (const key of Object.keys(value)) {
+      DeepFreeze((value as any)[key]);
+    }
+  }
+  return value;
+}
+
+export function FreezeComponentContext<T extends object>(context: IComponentContext<T>) {
+  if ((context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen) {
+    throw new Error(`ComponentContext already frozen`);
+  } else {
+    DeepFreeze((context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data);
+    (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen = true;
+  }
+}
+
 
 export class ComponentContext<T extends object> implements IComponentContext<T> {
 
@@ -121,6 +143,18 @@ export class ComponentContext<T extends object> implements IComponentContext<T> 
 
   get data(): T {
     return ((this as unknown) as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data;
+  }
+
+  set data(data: T) {
+    if (((this as unknown) as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen) {
+      throw new SyntaxError(`Cannot set data after the context is frozen`);
+    } else {
+      ((this as unknown) as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data = data;
+    }
+  }
+
+  get frozen(): boolean {
+    return ((this as unknown) as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen;
   }
 
   get attributeListener(): INotificationsObservable<IComponentContextAttributeListenerKeyValueMap> {

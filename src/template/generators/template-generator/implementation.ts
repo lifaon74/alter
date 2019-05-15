@@ -2,34 +2,35 @@ import { CodeGenerator } from '../code-generator/implementation';
 import { ITemplateGenerator } from './interfaces';
 import { TElementNodeGeneratorChildren } from '../element-node-generator/interfaces';
 import { IndentLines, ScopeLines } from '../snipets';
+import { AppendToSet } from '../../../helpers';
 
 
-export const defaultConstantsToImport = [
-  'NotificationsObserver',
-  'AttachNode',
-  'DetachNode',
-  'DestroyNode',
-  'ContainerNode',
-  'DynamicTextNode',
-  'DynamicConditionalNode',
-  'DynamicForLoopNode',
-  'DynamicAttribute',
-  'DynamicClass',
-  'DynamicClassList',
-  'DynamicStyle',
-  'DynamicStyleList',
-  'DynamicProperty',
-  'DynamicEventListener',
+// export const defaultConstantsToImport = [
+//   'NotificationsObserver',
+//   'AttachNode',
+//   'DetachNode',
+//   'DestroyNode',
+//   'ContainerNode',
+//   'DynamicTextNode',
+//   'DynamicConditionalNode',
+//   'DynamicForLoopNode',
+//   'DynamicAttribute',
+//   'DynamicClass',
+//   'DynamicClassList',
+//   'DynamicStyle',
+//   'DynamicStyleList',
+//   'DynamicProperty',
+//   'DynamicEventListener',
+//
+//   '$observable',
+//   '$observer',
+//   '$expression',
+//   '$scope',
+// ] as const;
+//
+// export type TDefaultConstantsToImport = typeof defaultConstantsToImport[keyof typeof defaultConstantsToImport];
 
-  '$observable',
-  '$observer',
-  '$expression',
-  '$scope',
-] as const;
-
-export type TDefaultConstantsToImport = typeof defaultConstantsToImport[keyof typeof defaultConstantsToImport];
-
-export function DetectConstantsToImport(lines: string[], potentialConstantsToImport: Iterable<string> = defaultConstantsToImport): string[] {
+export function DetectConstantsToImport(lines: string[], potentialConstantsToImport: Iterable<string>): string[] {
   const remainingConstantsToImport: string[] = Array.from(potentialConstantsToImport);
   const constantsToImport: string[] = [];
   for (let i = 0, l = lines.length; i < l; i++) {
@@ -45,12 +46,13 @@ export function DetectConstantsToImport(lines: string[], potentialConstantsToImp
   return constantsToImport;
 }
 
-export function GenerateConstantsToImport(constantsToImport: string[]): string[] {
+export function GenerateConstantsToImport(constantsToImport: Set<string>): string[] {
+  const _constantsToImport: string[] = Array.from(constantsToImport);
   return [
     `const [`,
-    ...IndentLines(constantsToImport.map(_ => (_ + ','))),
+    ...IndentLines(_constantsToImport.map(_ => (_ + ','))),
     `] = await Promise.all([`,
-    ...IndentLines(constantsToImport.map(_ => `require(${JSON.stringify(_)}),`)),
+    ...IndentLines(_constantsToImport.map(_ => `require(${JSON.stringify(_)}),`)),
     `]);`,
   ]
 }
@@ -63,11 +65,8 @@ export class TemplateGenerator extends CodeGenerator implements ITemplateGenerat
     this.children = children;
   }
 
-  generate(constantsToImport: string[] = [], detectConstantsToImport: boolean = true): string[] {
+  generate(constantsToImport: Set<string> = new Set<string>()): string[] {
     const lines: string[] = this.generateChildNodes();
-    if (detectConstantsToImport) {
-      constantsToImport = Array.from(new Set<string>(constantsToImport.concat(DetectConstantsToImport(lines))));
-    }
     return [
       `async (require) => {`,
       ...IndentLines([

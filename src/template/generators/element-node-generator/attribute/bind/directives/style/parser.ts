@@ -1,6 +1,6 @@
 import { IBindStyleDirectiveGenerator } from './interfaces';
 import { BindStyleDirectiveGenerator } from './implementation';
-import { IModuleBindDirective } from '../interfaces';
+import { IBindDirectiveParser } from '../interfaces';
 import { TAttributeGeneratorModifiers } from '../../../interfaces';
 
 const standardSelector: RegExp = new RegExp('^style\\.(.*)$');
@@ -25,6 +25,6 @@ export function parseBindStyleDirective<T extends IBindStyleDirectiveGenerator>(
   }
 }
 
-export const ModuleBindStyleDirective: IModuleBindDirective = {
+export const BindStyleDirectiveParser: IBindDirectiveParser = {
  parse: parseBindStyleDirective,
 };

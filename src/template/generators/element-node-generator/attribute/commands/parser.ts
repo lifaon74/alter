@@ -1,7 +1,7 @@
 import { ICommandGenerator } from './interfaces';
-import { IModule } from '../../../../module/interfaces';
 import { HTMLTemplateError } from '../../../../HTMLTemplateError';
 import { TAttributeGeneratorModifiers } from '../interfaces';
+import { IParsers } from '../../../interfaces';
 
 const starPattern: string = '\\*(\\$)?(.+)';
 const prefixPattern: string = 'cmd-(exp-)?(.+)';
@@ -10,7 +10,7 @@ const pattern: string = `(?:${starPattern})`
 const regExp: RegExp = new RegExp(`^${pattern}$`);
 
 
-export function parseCommandAttribute<T extends ICommandGenerator>(attribute: Attr, module: IModule): ICommandGenerator | null {
+export function parseCommandAttribute<T extends ICommandGenerator>(attribute: Attr, parsers: IParsers): ICommandGenerator | null {
   const match: RegExpExecArray | null = regExp.exec(attribute.name);
   if (match === null) {
     return null;
@@ -29,7 +29,7 @@ export function parseCommandAttribute<T extends ICommandGenerator>(attribute: At
       modifiers.add('expression');
     }
 
-    for (const command of module.commands) {
+    for (const command of parsers.commands) {
       const generator: ICommandGenerator | null = command.parse(name, value, modifiers);
       if (generator !== null) {
         return generator as T;

@@ -1,6 +1,6 @@
 import { IIfCommandGenerator } from './interfaces';
 import { IfCommandGenerator } from './implementation';
-import { IModuleCommand } from '../interfaces';
+import { ICommandParser } from '../interfaces';
 import { TAttributeGeneratorModifiers } from '../../interfaces';
 
 const selector: RegExp = new RegExp('^if$');
@@ -13,6 +13,6 @@ export function parseIfCommandAttribute<T extends IIfCommandGenerator>(name: str
   }
 }
 
-export const ModuleIfCommand: IModuleCommand = {
+export const IfCommandParser: ICommandParser = {
   parse: parseIfCommandAttribute,
 };
