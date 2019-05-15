@@ -1232,9 +1232,7 @@ class SourceProxy2<T extends object> {
   }
 
   observe<V>(path: PropertyKey[]): ISource<V | undefined> {
-    path = path.map((key: PropertyKey) => {
-      return (typeof key === 'number') ? String(key) : key;
-    });
+    path = this._normalizePath(path);
     let source: ISource<V> | undefined = this._observables.get(path) as (ISource<any> | undefined);
     if (source === void 0) {
       source = new Source<V>().emit(this.get(path));
@@ -1244,13 +1242,24 @@ class SourceProxy2<T extends object> {
   }
 
   unobserve(path: PropertyKey[]): boolean {
-    return this._observables.delete(path);
+    return this._observables.delete(this._normalizePath(path));
   }
 
   get<V>(path: PropertyKey[]): V {
     return ObjectPathGet(this._data, path);
   }
 
+  update(): void {
+    for (const [path, source] of this._observables.entries()) {
+      // TODO
+    }
+  }
+
+  private _normalizePath(path: PropertyKey[]): PropertyKey[] {
+    return path.map((key: PropertyKey) => {
+      return (typeof key === 'number') ? String(key) : key;
+    });
+  }
 
   private _emit(path: any[], value: any): void {
     const map: Map<any, any> = ((this._observables as unknown) as IDeepMapInternal<ISource<any>>)[DEEP_MAP_PRIVATE].map;
@@ -1366,10 +1375,16 @@ function testSourceProxy3() {
         console.log('c[0] changed', value);
       }).activate();
 
+    data.observe(['c', 'length'])
+      .pipeTo((value: any) => {
+        console.log('c.length changed', value);
+      }).activate();
+
     console.log('-----');
     data.data.c[0] = 'c0-2'; // c[0] => c0-2
     console.log('-----');
     data.data.c[10] = 'c10-0'; // c[0] => c0-2
+    console.log('c.length', data.data.c.length);
     console.log('-----');
     data.data.c = ['c0-3', 'c1-3']; // c[0] => c0-3, c => ['c0-3', 'c1-3']
     console.log('-----');
