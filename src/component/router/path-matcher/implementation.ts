@@ -3,15 +3,18 @@ import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWit
 
 
 export function NormalizeURLPath(path: string): string {
-  if (!path.startsWith('/')) {
-    path = '/' + path;
-  }
-
-  if (path.endsWith('/')) {
-    path = path.slice(0, -1);
-  }
-
-  return path;
+  const url: URL = new URL('http://localhost');
+  url.pathname = path;
+  return url.pathname;
+  // if (!path.startsWith('/')) {
+  //   path = '/' + path;
+  // }
+  //
+  // if (path.endsWith('/')) {
+  //   path = path.slice(0, -1);
+  // }
+  //
+  // return path;
 }
 
 /**

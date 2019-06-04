@@ -1,8 +1,8 @@
 import { IPathMatcherResult } from './path-matcher/interfaces';
 import { AttachNode, DestroyChildNodes } from '../../custom-node/node-state-observable/mutations';
 import { navigation, NavigationNavigate } from './navigation/implementation';
-import { IRoute, IRoutePathEntry, TRoutePath } from './route/interfaces';
-import { IRouter, IRouterNavigateOptions, IRouterRoutePathParams } from './interfaces';
+import { IRoute} from './route/interfaces';
+import { IRoutePathEntry, IRouter, IRouterNavigateOptions, IRouterRoutePathParams, TRoutePath } from './interfaces';
 import { IPromiseCancelToken, IReadonlyList, PromiseCancelToken, ReadonlyList, Reason } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 
@@ -41,15 +41,15 @@ export interface IRouterInternal extends IRouter {
 }
 
 let constructed: boolean = false;
-export function ConstructRouter(router: IRouter, routes: IRoute[]): void {
+export function ConstructRouter(router: IRouter, routes: Iterable<IRoute>): void {
   if (constructed) {
     throw new Error(`Only one router may be created.`);
   } else {
     constructed = true;
 
     ConstructClassWithPrivateMembers(router, ROUTER_PRIVATE);
-    (router as IRouterInternal)[ROUTER_PRIVATE].routes = routes;
-    (router as IRouterInternal)[ROUTER_PRIVATE].readonlyRoutes = new ReadonlyList<IRoute>(routes);
+    (router as IRouterInternal)[ROUTER_PRIVATE].routes = Array.from(routes);
+    (router as IRouterInternal)[ROUTER_PRIVATE].readonlyRoutes = new ReadonlyList<IRoute>((router as IRouterInternal)[ROUTER_PRIVATE].routes);
     (router as IRouterInternal)[ROUTER_PRIVATE].navigatePromise = Promise.resolve();
     (router as IRouterInternal)[ROUTER_PRIVATE].navigateCancelToken = null;
     (router as IRouterInternal)[ROUTER_PRIVATE].navigations = [];
@@ -363,7 +363,7 @@ export function ResolveRoutePath(
 
 export class Router implements IRouter {
 
-  constructor(routes: IRoute[]) {
+  constructor(routes: Iterable<IRoute>) {
     ConstructRouter(this, routes);
   }
 
