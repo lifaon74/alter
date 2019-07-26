@@ -1,0 +1,67 @@
+import { CompareResourceDetails, DEFAULT_RESOURCE_DETAILS, LoadFile, LoadHeaders, ProgressCallback, ResourceDetails } from './ResourceHelper';
+import { Resource } from './Resource';
+
+export abstract class ResourceLoader {
+
+  loadResource(id: string, urls: string[], progress?: ProgressCallback): Promise<Resource> {
+    return this.getBestResourceDetails(urls)
+      .then((details: ResourceDetails[]) => {
+        if (details.length === 0) {
+          throw new Error(`Unable to load media: ${urls.join(', ')}`);
+        } else {
+          return LoadFile(details[0].url, progress)
+            .then((blob: Blob) => this._blobToResource(id, blob));
+        }
+      });
+  }
+
+  protected abstract _blobToResource(id: string, blob: Blob): Promise<Resource>;
+
+
+  getResourceDetails(url: string, details: ResourceDetails = Object.assign({}, DEFAULT_RESOURCE_DETAILS)): Promise<ResourceDetails> {
+    details.url = url;
+
+    return LoadHeaders(url)
+      .then((headers: [string, string][]) => {
+        const map: Map<string, string> = new Map<string, string>(headers);
+        if (map.has('content-length')) {
+          const size: number = parseInt(map.get('content-length'), 10);
+          if (!Number.isNaN(size)) {
+            details.size = size;
+          }
+        }
+
+        if (map.has('content-type')) {
+          details.type = map.get('content-type');
+        }
+
+        return details;
+      });
+  }
+
+  getBestResourceDetails(urls: string[], compareFunction: (a: ResourceDetails | null, b: ResourceDetails | null) => number = CompareResourceDetails): Promise<ResourceDetails[]> {
+    return Promise.all(
+      urls.map((url: string) => {
+        return this.getResourceDetails(url)
+          .catch(() => Promise.resolve(null));
+      })
+    ).then((list: (ResourceDetails | null)[]) => {
+      return list
+        .filter((details: ResourceDetails | null) => (details !== null))
+        .sort(compareFunction);
+    });
+  }
+
+  protected _loadResourceAsBlob(urls: string[], progress?: ProgressCallback): Promise<Blob> {
+    return this.getBestResourceDetails(urls)
+      .then((details: ResourceDetails[]) => {
+        if (details.length === 0) {
+          throw new Error(`Unable to load media: ${urls.join(', ')}`);
+        } else {
+          return LoadFile(details[0].url, progress);
+        }
+      });
+  }
+
+}
+

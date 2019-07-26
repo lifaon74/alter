@@ -1,0 +1,52 @@
+import { CompareMediaDetails, DEFAULT_MEDIA_DETAILS, MediaDetails, MediaSupport } from './MediaHelper';
+import { Media } from './Media';
+import { ExtensionToMimeType, ResourceDetails } from '../resource/ResourceHelper';
+import { ResourceLoader } from '../resource/loader/ResourceLoader';
+
+
+export abstract class MediaLoader extends ResourceLoader {
+
+  protected _supportedType: Map<string, Promise<MediaSupport>>;
+
+  protected constructor() {
+    super();
+    this._supportedType = new Map<string, Promise<MediaSupport>>();
+  }
+
+  supportsType(type: string): Promise<MediaSupport> {
+    if (!this._supportedType.has(type)) {
+      this._supportedType.set(type, this._supportsType(type));
+    }
+    return this._supportedType.get(type);
+  }
+
+  supportsExtension(extension: string): Promise<MediaSupport> {
+    return this.supportsType(ExtensionToMimeType(extension));
+  }
+
+  protected abstract _supportsType(type: string): Promise<MediaSupport>;
+
+
+
+  getResourceDetails(url: string, details: MediaDetails = Object.assign({}, DEFAULT_MEDIA_DETAILS)): Promise<MediaDetails> {
+    return super.getResourceDetails(url, details)
+      .then((details: MediaDetails) => {
+        return this.supportsType(details.type)
+          .then((support: MediaSupport) => {
+            details.supported = support;
+            return details as any;
+          });
+      });
+  }
+
+  getBestResourceDetails(urls: string[], compareFunction: (a: MediaDetails | null, b: MediaDetails | null) => number = CompareMediaDetails): Promise<ResourceDetails[]> {
+    return super.getBestResourceDetails(urls, compareFunction)
+      .then((list: MediaDetails[]) => {
+        return list.filter((details: MediaDetails) => (details.supported !== 'no'));
+      });
+  }
+
+  protected abstract _blobToResource(id: string, blob: Blob): Promise<Media>;
+}
+
+

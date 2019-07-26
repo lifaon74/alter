@@ -40,8 +40,8 @@ export function ConstructHostBinding(instance: IHostBinding, attributeName: stri
   container.innerHTML = `<div ${ attributeName }="data.value"></div>`;
 
   privates.templateFunction = TemplateCodeToTemplateDebuggableFunction(
-    new TemplateGenerator([parseAttribute(container.firstElementChild.attributes[0], privates.options.module)])
-      .generate(['node'].concat(privates.options.constantsToImport))
+    new TemplateGenerator([parseAttribute(container.firstElementChild.attributes[0], privates.options.parsers)])
+      .generate(new Set<string>(['node'].concat(Array.from(privates.options.constantsToImport))))
   );
 
   privates.nodeToResolvePromiseWeakMap = new WeakMap<Element, Promise<void>>();

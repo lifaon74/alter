@@ -3,9 +3,17 @@ import { AttachNode, DestroyChildNodes } from '../../custom-node/node-state-obse
 import { navigation, NavigationNavigate } from './navigation/implementation';
 import { IRoute} from './route/interfaces';
 import { IRoutePathEntry, IRouter, IRouterNavigateOptions, IRouterRoutePathParams, TRoutePath } from './interfaces';
-import { IPromiseCancelToken, IReadonlyList, PromiseCancelToken, ReadonlyList, Reason } from '@lifaon/observables/public';
+import { ICancelToken, IReadonlyList, CancelToken, ReadonlyList, Reason } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 
+interface NodeSelector {
+  querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;
+  querySelector<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;
+  querySelector<E extends Element = Element>(selectors: string): E | null;
+  querySelectorAll<K extends keyof HTMLElementTagNameMap>(selectors: K): NodeListOf<HTMLElementTagNameMap[K]>;
+  querySelectorAll<K extends keyof SVGElementTagNameMap>(selectors: K): NodeListOf<SVGElementTagNameMap[K]>;
+  querySelectorAll<E extends Element = Element>(selectors: string): NodeListOf<E>;
+}
 
 // export interface Route {
 //   path?: string;
@@ -32,7 +40,7 @@ export interface IRouterPrivate {
   routes: IRoute[];
   readonlyRoutes: IReadonlyList<IRoute>;
   navigatePromise: Promise<void>;
-  navigateCancelToken: IPromiseCancelToken | null;
+  navigateCancelToken: ICancelToken | null;
   navigations: [string, () => void, (reason: any) => void][];
 }
 
@@ -93,7 +101,7 @@ export function RouterOnNavigate(router: IRouter): void {
 export function RouterApplyNavigate(router: IRouter, url: URL): Promise<void> {
   const privates: IRouterPrivate = (router as IRouterInternal)[ROUTER_PRIVATE];
 
-  const token: IPromiseCancelToken = new PromiseCancelToken();
+  const token: ICancelToken = new CancelToken();
   if (privates.navigateCancelToken !== null) {
     privates.navigateCancelToken.cancel(new Reason<string>(`Navigate before last one finished`, 'CANCEL'));
   }
@@ -129,7 +137,7 @@ export function RouterApplyNavigate(router: IRouter, url: URL): Promise<void> {
 //   const url: URL = new URL(window.location.href);
 //
 //   // 1) get associated navigation
-//   let navigation: [any, any, IPromiseCancelToken] | null;
+//   let navigation: [any, any, ICancelToken] | null;
 //   if (routerPrivates.navigations.has(url.href)) {
 //     navigation = routerPrivates.navigations.get(url.href);
 //     routerPrivates.navigations.delete(url.href);
@@ -145,7 +153,7 @@ export function RouterApplyNavigate(router: IRouter, url: URL): Promise<void> {
 //   }
 //
 //
-//   const token: IPromiseCancelToken = new PromiseCancelToken();
+//   const token: ICancelToken = new CancelToken();
 //   if (routerPrivates.navigateCancelToken !== null) {
 //     routerPrivates.navigateCancelToken.cancel(new Reason<string>(`Navigate before last one finished`, 'CANCEL'));
 //   }
@@ -199,7 +207,7 @@ export function RouterNavigate(router: IRouter, url: string | URL, options: IRou
 // export function RouterNavigate(router: IRouter, url: string | URL, options: IRouterNavigateOptions = {}, ): Promise<void> {
 //   const privates: IRouterPrivate = (router as IRouterInternal)[ROUTER_PRIVATE];
 //
-//   const token: IPromiseCancelToken = new PromiseCancelToken();
+//   const token: ICancelToken = new CancelToken();
 //   if (privates.navigateCancelToken !== null) {
 //     privates.navigateCancelToken.cancel(new Reason<string>(`Navigate before last one finished`, 'CANCEL'));
 //   }
@@ -265,7 +273,7 @@ export function GetURL(url: string | URL): URL {
  * @param id
  * @param timeout
  */
-export function FindRouterElement(rootNode: NodeSelector, token: IPromiseCancelToken, id: string | null = null, timeout: number = 5000): Promise<HTMLElement> {
+export function FindRouterElement(rootNode: NodeSelector, token: ICancelToken, id: string | null = null, timeout: number = 5000): Promise<HTMLElement> {
   return new Promise((resolve: any, reject: any) => {
     const endDate: number = Date.now() + timeout;
     const loop = () => {
@@ -328,7 +336,7 @@ export function ResolveRoutes(path: string, routes: Iterable<IRoute>): TRoutePat
  */
 export function ResolveRoutePath(
   routePath: TRoutePath,
-  token: IPromiseCancelToken = new PromiseCancelToken(),
+  token: ICancelToken = new CancelToken(),
   rootNode: NodeSelector = document
 ): Promise<void> {
   return new Promise<void>((resolve: any, reject: any) => {

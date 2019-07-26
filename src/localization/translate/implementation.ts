@@ -4,8 +4,8 @@ import {
   TTranslations, TTranslationsLoaderCallback, TTranslationsRaw
 } from './interfaces';
 import {
-  CancellablePromise, ICancellablePromise, INotificationsObservableContext, IPromiseCancelToken,
-  NotificationsObservable, PromiseCancelToken
+  CancellablePromise, ICancellablePromise, INotificationsObservableContext, ICancelToken,
+  NotificationsObservable, CancelToken
 } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 import { IsObject } from '../../helpers';
@@ -41,7 +41,7 @@ export function TranslateServiceSetTranslationLoader(service: ITranslateService,
   }
 }
 
-export function FetchTranslation(url: string, locale: string, token?: IPromiseCancelToken): ICancellablePromise<TTranslations> {
+export function FetchTranslation(url: string, locale: string, token?: ICancelToken): ICancellablePromise<TTranslations> {
   url = url.replace(/\{\{ *locale *\}\}/g, locale);
   return new CancellablePromise(fetch(url, (token === void 0) ? void 0 : { signal: token.toAbortController().signal }), token)
     .then((response: Response) => {
@@ -54,7 +54,7 @@ export function FetchTranslation(url: string, locale: string, token?: IPromiseCa
 }
 
 export function CreateTranslationLoader(url: string): TCreateTranslationsLoaderCallback {
-  return (locale: string, token?: IPromiseCancelToken): ICancellablePromise<TTranslations> => {
+  return (locale: string, token?: ICancelToken): ICancellablePromise<TTranslations> => {
     return FetchTranslation(url, locale, token)
       .catch((error: any) => {
         // give another try in case
@@ -69,7 +69,7 @@ export function CreateTranslationLoader(url: string): TCreateTranslationsLoaderC
 }
 
 export function CreateStrictTranslationLoader(url: string): TCreateTranslationsLoaderCallback {
-  return (locale: string, token?: IPromiseCancelToken): ICancellablePromise<TTranslations> => {
+  return (locale: string, token?: ICancelToken): ICancellablePromise<TTranslations> => {
     return FetchTranslation(url, locale, token);
   };
 }
@@ -88,7 +88,7 @@ export function TranslateServiceSetStaticTranslations(service: ITranslateService
   return TranslateServiceSetTranslationsFromPromise(service, locale, Promise.resolve(translationsRaw));
 }
 
-export function TranslateServiceSetTranslationsFromLoader(service: ITranslateService, locale: string, token?: PromiseCancelToken): ICancellablePromise<TTranslations> {
+export function TranslateServiceSetTranslationsFromLoader(service: ITranslateService, locale: string, token?: CancelToken): ICancellablePromise<TTranslations> {
   return new CancellablePromise(
     TranslateServiceSetTranslationsFromPromise(
       service,
@@ -109,7 +109,7 @@ export function TranslateServiceSetTranslationsFromPromise(service: ITranslateSe
       return Promise.reject(error);
     });
   (service as ITranslateServiceInternal)[TRANSLATE_SERVICE_PRIVATE].translations.set(locale, promise);
-  (service as ITranslateServiceInternal)[LOCALIZATION_SERVICE_PRIVATE].context.dispatch('translations-change');
+  (service as ITranslateServiceInternal)[LOCALIZATION_SERVICE_PRIVATE].context.dispatch('translations-change', void 0);
   return promise;
 }
 
@@ -140,7 +140,7 @@ export function NormalizeTranslations(translationsRaw: TTranslationsRaw, transla
 }
 
 
-export function TranslateServiceGetTranslations(service: ITranslateService, locale: string, token?: PromiseCancelToken): ICancellablePromise<TTranslations> {
+export function TranslateServiceGetTranslations(service: ITranslateService, locale: string, token?: CancelToken): ICancellablePromise<TTranslations> {
   const privates: ITranslateServicePrivate = (service as ITranslateServiceInternal)[TRANSLATE_SERVICE_PRIVATE];
   if (privates.translations.has(locale)) {
     return new CancellablePromise(privates.translations.get(locale), token);
@@ -155,7 +155,7 @@ export function TranslateServiceGetTranslations(service: ITranslateService, loca
 
 export function TranslateServiceDeleteTranslations(service: ITranslateService, locale: string): Promise<void> {
   (service as ITranslateServiceInternal)[TRANSLATE_SERVICE_PRIVATE].translations.delete(locale);
-  (service as ITranslateServiceInternal)[LOCALIZATION_SERVICE_PRIVATE].context.dispatch('translations-change');
+  (service as ITranslateServiceInternal)[LOCALIZATION_SERVICE_PRIVATE].context.dispatch('translations-change', void 0);
   return Promise.resolve();
 }
 
@@ -164,7 +164,7 @@ export function TranslateServiceTranslate(
   key: string,
   params?: ITranslateParams,
   locale: string = service.getLocale(),
-  token?: PromiseCancelToken
+  token?: CancelToken
 ): ICancellablePromise<string> {
   return TranslateServiceGetTranslations(service, locale, token)
     .then((translations: TTranslations) => {
@@ -179,7 +179,7 @@ export function TranslateServiceTranslateMany(
   service: ITranslateService,
   values: TTranslateManyValues,
   locale: string = service.getLocale(),
-  token?: PromiseCancelToken
+  token?: CancelToken
 ): ICancellablePromise<TTranslations> {
   return TranslateServiceGetTranslations(service, locale, token)
     .then((translations: TTranslations) => {
@@ -263,7 +263,7 @@ export class TranslateService extends LocalizationService<ITranslateServiceKeyVa
     return TranslateServiceSetStaticTranslations(this, locale, translations);
   }
 
-  getTranslations(locale: string, token?: PromiseCancelToken): ICancellablePromise<TTranslations> {
+  getTranslations(locale: string, token?: CancelToken): ICancellablePromise<TTranslations> {
     return TranslateServiceGetTranslations(this, locale);
   }
 
@@ -271,11 +271,11 @@ export class TranslateService extends LocalizationService<ITranslateServiceKeyVa
     return TranslateServiceDeleteTranslations(this, locale);
   }
 
-  translate(key: string, params?: ITranslateParams, locale?: string, token?: PromiseCancelToken): ICancellablePromise<string> {
+  translate(key: string, params?: ITranslateParams, locale?: string, token?: CancelToken): ICancellablePromise<string> {
     return TranslateServiceTranslate(this, key, params, locale, token);
   }
 
-  translateMany(values: TTranslateManyValues, locale?: string, token?: PromiseCancelToken): ICancellablePromise<TTranslations> {
+  translateMany(values: TTranslateManyValues, locale?: string, token?: CancelToken): ICancellablePromise<TTranslations> {
     return TranslateServiceTranslateMany(this, values, locale, token);
   }
 }

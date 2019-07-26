@@ -1,0 +1,66 @@
+import { CompareResourceSizes, DEFAULT_RESOURCE_DETAILS, ResourceDetails } from '../resource/ResourceHelper';
+
+export type MediaSupport = 'no' | 'maybe' | 'probably' | 'partially' | 'yes';
+
+export const MEDIA_SUPPORT_ORDER: MediaSupport[] = ['no', 'maybe', 'probably', 'partially', 'yes'];
+export const MEDIA_SUPPORT_ORDER_MAP: { [key: string]: number } = (() => {
+  const map: { [key: string]: number } = {};
+  for (let i = 0, l = MEDIA_SUPPORT_ORDER.length; i < l; i++) {
+    map[MEDIA_SUPPORT_ORDER[i]] = i;
+  }
+  return map;
+})();
+
+export function GetLowerMediaSupport(supports: MediaSupport[]): MediaSupport {
+  const length: number = supports.length;
+  if (length === 0) {
+    return 'no';
+  } else {
+    let index: number = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < length; i++) {
+      const _index: number = MEDIA_SUPPORT_ORDER_MAP[supports[i]];
+      if (_index < index) {
+        index = _index;
+      }
+    }
+    return MEDIA_SUPPORT_ORDER[index];
+  }
+}
+
+
+export interface MediaDetails extends ResourceDetails {
+  supported: MediaSupport;
+}
+
+export const DEFAULT_MEDIA_DETAILS: MediaDetails = Object.assign({
+  supported: 'no' as MediaSupport
+}, DEFAULT_RESOURCE_DETAILS);
+
+export function CompareMediaSupport(a: MediaSupport, b: MediaSupport): number {
+  return MEDIA_SUPPORT_ORDER_MAP[b] - MEDIA_SUPPORT_ORDER_MAP[a];
+}
+
+export function CompareMediaDetails(a: MediaDetails, b: MediaDetails): number {
+  let v: number = CompareMediaSupport(a.supported, b.supported);
+  if (v === 0) {
+    v = CompareResourceSizes(a.size, b.size);
+  }
+  return v;
+}
+
+export function CompareMediaDetailsAndNulls(a: MediaDetails | null, b: MediaDetails | null): number {
+  if (a === null) {
+    if (b === null) {
+      return 0;
+    } else {
+      return 1;
+    }
+  } else {
+    if (b === null) {
+      return -1;
+    } else {
+      return CompareMediaDetails(a, b);
+    }
+  }
+}
+

@@ -1,11 +1,14 @@
 import { INavigationState } from './state/interfaces';
 import { INavigation, INavigationExtendedKeyValueMap, INavigationKeyValueMap, INavigationNavigateKeyValueMap, INavigationNavigateOptions } from './interfaces';
 import { NavigationState, NormalizeURL } from './state/implementation';
-import { INotification, INotificationsObservable, INotificationsObservableContext, INotificationsObserver, IObserver, IPipe, IReadonlyList, KeyValueMapKeys, KeyValueMapToNotifications, NotificationsObservable, ReadonlyList } from '@lifaon/observables/public';
+import {
+  INotification, INotificationsObservable, INotificationsObservableContext, INotificationsObserver, IObserver, IPipe,
+  IReadonlyList, KeyValueMapKeys, KeyValueMapToNotifications, mapNotificationsPipe, NotificationsObservable,
+  ReadonlyList
+} from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { PropertyCallInterceptor } from '@lifaon/observables/classes/properties';
 import { IsObject } from '../../../helpers';
-import { mapNotificationNames } from '@lifaon/observables/operators/aggregateNotificationNames';
 
 
 
@@ -388,7 +391,7 @@ export function NavigationForward(): Promise<void> {
 
 
 export function navigationPipe(): IPipe<IObserver<KeyValueMapToNotifications<INavigationKeyValueMap>>, INotificationsObservable<INavigationNavigateKeyValueMap>> {
-  return mapNotificationNames<INavigationKeyValueMap, 'navigate'>(['back', 'forward', 'push', 'refresh', 'replace'], 'navigate');
+  return mapNotificationsPipe<INavigationKeyValueMap, 'navigate'>(['back', 'forward', 'push', 'refresh', 'replace'], 'navigate');
 }
 
 

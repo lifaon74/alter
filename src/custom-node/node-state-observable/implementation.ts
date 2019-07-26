@@ -155,7 +155,7 @@ export function NodeStateObservableOnMutationAfterAttach(observable: INodeStateO
  * @param observable
  */
 export function NodeStateObservableOnAfterAttach(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterAttach');
+  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterAttach', void 0);
 }
 
 
@@ -173,7 +173,7 @@ export function NodeStateObservableOnMutationAfterDetach(observable: INodeStateO
  * @param observable
  */
 export function NodeStateObservableOnAfterDetach(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterDetach');
+  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterDetach', void 0);
 }
 
 /**
@@ -182,7 +182,7 @@ export function NodeStateObservableOnAfterDetach(observable: INodeStateObservabl
  */
 export function NodeStateObservableOnMutationConnect(observable: INodeStateObservable): void {
   (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state = 'connected';
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('connect');
+  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('connect', void 0);
 }
 
 /**
@@ -191,7 +191,7 @@ export function NodeStateObservableOnMutationConnect(observable: INodeStateObser
  */
 export function NodeStateObservableOnMutationDisconnect(observable: INodeStateObservable): void {
   (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state = 'disconnected';
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('disconnect');
+  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('disconnect', void 0);
 }
 
 /**
@@ -201,7 +201,7 @@ export function NodeStateObservableOnMutationDisconnect(observable: INodeStateOb
 export function NodeStateObservableOnMutationDestroy(observable: INodeStateObservable): void {
   (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state = 'destroyed';
   NodeStateObservableDeactivateDOMObserver(observable);
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('destroy');
+  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('destroy', void 0);
 }
 
 

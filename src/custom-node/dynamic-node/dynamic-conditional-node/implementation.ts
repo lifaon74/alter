@@ -53,12 +53,12 @@ export function DynamicConditionalNodeOnEmit<N extends Node>(conditionalNode: ID
   }
 }
 
-export const DynamicConditionalNode: IDynamicConditionalNodeConstructor = class DynamicConditionalNode<N extends Node> extends ObserverFactory(ContainerNode) implements IDynamicConditionalNode<Node> {
+export const DynamicConditionalNode: IDynamicConditionalNodeConstructor = class DynamicConditionalNode<N extends Node> extends ObserverFactory(ContainerNode) /*implements IDynamicConditionalNode<Node>*/ {
   constructor(createNode: () => N, destroy?: boolean) {
     super([(value: any) => {
-      DynamicConditionalNodeOnEmit<N>(this, value);
+      DynamicConditionalNodeOnEmit<N>(this as any, value);
     }], 'IF');
-    ConstructDynamicConditionalNode(this, createNode, destroy);
+    ConstructDynamicConditionalNode(this as any, createNode, destroy);
   }
-};
+} as IDynamicConditionalNodeConstructor;
 

@@ -1,6 +1,6 @@
 
 import {
-  ICancellablePromise, IPromiseCancelToken, PromiseCancelToken
+  ICancellablePromise, ICancelToken, CancelToken
 } from '@lifaon/observables/public';
 import { ILocalizationService, ILocalizationServiceKeyValueMap } from '../interfaces';
 
@@ -8,8 +8,8 @@ import { ILocalizationService, ILocalizationServiceKeyValueMap } from '../interf
 
 export type TTranslationsRaw = { [key: string]: string; } | [string, string][] | Iterable<[string, string]>;
 
-export type TTranslationsLoaderCallback = (locale: string, token?: IPromiseCancelToken) => Promise<TTranslationsRaw>;
-export type TCreateTranslationsLoaderCallback = (locale: string, token?: IPromiseCancelToken) => ICancellablePromise<TTranslationsRaw>;
+export type TTranslationsLoaderCallback = (locale: string, token?: ICancelToken) => Promise<TTranslationsRaw>;
+export type TCreateTranslationsLoaderCallback = (locale: string, token?: ICancelToken) => ICancellablePromise<TTranslationsRaw>;
 
 export interface ITranslateParams {
   [key: string]: string;
@@ -38,11 +38,11 @@ export interface ITranslateService extends ILocalizationService<ITranslateServic
   createTranslationsLoader(url: string, options?: ICreateTranslationsLoaderOptions): TCreateTranslationsLoaderCallback;
 
   setTranslations(locale: string, translations: TTranslationsRaw): Promise<TTranslations>;
-  getTranslations(locale: string, token?: PromiseCancelToken): ICancellablePromise<TTranslations>;
+  getTranslations(locale: string, token?: CancelToken): ICancellablePromise<TTranslations>;
   deleteTranslations(locale: string): Promise<void>;
 
-  translate(key: string, params?: ITranslateParams, locale?: string, token?: PromiseCancelToken): ICancellablePromise<string>;
-  translateMany(values: TTranslateManyValues, locale?: string, token?: PromiseCancelToken): ICancellablePromise<TTranslations>;
+  translate(key: string, params?: ITranslateParams, locale?: string, token?: CancelToken): ICancellablePromise<string>;
+  translateMany(values: TTranslateManyValues, locale?: string, token?: CancelToken): ICancellablePromise<TTranslations>;
 }
 
 

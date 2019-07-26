@@ -27,9 +27,9 @@
   "access": "public",
   "unpkg": "bundle/public.umd.esnext.min.js",
   "devDependencies": {
-    "@babel/cli": "^7.4.4",
-    "@babel/core": "^7.4.4",
-    "@babel/preset-env": "^7.4.4",
+    "@babel/cli": "^7.5.0",
+    "@babel/core": "^7.5.4",
+    "@babel/preset-env": "^7.5.4",
     "@types/node": "latest",
     "gulp": "^4.0.2",
     "gulp-better-rollup": "^4.0.1",
@@ -44,17 +44,17 @@
     "gulp-util": "latest",
     "http-server": "^0.11.1",
     "markdown-toc": "^1.2.0",
-    "nodemon": "^1.19.0",
+    "nodemon": "^1.19.1",
     "rimraf": "^2.6.3",
-    "rollup": "^1.12.0",
-    "rollup-plugin-node-resolve": "^5.0.0",
+    "rollup": "^1.16.7",
+    "rollup-plugin-node-resolve": "^5.2.0",
     "rxjs": "^6.5.2",
-    "typescript": "^3.4.5",
+    "typescript": "^3.5.3",
     "typescript-tuple": "^2.2.1",
     "uglify-es": "^3.3.9",
     "vinyl-source-stream": "latest"
   },
   "dependencies": {
-    "@lifaon/observables": "^1.1.4"
+    "@lifaon/observables": "^1.4.5"
   }
 }

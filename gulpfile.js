@@ -4,6 +4,7 @@ const $path = require('path');
 const gutil = require('gulp-util');
 const $resolve = require('rollup-plugin-node-resolve');
 const $rollup  = require('gulp-better-rollup');
+
 // const $sass = require('gulp-sass');
 
 // console.log(gulpPlugins);
@@ -102,10 +103,11 @@ function bundle(buildOptions) {
     return gulp.src([
       $path.join(paths.destination, buildOptions.rollup.main)
     ], { base: base })
+      .pipe(gulpPlugins.sourcemaps.init())
       .pipe($rollup({
         plugins: [
           $resolve({
-            mainFields: ['jsnext:main', 'browser', 'module', 'main'],
+            mainFields: ['browser', 'module', 'jsnext:main', 'main'],
           }),
           {
             resolveImportMeta(prop, { moduleId }) {
@@ -131,6 +133,7 @@ function bundle(buildOptions) {
         file: outputName
       }))
       // .pipe(gulpPlugins.rename(outputName))
+      .pipe(gulpPlugins.sourcemaps.write())
       .pipe(gulp.dest($path.join(paths.destination, 'bundle')));
   };
 
@@ -179,9 +182,9 @@ function buildProd() {
         declaration: true,
       },
       rollup: {
-        main: 'public.js',
+        main: 'app.js',
         format: 'umd',
-        name: 'Observables',
+        name: 'Alter',
         outputPostFix: 'umd.esnext'
       }
     }),

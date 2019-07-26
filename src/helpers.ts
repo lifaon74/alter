@@ -1,4 +1,4 @@
-import { IPromiseCancelToken, TPromiseType } from '@lifaon/observables/public';
+import { ICancelToken, TPromiseType } from '@lifaon/observables/public';
 import { Path } from './classes/Path';
 
 export function noop() {}
@@ -48,14 +48,14 @@ export function RelativeURLPath(moduleURL: string, path: string): string {
   return url.href;
 }
 
-export function wrapToken<CB extends (...args: any[]) => any>(callback: CB, token?: IPromiseCancelToken): (...args: Parameters<CB>) => Promise<TPromiseType<ReturnType<CB>>> {
-  if (token === void 0) {
-    return function (...args: Parameters<CB>): Promise<TPromiseType<ReturnType<CB>>> {
-      return new Promise<TPromiseType<ReturnType<CB>>>((resolve: any) => {
-        resolve(callback.apply(this, args));
-      });
-    };
-  } else {
-    return token.wrap<CB>(callback);
-  }
-}
+// export function wrapToken<CB extends (...args: any[]) => any>(callback: CB, token?: ICancelToken): (...args: Parameters<CB>) => Promise<TPromiseType<ReturnType<CB>>> {
+//   if (token === void 0) {
+//     return function (...args: Parameters<CB>): Promise<TPromiseType<ReturnType<CB>>> {
+//       return new Promise<TPromiseType<ReturnType<CB>>>((resolve: any) => {
+//         resolve(callback.apply(this, args));
+//       });
+//     };
+//   } else {
+//     return token.wrapFunction<CB>(callback);
+//   }
+// }

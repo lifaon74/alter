@@ -28,7 +28,7 @@ export function ConstructLocalizationService<TKVMap extends LocalizationServiceK
 
 export function LocalizationServiceSetLocale<TKVMap extends LocalizationServiceKeyValueMapConstraint<TKVMap>>(service: ILocalizationService<TKVMap>, locale: string): void {
   (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].locale = locale;
-  (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].context.dispatch('locale-change' as KeyValueMapKeys<TKVMap>);
+  (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].context.dispatch('locale-change' as KeyValueMapKeys<TKVMap>, void 0);
 }
 
 export abstract class LocalizationService<TKVMap extends LocalizationServiceKeyValueMapConstraint<TKVMap>> extends NotificationsObservable<TKVMap> implements ILocalizationService<TKVMap> {

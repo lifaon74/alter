@@ -1,0 +1,24 @@
+import { MediaLoader } from '../media/MediaLoader';
+import { MediaSupport} from '../media/MediaHelper';
+import { ImageSupportsType } from './ImageHelper';
+import { ImageResource } from './ImageResource';
+import { ProgressCallback } from '../resource/ResourceHelper';
+
+
+export class ImageLoader extends MediaLoader {
+  constructor() {
+    super();
+  }
+
+  loadResource(id: string, urls: string[], progress?: ProgressCallback): Promise<ImageResource> {
+    return super.loadResource(id, urls, progress) as Promise<ImageResource>;
+  }
+
+  protected _blobToResource(id: string, blob: Blob): Promise<ImageResource> {
+    return Promise.resolve(new ImageResource({ id: id, blob: blob }));
+  }
+
+  protected _supportsType(type: string): Promise<MediaSupport> {
+    return ImageSupportsType(type);
+  }
+}

@@ -219,7 +219,7 @@ export function TemplateStringToTemplateInstance(
   options = NormalizeTemplateBuildOptions(options);
   return new Template((data: TTemplateDataType) => {
       return TemplateCodeToTemplateDebuggableFunction(
-        parseTemplate(template, options.parsers).generate(options.constantsToImport)
+        parseTemplate(template, options.parsers).generate(new Set<string>(options.constantsToImport))
       )((name: string) => { // require function
         if (name === options.dataSourceName) {
           return Promise.resolve(data);

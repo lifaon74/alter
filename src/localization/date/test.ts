@@ -1,5 +1,5 @@
 import { dateFormatService, datePredefined } from './implementation';
-import { mapPipe, TimerObservable } from '@lifaon/observables/public';
+import { IObservable, mapPipe, TimerObservable } from '@lifaon/observables/public';
 import { $source } from '@lifaon/observables/operators/misc';
 import { DateTimeFormatOptions } from './interfaces';
 import { $date } from './pipes';
@@ -25,7 +25,7 @@ export async function testDateFormatPipe() {
   // const options = $source<DateTimeFormatOptions>(datePredefined('longDate'));
   const options = $source<DateTimeFormatOptions>(datePredefined('fullDate'));
 
-  $date(date, options)
+  $date(date as any, options)
     .pipeTo((text: string) => {
       console.log(text);
     }).activate();

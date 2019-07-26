@@ -112,12 +112,12 @@ export function DynamicForLoopNodeOnEmit<N extends Node, T>(forLoopNode: IDynami
 
 
 
-export const DynamicForLoopNode: IDynamicForLoopNodeConstructor = class DynamicForLoopNode<N extends Node, T> extends ObserverFactory(ContainerNode) implements IDynamicForLoopNode<N, T> {
+export const DynamicForLoopNode: IDynamicForLoopNodeConstructor = class DynamicForLoopNode<N extends Node, T> extends ObserverFactory(ContainerNode) /*implements IDynamicForLoopNode<N, T>*/ {
   constructor(createNode: TForLoopNodeCreateNodeCallback<N, T>) {
     super([(values: Iterable<T>) => {
-      DynamicForLoopNodeOnEmit<N, T>(this, values);
+      DynamicForLoopNodeOnEmit<N, T>(this as any, values);
     }], 'FOR');
-    ConstructDynamicForLoopNode<N, T>(this, createNode);
+    ConstructDynamicForLoopNode<N, T>(this as any, createNode);
   }
-};
+} as IDynamicForLoopNodeConstructor;
 
