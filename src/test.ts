@@ -14,7 +14,7 @@ export function test() {
   // testTranslatePipe();
   // testDateFormatPipe();
   // testNumberFormatPipe();
-  // testComponent();
+  testComponent();
   // testSourceProxy();
-  testCanvas();
+  // testCanvas();
 }

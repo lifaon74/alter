@@ -1,13 +1,31 @@
-import { GetMediaSupportLevelScore, TMediaSupportLevel } from '../media/helpers';
-import { NormalizeContentType } from '../resource/loader/helpers';
+import { GetMediaSupportLevelScoreFromHeadersContentType, TMediaSupportLevel } from '../media/helpers';
+import { TLoadingState } from '../resource/interfaces';
+import {
+  GetHTTPResourceReachableScore, GetHTTPResourceSizeScore, HTTPResourceFetchBest, TWeightedScoreGenerator
+} from '../resource/helpers';
+import { IImageResource } from './interfaces';
+import { ImageResource } from './implementation';
+
+export function GetHTTPImageResourceSupportScore(response: Response, defaultScore?: number): Promise<number> {
+  return GetMediaSupportLevelScoreFromHeadersContentType(response.headers, ImageSupportsType, defaultScore);
+}
+
+export const imageScoreGenerators: TWeightedScoreGenerator[] = [
+  [GetHTTPResourceReachableScore, 1],
+  [GetHTTPImageResourceSupportScore, 1],
+  [GetHTTPResourceSizeScore, 0.1]
+];
 
 
-
-export function GetHTTPImageResourceSupportScore(response: Response, defaultScore: number = GetMediaSupportLevelScore('maybe')): Promise<number> {
-  return (response.headers.has('content-type'))
-    ? ImageSupportsType(NormalizeContentType(response.headers.get('content-type')))
-      .then(GetMediaSupportLevelScore)
-    : Promise.resolve(defaultScore);
+export function FetchBestImageResource(urls: string[], id?: string): Promise<IImageResource> {
+  return HTTPResourceFetchBest(
+    urls,
+    imageScoreGenerators,
+    (blob: Blob, index: number) => new ImageResource({
+      id: (id === void 0) ? urls[index] : id,
+      blob: blob
+    })
+  );
 }
 
 
@@ -19,12 +37,35 @@ export function CreateHTMLImageElement(url: string): HTMLImageElement {
   return image;
 }
 
+
+/**
+ * Infers and returns the state of an HTMLImageElement
+ * @param image
+ */
+export function GetHTMLImageElementState(image: HTMLImageElement): TLoadingState {
+  if (image.currentSrc === '') {
+    return 'pending';
+  } else {
+    if (image.complete) {
+      return (image.naturalWidth === 0)
+        ? 'error'
+        : 'complete';
+    } else {
+      return 'loading';
+    }
+  }
+}
+
+/**
+ * Returns a Promise resolved when the HTMLImageElement is loaded (image ready or errored)
+ * @param image
+ */
 export function AwaitHTMLImageElementLoaded(image: HTMLImageElement): Promise<HTMLImageElement> {
   return new Promise<HTMLImageElement>((resolve: any, reject: any) => {
     const onLoad = () => {
       if (image.naturalWidth === 0) {
         onError();
-      } else{
+      } else {
         resolve(image);
       }
     };
@@ -33,7 +74,7 @@ export function AwaitHTMLImageElementLoaded(image: HTMLImageElement): Promise<HT
       reject(new Error(`Image failed to load: ${ image.src.substring(0, 100) }`));
     };
 
-    if (image.complete && (image.src !== '')) {
+    if (image.complete && (image.currentSrc !== '')) {
       onLoad();
     } else {
 
@@ -58,19 +99,32 @@ export function AwaitHTMLImageElementLoaded(image: HTMLImageElement): Promise<HT
   });
 }
 
+/**
+ * Creates an HTMLImageElement from an url and waits until data are loaded
+ * @param url
+ */
 export function LoadAsHTMLImageElement(url: string): Promise<HTMLImageElement> {
   return AwaitHTMLImageElementLoaded(CreateHTMLImageElement(url));
 }
 
-export function Create2DContextFromHTMLImageElement(image: HTMLImageElement): CanvasRenderingContext2D {
-  const canvas: HTMLCanvasElement = document.createElement('canvas');
+/**
+ * Creates a canvas and its context containing the image (same size and pixels)
+ * @param image
+ * @param canvas
+ */
+export function Create2DContextFromHTMLImageElement(image: HTMLImageElement, canvas: HTMLCanvasElement = document.createElement('canvas')): CanvasRenderingContext2D {
   const ctx: CanvasRenderingContext2D = canvas.getContext('2d');
-  canvas.width = image.naturalWidth;
-  canvas.height = image.naturalHeight;
+  ctx.canvas.width = image.naturalWidth;
+  ctx.canvas.height = image.naturalHeight;
   ctx.drawImage(image, 0, 0);
   return ctx;
 }
 
+
+export function CreateImageDataFromHTMLImageElement(image: HTMLImageElement, canvas?: HTMLCanvasElement): ImageData {
+  const ctx: CanvasRenderingContext2D = Create2DContextFromHTMLImageElement(image, canvas);
+  return ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
 
 
 /** TEST IMAGE SUPPORT **/

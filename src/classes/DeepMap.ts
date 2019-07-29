@@ -262,7 +262,7 @@ export function DeepMapGetPartial(map: Map<any, any>, keys: any[]): Map<any, any
   return map;
 }
 
-export function* DeepMapEntries<T>(map: Map<any, any>, keys: any[] = []): IterableIterator<[any[], T]> {
+export function * DeepMapEntries<T>(map: Map<any, any>, keys: any[] = []): IterableIterator<[any[], T]> {
   const iterator: IterableIterator<[any, any]> = map.entries();
   let entry: IteratorResult<[any, any]>;
   let value: any;
@@ -271,7 +271,7 @@ export function* DeepMapEntries<T>(map: Map<any, any>, keys: any[] = []): Iterab
     value = entry.value[1];
     const _keys: any[] = keys.concat([entry.value[0]]);
     if (value instanceof Map) {
-      yield* DeepMapEntries(value, _keys) as any;
+      yield * DeepMapEntries(value, _keys) as any;
     } else {
       while ((_keys.length > 0) && (_keys[_keys.length - 1] === void 0)) {
         _keys.pop();
@@ -353,7 +353,7 @@ export class DeepMap<T> implements IDeepMap<T> {
   }
 
   /**
-   * Returns true if this map contains some entries.
+   * Returns false if this map contains some entries.
    */
   get empty(): boolean {
     return DeepMapIsEmpty(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
@@ -403,15 +403,15 @@ export class DeepMap<T> implements IDeepMap<T> {
   /**
    * Returns a iterable over the list of entries [key, value]
    */
-  * entries(): IterableIterator<[any[], T]> {
+  entries(): IterableIterator<[any[], T]> {
     return DeepMapEntries(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
   }
 
-  * keys(): IterableIterator<any[]> {
+  keys(): IterableIterator<any[]> {
     return DeepMapKeys(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
   }
 
-  * values(): IterableIterator<T> {
+  values(): IterableIterator<T> {
     return DeepMapValues(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
   }
 

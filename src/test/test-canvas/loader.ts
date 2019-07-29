@@ -55,44 +55,44 @@
 
 
 
-export class AssetsLoader {
-
-  private _assets: Map<string, Promise<HTMLImageElement>>;
-  private _assetsSync: Map<string, HTMLImageElement>;
-  private _tiles: Map<string, HTMLImageElement>;
-
-  constructor() {
-    this._assets = new Map<string, Promise<HTMLImageElement>>();
-    this._assetsSync = new Map<string, HTMLImageElement>();
-    this._tiles = new Map<string, HTMLImageElement>();
-  }
-
-  // loa
-
-  load(url: string): Promise<HTMLImageElement> {
-    if (!this._assets.has(url)) {
-      this._assets.set(url, LoadAsHTMLImageElement(url));
-    }
-    return this._assets.get(url);
-  }
-
-  loadSync(url: string): HTMLImageElement | Promise<HTMLImageElement> {
-    if (this._assetsSync.has(url)) {
-      return this._assetsSync.get(url);
-    } else {
-      return this.load(url)
-        .then((image: HTMLImageElement) => {
-          this._assetsSync.set(url, image);
-          return image;
-        });
-    }
-  }
-
-  // loadTile(url: string, x: number, y: number, width: number, height: number): Promise<HTMLImageElement> {
-  //
-  // }
-
-  // loadTileSync(url: string, x: number, y: number, width: number, height: number): HTMLImageElement | null {
-  //
-  // }
-}
+// export class AssetsLoader {
+//
+//   private _assets: Map<string, Promise<HTMLImageElement>>;
+//   private _assetsSync: Map<string, HTMLImageElement>;
+//   private _tiles: Map<string, HTMLImageElement>;
+//
+//   constructor() {
+//     this._assets = new Map<string, Promise<HTMLImageElement>>();
+//     this._assetsSync = new Map<string, HTMLImageElement>();
+//     this._tiles = new Map<string, HTMLImageElement>();
+//   }
+//
+//   // loa
+//
+//   load(url: string): Promise<HTMLImageElement> {
+//     if (!this._assets.has(url)) {
+//       this._assets.set(url, LoadAsHTMLImageElement(url));
+//     }
+//     return this._assets.get(url);
+//   }
+//
+//   loadSync(url: string): HTMLImageElement | Promise<HTMLImageElement> {
+//     if (this._assetsSync.has(url)) {
+//       return this._assetsSync.get(url);
+//     } else {
+//       return this.load(url)
+//         .then((image: HTMLImageElement) => {
+//           this._assetsSync.set(url, image);
+//           return image;
+//         });
+//     }
+//   }
+//
+//   // loadTile(url: string, x: number, y: number, width: number, height: number): Promise<HTMLImageElement> {
+//   //
+//   // }
+//
+//   // loadTileSync(url: string, x: number, y: number, width: number, height: number): HTMLImageElement | null {
+//   //
+//   // }
+// }

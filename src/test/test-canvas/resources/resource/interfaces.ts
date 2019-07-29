@@ -1,6 +1,13 @@
 import { ICloneableObject, ICloneableObjectConstructor, ICloneableObjectOptions } from '../../misc/CloneableObject';
 import { ICancellablePromise, TPromiseOrValue } from '@lifaon/observables';
 
+export type TLoadingState =
+  'pending' // waiting to fetch data (ex: waiting for a 'src' attribute)
+  | 'loading' // loading data
+  | 'complete' // data loaded and ready to be used
+  | 'error' // an error occurred (ex: fetching data, decoding, etc...)
+  ;
+
 export interface IResourceInit {
   id: string;
   type: string;

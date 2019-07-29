@@ -2,14 +2,14 @@ import { IImageResource, IImageResourceInit } from './interfaces';
 import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 import { ICloneableObjectOptions } from '../../misc/CloneableObject';
 import { Media } from '../media/implementation';
-import { AwaitHTMLImageElementLoaded, CreateHTMLImageElement } from './helpers';
+import {
+  AwaitHTMLImageElementLoaded, Create2DContextFromHTMLImageElement, CreateHTMLImageElement,
+  CreateImageDataFromHTMLImageElement
+} from './helpers';
 
 export const ImageResource_PRIVATE = Symbol('imageResource-private');
 
 export interface IImageResourcePrivate {
-  id: string;
-  type: string;
-  blob: Blob;
 }
 
 export interface IImageResourceInternal extends IImageResource {
@@ -23,9 +23,6 @@ export function ConstructImageResource(
 ): void {
   ConstructClassWithPrivateMembers(instance, ImageResource_PRIVATE);
   // const privates: IImageResourcePrivate = (instance as IImageResourceInternal)[ImageResource_PRIVATE];
-  if (instance.type !== 'image') {
-    throw new TypeError(`Expected 'image' as type`);
-  }
 }
 
 
@@ -33,7 +30,7 @@ export class ImageResource extends Media implements IImageResource {
 
   constructor(init: IImageResourceInit, options?: ICloneableObjectOptions) {
     if ((init.type !== void 0) && (init.type !== 'image')) {
-      throw new TypeError(`Expected 'image' as type`);
+      throw new TypeError(`Expected 'image' as init.type`);
     }
 
     super(
@@ -51,7 +48,18 @@ export class ImageResource extends Media implements IImageResource {
 
   toHTMLElement(): Promise<HTMLImageElement> {
     return this.toTemporaryObjectURL<HTMLImageElement>((url: string) => {
-      return AwaitHTMLImageElementLoaded(CreateHTMLImageElement(url));
+      return AwaitHTMLImageElementLoaded(CreateHTMLImageElement(url)); // await loaded before releasing ObjectURL
     });
+  }
+
+  toImageData(): Promise<ImageData> {
+    return this.toHTMLElement()
+      .then((image: HTMLImageElement) => {
+        return CreateImageDataFromHTMLImageElement(image);
+      });
+  }
+
+  toImageBitMap(): Promise<ImageBitmap> {
+    return window.createImageBitmap(this.blob);
   }
 }

@@ -3,6 +3,8 @@ import {
 } from '../classes/DeepMap';
 import { ISource, Source } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';
+import { emit } from 'cluster';
+import { IsObject } from '../helpers';
 
 function testSourceProxyOld(): void {
 
@@ -1129,9 +1131,39 @@ function testSourceProxy2() {
 }
 
 
-
 /*------------------------------*/
 
+export function ReflectObjectOnSourceObject(object: object, sourceObject: object, reflectUndefinedProperties: boolean = true): void {
+  const objectKeys = new Set<string>(Object.keys(object));
+  const sourceObjectKeys = new Set<string>(Object.keys(sourceObject));
+
+  for (const key of objectKeys) { // iterates over the properties of object and reflect new values on sourceObject
+    if (sourceObjectKeys.has(key)) {
+      sourceObjectKeys.delete(key);
+      const sourceEntry: any = (sourceObject as any)[key];
+      if (sourceEntry instanceof Source) {
+        (sourceEntry as ISource<any>).emit((object as any)[key]);
+      } else if(IsObject((object as any)[key])){
+        ReflectObjectOnSourceObject((object as any)[key], sourceEntry, reflectUndefinedProperties);
+      } else {
+        ReflectObjectOnSourceObject({}, sourceEntry, true);
+      }
+    }
+  }
+
+  if (reflectUndefinedProperties) {
+    for (const key of sourceObjectKeys) { // iterates over the properties of sourceObject which are undefined in object
+      const sourceEntry: any = (sourceObject as any)[key];
+      if (sourceEntry instanceof Source) {
+        (sourceEntry as ISource<any>).emit(void 0);
+      } else {
+        ReflectObjectOnSourceObject({}, sourceEntry, reflectUndefinedProperties);
+      }
+    }
+  }
+}
+
+/*------------------------------*/
 
 const objectObservers: WeakMap<object, object> = new WeakMap<object, object>();
 
@@ -1204,14 +1236,72 @@ function CreateUniqObjectObserver<T extends object>(
   return proxy;
 }
 
+function CreateUniqObjectObserverA<T extends object>(
+  source: T,
+  onSet: (path: PropertyKey[], value: any) => void,
+  onDelete: (path: PropertyKey[]) => void,
+  path: PropertyKey[] = []
+): T {
+  let proxy: T | undefined = objectObservers.get(source) as (T | undefined);
+  if (proxy === void 0) {
+    proxy = new Proxy(source, {
+      get: (target: any, propertyName: PropertyKey, receiver: any): any => {
+        return Reflect.get(target, propertyName, receiver);
+      },
+      set: (target: any, propertyName: PropertyKey, value: any, receiver: any) => {
+        const _path: PropertyKey[] = path.concat(propertyName);
 
+        // if (Array.isArray(target)) {
+        //   const index: number = IsArrayIndex(propertyName);
+        //   if (index !== -1) {
+        //     if (index > target.length) {
+        //       console.log('fix length: add more items');
+        //       for (let i = target.length; i < index; i++) {
+        //         onSet(path.concat(String(i)), void 0);
+        //       }
+        //     }
+        //   }
+        // }
+        //
+        // if ((propertyName === 'length') && Array.isArray(target)) {
+        //   console.error(`UPDATE LENGTH`, target.length, value);
+        // }
+
+        if (IsObject(value)) {
+          value = CreateUniqObjectObserver(value, onSet, onDelete, _path);
+        }
+
+        onSet(_path, value);
+
+        return Reflect.set(target, propertyName, value, receiver);
+      },
+      deleteProperty: (target: any, propertyName: PropertyKey): boolean => {
+        onDelete(path.concat(propertyName));
+
+        return Reflect.deleteProperty(target, propertyName);
+      },
+    });
+    objectObservers.set(source, proxy);
+
+    for (const key in source) {
+      Reflect.set(proxy, key, Reflect.get(source, key));
+    }
+  }
+
+  return proxy;
+}
+
+/**
+ * WARNING: can't handle get properties (like 'length' for example) because it may change at any time.
+ */
 class SourceProxy2<T extends object> {
   private _data: T;
-  private _observables: DeepMap<ISource<any>>;
+  private _observables: IDeepMap<ISource<any>>;
+  private _autoUpdateTimer: any | null;
 
   constructor(source: T = Object.create(null)) {
     this._observables = new DeepMap<ISource<any>>();
-
+    this._autoUpdateTimer = null;
     this.data = source;
   }
 
@@ -1231,6 +1321,30 @@ class SourceProxy2<T extends object> {
     this._emit([], this._data);
   }
 
+  // get template(): any {
+  //   return new Proxy(Object.create(null), {
+  //     get: (target: any, propertyName: PropertyKey) => {
+  //       return Reflect.get(target);
+  //     },
+  //     set: (target: any, propertyName: PropertyKey, value: any) => {
+  //       ObjectPathSet<any>((proxy as ISourceProxyInternal)[SOURCE_PROXY_PRIVATE].dataProxy, path.concat(propertyName), value);
+  //       return true;
+  //     },
+  //     deleteProperty: (target: any, propertyName: PropertyKey): boolean => {
+  //       return ObjectPathDelete((proxy as ISourceProxyInternal)[SOURCE_PROXY_PRIVATE].dataProxy, path.concat(propertyName));
+  //     },
+  //     ownKeys: () => {
+  //       return Object.keys(ObjectPathGet((proxy as ISourceProxyInternal)[SOURCE_PROXY_PRIVATE].dataProxy, path));
+  //     }, // https://stackoverflow.com/questions/40352613/why-does-object-keys-and-object-getownpropertynames-produce-different-output
+  //     getOwnPropertyDescriptor: () => {
+  //       return {
+  //         enumerable: true,
+  //         configurable: true,
+  //       };
+  //     }
+  //   });
+  // }
+
   observe<V>(path: PropertyKey[]): ISource<V | undefined> {
     path = this._normalizePath(path);
     let source: ISource<V> | undefined = this._observables.get(path) as (ISource<any> | undefined);
@@ -1249,9 +1363,35 @@ class SourceProxy2<T extends object> {
     return ObjectPathGet(this._data, path);
   }
 
+  set(path: PropertyKey[], value: any): void {
+    ObjectPathSet(this._data, path, value);
+  }
+
   update(): void {
     for (const [path, source] of this._observables.entries()) {
-      // TODO
+      if (ObjectPathExists(this._data, path)) {
+        source.emit(ObjectPathGet(this._data, path));
+      } else {
+        source.emit(void 0);
+      }
+    }
+  }
+
+  startAutoUpdate(): void {
+    if (this._autoUpdateTimer === null) {
+      const loop = () => {
+        this.update();
+        this._autoUpdateTimer = setTimeout(loop, 1000);
+      };
+
+      loop();
+    }
+  }
+
+  stopAutoUpdate(): void {
+    if (this._autoUpdateTimer !== null) {
+      clearTimeout(this._autoUpdateTimer);
+      this._autoUpdateTimer = null;
     }
   }
 
@@ -1273,7 +1413,7 @@ class SourceProxy2<T extends object> {
       while (!(result = iterator.next()).done) {
         // console.warn(result.value[0]);
         result.value[1].emit(
-          ((typeof value === 'object') && (value !== null) && ObjectPathExists(value, result.value[0]))
+          (IsObject(value) && ObjectPathExists(value, result.value[0]))
             ? ObjectPathGet(value, result.value[0])
             : ((result.value[0].length === 0) ? value : void 0)
         );
@@ -1364,6 +1504,7 @@ function testSourceProxy3() {
 
     console.log('-------------------------');
 
+    data.startAutoUpdate();
 
     data.observe(['c'])
       .pipeTo((value: any) => {
@@ -1380,31 +1521,31 @@ function testSourceProxy3() {
         console.log('c.length changed', value);
       }).activate();
 
-    console.log('-----');
-    data.data.c[0] = 'c0-2'; // c[0] => c0-2
-    console.log('-----');
-    data.data.c[10] = 'c10-0'; // c[0] => c0-2
-    console.log('c.length', data.data.c.length);
-    console.log('-----');
-    data.data.c = ['c0-3', 'c1-3']; // c[0] => c0-3, c => ['c0-3', 'c1-3']
-    console.log('-----');
-    data.data.c = 'c'; // c => c, c[0] => void 0
-    console.log('-----');
-    data.data.c = ['c0-4', 'c1-4']; // c[0] => c0-4, c => ['c0-4', 'c1-4']
-    console.log('-----');
-    data.data.c.shift(); // c[0] => c1-4
-    console.log('-----');
-    data.data.c.unshift('c-unshift'); // c[0] => c-unshift
-    console.log('-----');
+    // console.log('-----');
+    // data.data.c[0] = 'c0-2'; // c[0] => c0-2
+    // console.log('-----');
+    // data.data.c[10] = 'c10-0'; // c[0] => c0-2
+    // console.log('c.length', data.data.c.length);
+    // console.log('-----');
+    // data.data.c = ['c0-3', 'c1-3']; // c[0] => c0-3, c => ['c0-3', 'c1-3']
+    // console.log('-----');
+    // data.data.c = 'c'; // c => c, c[0] => void 0
+    // console.log('-----');
+    // data.data.c = ['c0-4', 'c1-4']; // c[0] => c0-4, c => ['c0-4', 'c1-4']
+    // console.log('-----');
+    // data.data.c.shift(); // c[0] => c1-4
+    // console.log('-----');
+    // data.data.c.unshift('c-unshift'); // c[0] => c-unshift
+    // console.log('-----');
     data.data.c.length = 0; // WARN problem
-    console.log('-----');
-    data.data.c = []; // c[0] => void 0
-    console.log('-----');
-    data.data.c.push('c-push'); // c[0] => c-push
-    console.log('-----');
-    data.data.c = [2, 1]; // c[0] => 2, c => [2, 1]
-    console.log('-----');
-    data.data.c.sort(); // c[0] => 1
+    // console.log('-----');
+    // data.data.c = []; // c[0] => void 0
+    // console.log('-----');
+    // data.data.c.push('c-push'); // c[0] => c-push
+    // console.log('-----');
+    // data.data.c = [2, 1]; // c[0] => 2, c => [2, 1]
+    // console.log('-----');
+    // data.data.c.sort(); // c[0] => 1
   }
 
   // test1();

@@ -1,5 +1,10 @@
-import { CancellablePromise, ICancellablePromise, ICancelToken, PromiseTry } from '@lifaon/observables';
+import {
+  CancellablePromise, ICancellablePromise, ICancelToken, PromiseTry, TPromiseOrValue
+} from '@lifaon/observables';
+import { SORT_NUMBER_DESK, SortIndexes } from '../snippets';
+import { IResource } from './interfaces';
 
+/** SCORES **/
 
 export type HTTPResourceScoreGeneratorSync = (response: Response) => number;
 export type HTTPResourceScoreGeneratorAsync = (response: Response) => Promise<number>;
@@ -57,21 +62,6 @@ export function GetHTTPResourceScore(response: Response, weightedScoreGenerators
 }
 
 
-export function HTTPResourceFetch(request: Request, weightedScoreGenerators: TWeightedScoreGenerator[], token?: ICancelToken): ICancellablePromise<number> {
-  return CancellablePromise.fetch(request, void 0, token)
-    .then((response: Response) => {
-      return GetHTTPResourceScore(response, weightedScoreGenerators);
-    });
-}
-
-export function HTTPResourceFetchBest(requests: Request[], weightedScoreGenerators: TWeightedScoreGenerator[], token?: ICancelToken): ICancellablePromise<number[]> {
-  return CancellablePromise.allCallback((token: ICancelToken) => {
-    return requests.map((request: Request) => {
-      return HTTPResourceFetch(request, weightedScoreGenerators, token);
-    });
-  }, token);
-}
-
 export function HTTPResourceCompare(responses: Response[], weightedScoreGenerators: TWeightedScoreGenerator[]): Promise<number[]> {
   return Promise.all(
     responses.map((response: Response) => {
@@ -80,20 +70,46 @@ export function HTTPResourceCompare(responses: Response[], weightedScoreGenerato
   );
 }
 
+/** FETCH **/
 
-// export function HTTPResourceFetch(requests: Request[], scoreGenerators: HTTPResourceScoreGenerator[], token?: ICancelToken): ICancellablePromise<number[]> {
-//   return CancellablePromise.allCallback((token: ICancelToken) => {
-//     return requests.map((request: Request) => {
-//       return CancellablePromise.fetch(request, void 0, token)
-//         .then((response: Response) => {
-//           return GetHTTPResourceScore(response, scoreGenerators);
-//         });
-//     });
-//   }, token);
-// }
+export function HTTPResourceFetchScore(request: Request, weightedScoreGenerators: TWeightedScoreGenerator[], token?: ICancelToken): ICancellablePromise<number> {
+  return CancellablePromise.fetch(request, void 0, token)
+    .then((response: Response) => {
+      return GetHTTPResourceScore(response, weightedScoreGenerators);
+    });
+}
+
+export function HTTPResourceFetchManyScores(requests: Request[], weightedScoreGenerators: TWeightedScoreGenerator[], token?: ICancelToken): ICancellablePromise<number[]> {
+  return CancellablePromise.allCallback((token: ICancelToken) => {
+    return requests.map((request: Request) => {
+      return HTTPResourceFetchScore(request, weightedScoreGenerators, token);
+    });
+  }, token);
+}
 
 
-/*----------------------------------------------*/
+
+export function HTTPResourceFetchBest<T extends IResource>(
+  urls: string[],
+  weightedScoreGenerators: TWeightedScoreGenerator[],
+  toResourceCallback: (blob: Blob, index: number, token: ICancelToken) => TPromiseOrValue<T>,
+  token?: ICancelToken
+): ICancellablePromise<T> {
+  return CancellablePromise.of(HTTPResourceFetchManyScores(
+    urls.map(_ => new Request(_, { method: 'HEAD' })),
+    weightedScoreGenerators
+  ), token)
+    .then((scores: number[], token: ICancelToken) => {
+      scores = NormalizeVector(scores);
+      const sorted: number[] = SortIndexes(scores, SORT_NUMBER_DESK);
+      return CancellablePromise.fetch(urls[sorted[0]], void 0, token)
+        .then((response: Response) => response.blob())
+        .then((blob: Blob) => toResourceCallback(blob, sorted[0], token));
+    });
+}
+
+
+/** OTHERS **/
 
 
 export function ExtensionToMimeType(extension: string, defaultExtension: string | null = 'application/octet-stream'): string | null {
@@ -153,43 +169,8 @@ export function NormalizeContentType(type: string): string {
   return type.split(';')[0].toLowerCase().trim();
 }
 
-// export function LoadHeaders(url: string, token?: ICancelToken): ICancellablePromise<Headers> {
-//   return CancellablePromise.fetch(url, {
-//     method: 'HEAD',
-//   }, token)
-//     .then((response: Response) => response.headers);
-// }
 
+export function CloneBlob(blob: Blob): Blob {
+  return blob.slice(0, blob.size, blob.type);
+}
 
-// export interface IHTTPResourceDetails {
-//   url: string,
-//   size: number;
-//   type: string;
-// }
-//
-// export const DEFAULT_HTTP_RESOURCE_DETAILS: IHTTPResourceDetails = {
-//   url: '',
-//   size: 0,
-//   type: 'application/octet-stream',
-// };
-
-
-// export function GetHTTPResourceDetails(url: string, details: IHTTPResourceDetails = Object.assign({}, DEFAULT_HTTP_RESOURCE_DETAILS)): Promise<IHTTPResourceDetails> {
-//   details.url = url;
-//
-//   return LoadHeaders(url)
-//     .then((headers: Headers) => {
-//       if (headers.has('content-length')) {
-//         const size: number = parseInt(headers.get('content-length'), 10);
-//         if (!Number.isNaN(size)) {
-//           details.size = size;
-//         }
-//       }
-//
-//       if (headers.has('content-type')) {
-//         details.type = headers.get('content-type');
-//       }
-//
-//       return details;
-//     });
-// }

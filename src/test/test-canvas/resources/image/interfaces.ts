@@ -12,6 +12,10 @@ export interface IImageResource extends IMedia, Readonly<Required<IImageResource
   readonly type: 'image';
 
   toHTMLElement(): Promise<HTMLImageElement>;
+
+  toImageData(): Promise<ImageData>;
+
+  toImageBitMap(): Promise<ImageBitmap>;
 }
 
 

@@ -10,10 +10,10 @@ import { Constructor } from '../classes/factory';
 /**
  * Returns the list of all the class which inherits of HTMLElement
  */
+const htmlElementConstructorRegExp: RegExp = new RegExp('^HTML(.+)Element$');
 function GetHTMLElementConstructors(items: Set<Constructor<HTMLElement>> = new Set<Constructor<HTMLElement>>()): Set<Constructor<HTMLElement>> {
-  const reg: RegExp = new RegExp('^HTML(.+)Element$');
   for (const key of Object.getOwnPropertyNames(window)) {
-    if (reg.exec(key) !== null) {
+    if (htmlElementConstructorRegExp.test(key)) {
       items.add((window as any)[key]);
     }
   }

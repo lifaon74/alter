@@ -5,6 +5,7 @@ import { ReadBlobAsArrayBuffer, ReadBlobAsDataURL } from '../async-file-reader';
 import {
   CancellablePromise, ICancellablePromise, ICancelToken, CancelToken, TPromiseOrValue
 } from '@lifaon/observables';
+import { CloneBlob } from './helpers';
 
 export const RESOURCE_PRIVATE = Symbol('resource-private');
 
@@ -27,9 +28,24 @@ export function ConstructResource(
 ): void {
   ConstructClassWithPrivateMembers(instance, RESOURCE_PRIVATE);
   const privates: IResourcePrivate = (instance as IResourceInternal)[RESOURCE_PRIVATE];
-  privates.id = init.id;
-  privates.type = init.type;
-  privates.blob = options.shallow ? init.blob : init.blob.slice();
+
+  if (typeof init.id === 'string') {
+    privates.id = init.id;
+  } else {
+    throw new TypeError(`Expected string as init.id`);
+  }
+
+  if (typeof init.type === 'string') {
+    privates.type = init.type;
+  } else {
+    throw new TypeError(`Expected string as init.type`);
+  }
+
+  if (init.blob instanceof Blob) {
+    privates.blob = options.shallow ? init.blob : CloneBlob(init.blob);
+  } else {
+    throw new TypeError(`Expected Blob as init.blob`);
+  }
 }
 
 export function ResourceGetId(instance: IResource): string {
