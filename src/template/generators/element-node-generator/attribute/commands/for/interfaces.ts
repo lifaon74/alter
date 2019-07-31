@@ -36,12 +36,5 @@ export interface IForCommandGenerator extends ICommandGenerator {
   readonly iterableName: string;
   readonly iterableEntryName: string;
   readonly localVariableNamesMap: Map<string, string>;
-
-  readonly observableValue: string;
-
-  generate(options: ForCommandGeneratorOptions): string[];
 }
 
-export interface ForCommandGeneratorOptions extends ICodeGeneratorOptions {
-  createNode: string[];
-}

@@ -1,5 +1,6 @@
-import { ICommandGenerator, ICommandGeneratorConstructor, ICommandGeneratorOptions } from '../interfaces';
-import { ICodeGeneratorOptions } from '../../../../code-generator/interfaces';
+import {
+  ICommandGenerator, ICommandGeneratorConstructor, ICommandGeneratorOptions
+} from '../interfaces';
 
 
 export interface IIfCommandGeneratorOptions extends ICommandGeneratorOptions {
@@ -10,10 +11,4 @@ export interface IIfCommandGeneratorConstructor extends ICommandGeneratorConstru
 }
 
 export interface IIfCommandGenerator extends ICommandGenerator {
-  readonly observableValue: string;
-  generate(options: IfCommandGeneratorOptions): string[];
-}
-
-export interface IfCommandGeneratorOptions extends ICodeGeneratorOptions {
-  createNode: string[];
 }

@@ -66,10 +66,10 @@ export function ConstructNodeStateObservable(
 
   privates.domChangeObserver = new Observer<void>(() => {
     // something append in the DOM
-    // console.warn('DOM detect');
 
     const mutation: TReferenceNodeMutation = privates.referenceNode.inferMutation();
     const connected: boolean = privates.node.ownerDocument.contains(privates.node);
+    // console.warn('DOM detect', mutation);
 
     if (mutation !== 'none') {
       ReferenceNodeUpdate(privates.referenceNode);
@@ -96,8 +96,7 @@ export function ConstructNodeStateObservable(
     privates.attachDetected = false;
     privates.detachDetected = false;
 
-    if ((privates.state === 'connected') !== connected) { // not detected
-      console.warn('DOM state not detected');
+    if ((privates.state === 'connected') !== connected) { // node itself didnt update but one of its parent may have
       if (connected) {
         NodeStateObservableOnMutationConnect(observable);
       } else {

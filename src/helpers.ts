@@ -48,14 +48,12 @@ export function RelativeURLPath(moduleURL: string, path: string): string {
   return url.href;
 }
 
-// export function wrapToken<CB extends (...args: any[]) => any>(callback: CB, token?: ICancelToken): (...args: Parameters<CB>) => Promise<TPromiseType<ReturnType<CB>>> {
-//   if (token === void 0) {
-//     return function (...args: Parameters<CB>): Promise<TPromiseType<ReturnType<CB>>> {
-//       return new Promise<TPromiseType<ReturnType<CB>>>((resolve: any) => {
-//         resolve(callback.apply(this, args));
-//       });
-//     };
-//   } else {
-//     return token.wrapFunction<CB>(callback);
-//   }
-// }
+export function IsDevToolOpened(): boolean {
+  const devtools: any = function() {};
+  devtools.toString = function() {
+    devtools.opened = true;
+  };
+
+  console.log('%c', devtools);
+  return devtools.opened;
+}

@@ -60,6 +60,17 @@ export function ConstructContainerNode(containerNode: IContainerNode, transparen
     });
 }
 
+
+// export function ContainerNodeIsDetached(containerNode: IContainerNode): boolean {
+//   return (containerNode.parentNode === null)
+//     || (containerNode.nextSibling !== (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode)
+//     || ((containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode.parentNode !== containerNode.parentNode);
+// }
+
+export function ContainerNodeIsDetached(containerNode: IContainerNode): boolean {
+  return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.parentNode === null;
+}
+
 /** ContainerNodeChildNodesIterator **/
 
 /**
@@ -178,7 +189,7 @@ export function ContainerNodeClearChildNodes(containerNode: IContainerNode): voi
 /** Node - DONE **/
 
 export function ContainerNodeGetTextContent(containerNode: IContainerNode): string | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.textContent;
   } else {
     let text: string = '';
@@ -197,7 +208,7 @@ export function ContainerNodeGetTextContent(containerNode: IContainerNode): stri
 }
 
 export function ContainerNodeSetTextContent(containerNode: IContainerNode, value: string | null): void {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.textContent = value;
   } else {
     ContainerNodeClearChildNodes(containerNode);
@@ -211,7 +222,7 @@ export function ContainerNodeSetTextContent(containerNode: IContainerNode, value
 }
 
 export function ContainerNodeGetChildNodes(containerNode: IContainerNode): NodeListOf<ChildNode> {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.childNodes;
   } else {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].childNodes.update();
@@ -219,7 +230,7 @@ export function ContainerNodeGetChildNodes(containerNode: IContainerNode): NodeL
 }
 
 export function ContainerNodeGetFirstChild(containerNode: IContainerNode): ChildNode | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.firstChild;
   } else {
     const node: Node | null = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.nextSibling;
@@ -230,7 +241,7 @@ export function ContainerNodeGetFirstChild(containerNode: IContainerNode): Child
 }
 
 export function ContainerNodeGetLastChild(containerNode: IContainerNode): ChildNode | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lastChild;
   } else {
     const node: Node | null = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode.previousSibling;
@@ -240,7 +251,7 @@ export function ContainerNodeGetLastChild(containerNode: IContainerNode): ChildN
 
 
 export function ContainerNodeAppendChild<T extends Node>(containerNode: IContainerNode, newChild: T): T {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.appendChild<T>(newChild);
   } else {
     return containerNode.parentNode.insertBefore<T>(newChild, (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode);
@@ -248,7 +259,7 @@ export function ContainerNodeAppendChild<T extends Node>(containerNode: IContain
 }
 
 export function ContainerNodeRemoveChild<T extends Node>(containerNode: IContainerNode, oldChild: T): T {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.removeChild<T>(oldChild);
   } else {
     return containerNode.parentNode.removeChild<T>(oldChild);
@@ -256,7 +267,7 @@ export function ContainerNodeRemoveChild<T extends Node>(containerNode: IContain
 }
 
 export function ContainerNodeReplaceChild<T extends Node>(containerNode: IContainerNode, newChild: Node, oldChild: T): T {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.replaceChild<T>(newChild, oldChild);
   } else {
     return containerNode.parentNode.replaceChild<T>(newChild, oldChild);
@@ -264,7 +275,7 @@ export function ContainerNodeReplaceChild<T extends Node>(containerNode: IContai
 }
 
 export function ContainerNodeInsertBefore<T extends Node>(containerNode: IContainerNode, newChild: T, refChild: Node | null): T {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.insertBefore<T>(newChild, refChild);
   } else {
     return containerNode.parentNode.insertBefore<T>(
@@ -288,7 +299,7 @@ export function ContainerNodeCloneNode(containerNode: IContainerNode, deep: bool
 
 
 export function ContainerNodeHasChildNodes(containerNode: IContainerNode): boolean {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.hasChildNodes();
   } else {
     const node: Node | null = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.nextSibling;
@@ -297,7 +308,7 @@ export function ContainerNodeHasChildNodes(containerNode: IContainerNode): boole
 }
 
 export function ContainerNodeContains(containerNode: IContainerNode, child: Node): boolean {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.contains(child);
   } else {
     const iterator: IterableIterator<Node> = ContainerNodeChildNodesIterator(containerNode);
@@ -314,7 +325,7 @@ export function ContainerNodeContains(containerNode: IContainerNode, child: Node
 
 // TODO https://developer.mozilla.org/en-US/docs/Web/API/Node/compareDocumentPosition
 export function ContainerNodeCompareDocumentPosition(containerNode: IContainerNode, other: Node): number {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.compareDocumentPosition(other);
   } else {
     // invalid
@@ -324,7 +335,7 @@ export function ContainerNodeCompareDocumentPosition(containerNode: IContainerNo
 
 
 export function ContainerNodeIsDefaultNamespace(containerNode: IContainerNode, namespace: string | null): boolean {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.isDefaultNamespace(namespace);
   } else {
     return Comment.prototype.isDefaultNamespace.call(containerNode, namespace);
@@ -332,7 +343,7 @@ export function ContainerNodeIsDefaultNamespace(containerNode: IContainerNode, n
 }
 
 export function ContainerNodeLookupNamespaceURI(containerNode: IContainerNode, namespace: string | null): string | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lookupNamespaceURI(namespace);
   } else {
     return Comment.prototype.lookupNamespaceURI.call(containerNode, namespace);
@@ -340,7 +351,7 @@ export function ContainerNodeLookupNamespaceURI(containerNode: IContainerNode, n
 }
 
 export function ContainerNodeLookupPrefix(containerNode: IContainerNode, prefix: string | null): string | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lookupPrefix(prefix);
   } else {
     return Comment.prototype.lookupPrefix.call(containerNode, prefix);
@@ -349,7 +360,7 @@ export function ContainerNodeLookupPrefix(containerNode: IContainerNode, prefix:
 
 
 export function ContainerNodeNormalize(containerNode: IContainerNode): void {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.normalize();
   } else {
     const iterator: IterableIterator<Node> = ContainerNodeChildNodesIterator(containerNode);
@@ -378,7 +389,7 @@ export function ContainerNodeNormalize(containerNode: IContainerNode): void {
 /** ParentNode - DONE **/
 
 export function ContainerNodeGetChildren(containerNode: IContainerNode): HTMLCollection {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.children;
   } else {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].children.update();
@@ -386,7 +397,7 @@ export function ContainerNodeGetChildren(containerNode: IContainerNode): HTMLCol
 }
 
 export function ContainerNodeGetFirstElementChild(containerNode: IContainerNode): Element | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.firstElementChild;
   } else {
     const result: IteratorResult<Element> = ContainerNodeChildElementsIterator(containerNode).next();
@@ -395,7 +406,7 @@ export function ContainerNodeGetFirstElementChild(containerNode: IContainerNode)
 }
 
 export function ContainerNodeGetLastElementChild(containerNode: IContainerNode): Element | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lastElementChild;
   } else {
     const result: IteratorResult<Element> = ContainerNodeChildElementsIteratorReversed(containerNode).next();
@@ -404,7 +415,7 @@ export function ContainerNodeGetLastElementChild(containerNode: IContainerNode):
 }
 
 export function ContainerNodeGetChildElementCount(containerNode: IContainerNode): number {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.childElementCount;
   } else {
     const iterator: IterableIterator<Element> = ContainerNodeChildElementsIterator(containerNode);
@@ -419,7 +430,7 @@ export function ContainerNodeGetChildElementCount(containerNode: IContainerNode)
 
 
 export function ContainerNodeAppend(containerNode: IContainerNode, nodes: (Node | string)[]): void {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.append(...nodes);
   } else {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode.before(...nodes);
@@ -427,7 +438,7 @@ export function ContainerNodeAppend(containerNode: IContainerNode, nodes: (Node 
 }
 
 export function ContainerNodePrepend(containerNode: IContainerNode, nodes: (Node | string)[]): void {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.prepend(...nodes);
   } else {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.after(...nodes);
@@ -435,7 +446,7 @@ export function ContainerNodePrepend(containerNode: IContainerNode, nodes: (Node
 }
 
 export function ContainerNodeQuerySelector<E extends Element = Element>(containerNode: IContainerNode, selectors: string): E | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.querySelector<E>(selectors);
   } else {
     const result: IteratorResult<E> = ContainerNodeIterableQuerySelector<E>(containerNode, selectors).next();
@@ -444,7 +455,7 @@ export function ContainerNodeQuerySelector<E extends Element = Element>(containe
 }
 
 export function ContainerNodeQuerySelectorAll<E extends Element = Element>(containerNode: IContainerNode, selectors: string): NodeListOf<E> {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.querySelectorAll<E>(selectors);
   } else {
     return new VirtualNodeList<E>(() => Array.from(ContainerNodeIterableQuerySelector<E>(containerNode, selectors))).update();
@@ -511,7 +522,7 @@ export function ContainerNodeGetElementById(containerNode: IContainerNode, eleme
 }
 
 export function ContainerNodeClosest(containerNode: IContainerNode, selector: string): Element | null {
-  if (containerNode.parentNode === null) {
+  if (ContainerNodeIsDetached(containerNode)) {
     return null;
   } else {
     return containerNode.parentElement.closest(selector);

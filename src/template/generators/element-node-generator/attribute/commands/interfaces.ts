@@ -1,7 +1,8 @@
 import { IAttributeGenerator, IAttributeGeneratorConstructor, IAttributeGeneratorOptions, TAttributeGeneratorModifiers } from '../interfaces';
+import { ICodeGeneratorOptions } from '../../../code-generator/interfaces';
 
 export interface ICommandGeneratorOptions extends IAttributeGeneratorOptions {
-  priority: number;
+  priority: number; // high priority means processed first
 }
 
 export interface ICommandGeneratorConstructor extends IAttributeGeneratorConstructor {
@@ -10,8 +11,26 @@ export interface ICommandGeneratorConstructor extends IAttributeGeneratorConstru
 
 export interface ICommandGenerator extends IAttributeGenerator {
   readonly priority: number;
+  readonly observableValue: string;
+
+  generate(options: ICommandCodeGeneratorOptions): string[];
+}
+
+
+export interface ICommandCodeGeneratorOptions extends ICodeGeneratorOptions {
+  createNode: string[];
+}
+
+/*---*/
+
+
+export interface ICommandAttribute {
+  name: string;
+  value: string;
+  modifiers?: Set<TAttributeGeneratorModifiers>;
+  attribute?: Attr;
 }
 
 export interface ICommandParser {
-  parse(name: string, value: string, modifiers?: Set<TAttributeGeneratorModifiers>): ICommandGenerator | null;
+  parse(commandAttribute: ICommandAttribute): ICommandGenerator | null;
 }

@@ -1,5 +1,6 @@
 import { ICommandGenerator, ICommandGeneratorOptions } from './interfaces';
 import { AttributeGenerator } from '../implementation';
+import { ValueToObservableCode } from '../../../snipets';
 
 
 /**
@@ -15,5 +16,14 @@ export abstract class CommandGenerator extends AttributeGenerator implements ICo
     super(options);
     this.priority = options.priority;
   }
+
+  get observableValue(): string {
+    return ValueToObservableCode(this.value, this.modifiers.has('expression'));
+  }
 }
+
+export function IsCommandGenerator(value: any): value is ICommandGenerator {
+  return value instanceof CommandGenerator;
+}
+
 

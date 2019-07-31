@@ -1,6 +1,7 @@
-import { IfCommandGeneratorOptions, IIfCommandGenerator, IIfCommandGeneratorOptions } from './interfaces';
+import { IIfCommandGenerator, IIfCommandGeneratorOptions } from './interfaces';
 import { CommandGenerator } from '../implementation';
-import { IndentLines, ValueToObservableCode } from '../../../../snipets';
+import { IndentLines } from '../../../../snipets';
+import { ICommandCodeGeneratorOptions } from '../interfaces';
 
 
 export class IfCommandGenerator extends CommandGenerator implements IIfCommandGenerator {
@@ -8,11 +9,7 @@ export class IfCommandGenerator extends CommandGenerator implements IIfCommandGe
     super(options);
   }
 
-  get observableValue(): string {
-    return ValueToObservableCode(this.value, this.modifiers.has('expression'));
-  }
-
-  generate(options: IfCommandGeneratorOptions): string[] {
+  generate(options: ICommandCodeGeneratorOptions): string[] {
     return [
       `// command '${this.name}'`,
       `const node = new DynamicConditionalNode(() => {`,

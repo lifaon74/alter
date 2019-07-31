@@ -1,6 +1,7 @@
-import { ForCommandGeneratorOptions, IForCommandGenerator, IForCommandGeneratorOptions } from './interfaces';
+import { IForCommandGenerator, IForCommandGeneratorOptions } from './interfaces';
 import { CommandGenerator } from '../implementation';
 import { IndentLines, ValueToObservableCode } from '../../../../snipets';
+import { ICommandCodeGeneratorOptions } from '../interfaces';
 
 
 export class ForCommandGenerator extends CommandGenerator implements IForCommandGenerator {
@@ -20,7 +21,7 @@ export class ForCommandGenerator extends CommandGenerator implements IForCommand
     return ValueToObservableCode(this.iterableName, this.modifiers.has('expression'));
   }
 
-  generate(options: ForCommandGeneratorOptions): string[] {
+  generate(options: ICommandCodeGeneratorOptions): string[] {
     return [
       `// command '${this.name}'`,
       `const node = new DynamicForLoopNode((${this.iterableEntryName}, ${this._getLocalVariableName('index')}) => {`,

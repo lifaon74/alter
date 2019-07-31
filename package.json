@@ -14,7 +14,7 @@
     "min.esnext": "uglifyjs ./dist/bundle/public.umd.esnext.js -o ./dist/bundle/public.umd.esnext.min.js -c -m",
     "min.es5": "uglifyjs ./dist/bundle/public.umd.es5.js -o ./dist/bundle/public.umd.es5.min.js -c -m",
     "publish": "cd ./dist && npm publish --access=public",
-    "serve": "http-server ./dist --ssl -p 1234",
+    "serve": "http-server ./dist --ssl -p 1234 -d -i",
     "serve-cors": "no-cors-proxy -p 4321 -t https://localhost:1234",
     "toc": "markdown-toc README.md"
   },

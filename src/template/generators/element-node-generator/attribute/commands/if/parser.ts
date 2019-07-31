@@ -1,13 +1,12 @@
 import { IIfCommandGenerator } from './interfaces';
 import { IfCommandGenerator } from './implementation';
-import { ICommandParser } from '../interfaces';
-import { TAttributeGeneratorModifiers } from '../../interfaces';
+import { ICommandAttribute, ICommandParser } from '../interfaces';
 
-const selector: RegExp = new RegExp('^if$');
+export const ifSelector: RegExp = new RegExp('^if$');
 
-export function parseIfCommandAttribute<T extends IIfCommandGenerator>(name: string, value: string, modifiers?: Set<TAttributeGeneratorModifiers>): T | null {
-  if (selector.test(name)) {
-    return new IfCommandGenerator({ name, value, modifiers, priority: 200 }) as T;
+export function parseIfCommandAttribute({ name, value, modifiers }: ICommandAttribute): IIfCommandGenerator | null {
+  if (ifSelector.test(name)) {
+    return new IfCommandGenerator({ name, value, modifiers, priority: 300 });
   } else {
     return null;
   }

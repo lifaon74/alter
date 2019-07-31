@@ -2,6 +2,6 @@ import { IBindDirectiveParser } from './element-node-generator/attribute/bind/di
 import { ICommandParser } from './element-node-generator/attribute/commands/interfaces';
 
 export interface IParsers {
-  directives: IBindDirectiveParser[];
-  commands: ICommandParser[];
+  directives: Set<IBindDirectiveParser>;
+  commands: Set<ICommandParser>;
 }

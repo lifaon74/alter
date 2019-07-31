@@ -1,8 +1,10 @@
 import { IComponent, IComponentContext } from '../../core/component/interfaces';
 import { Component } from '../../core/component/decorator';
-import { templateFromString } from '../../../template/implementation';
-import { styleFromRelativeURL } from '../../../style/implementation';
 import { ISource, Observer, Source } from '@lifaon/observables/public';
+import { Template } from '../../../template/implementation';
+import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../template/helpers';
+import { Style } from '../../../style/implementation';
+import { Input } from '../../core/input/decorator';
 
 
 // export type ISourceObject<T> = {
@@ -34,7 +36,7 @@ export interface INineGagItem {
 
 @Component({
   name: 'app-nine-gag-item',
-  template: templateFromString(`
+  template: Template.fromString(`
     <div class="title">{{ data.item.title }}</div>
     <div class="content">
       <div class="photo" *if="$equal(data.item.type, 'photo')">
@@ -44,19 +46,21 @@ export interface INineGagItem {
         <video [$src]="data.item.sources[0]" (click)="$scope(data.onClickVideo, node)"/>
       </div>
     </div>
-  `),
+  `, DEFAULT_TEMPLATE_BUILD_OPTIONS),
   // @ts-ignore
-  style: styleFromRelativeURL(import.meta.url, './app-nine-gag-item.component.css')
+  style: Style.fromRelativeURL(import.meta.url, './app-nine-gag-item.component.css')
 })
 export class AppNineGagItem extends HTMLElement implements IComponent<any> {
-
-  public item: ISource<INineGagItem>;
 
   protected context: IComponentContext<any>;
 
   constructor() {
     super();
-    this.item = new Source();
+  }
+
+  @Input()
+  set item(value: INineGagItem) {
+    this.context.data.item = value;
   }
 
   onCreate(context: IComponentContext<any>) {

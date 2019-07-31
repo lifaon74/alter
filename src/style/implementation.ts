@@ -168,11 +168,24 @@ export function StyleRelativeURLToStyleInstance(moduleURL: string, url: string):
   return StyleURLToStyleInstance(RelativeURLPath(moduleURL, url));
 }
 
-export const styleFromString = StyleStringToStyleInstance;
-export const styleFromURL = StyleURLToStyleInstance;
-export const styleFromRelativeURL = StyleRelativeURLToStyleInstance;
+// export const styleFromString = StyleStringToStyleInstance;
+// export const styleFromURL = StyleURLToStyleInstance;
+// export const styleFromRelativeURL = StyleRelativeURLToStyleInstance;
 
 export class Style implements IStyle {
+
+  static fromString(css: string): IStyle {
+    return StyleStringToStyleInstance(css);
+  }
+
+  static fromURL(url: string): Promise<IStyle> {
+    return StyleURLToStyleInstance(url);
+  }
+
+  static fromRelativeURL(moduleURL: string, url: string): Promise<IStyle> {
+    return StyleRelativeURLToStyleInstance(moduleURL, url);
+  }
+
   public readonly insert: TStyleFunction;
 
   constructor(insert: TStyleFunction) {

@@ -1,10 +1,5 @@
-import { testCustomNode } from './custom-node/test-custom-node';
-import { testTranslatePipe } from './localization/translate/test';
-import { testDateFormatPipe } from './localization/date/test';
-import { testNumberFormatPipe } from './localization/number/test';
 import { testComponent } from './component/test-component';
-import { testSourceProxy } from './source-proxy/SourceProxy';
-import { testCanvas } from './test/test-canvas/test-canvas';
+
 // import { testParser } from './template/test-parser';
 
 

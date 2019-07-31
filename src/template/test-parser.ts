@@ -4,11 +4,12 @@ import { parseBindAttribute } from './generators/element-node-generator/attribut
 import { parseElementNode } from './generators/element-node-generator/parser';
 import { parseCommandAttribute } from './generators/element-node-generator/attribute/commands/parser';
 import { parseTemplate } from './generators/template-generator/parser';
-import { templateFromString, Template } from './implementation';
+import { Template } from './implementation';
 import { parseEventListenerAttribute } from './generators/element-node-generator/attribute/event/parser';
 import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../custom-node/node-state-observable/mutations';
 import { NotificationsObserver, Source } from '@lifaon/observables/public';
 import { DefaultParsers } from './generators/default';
+import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from './helpers';
 
 function testTextParser() {
   const template: string = `a {{ data.b }} c`;
@@ -25,7 +26,7 @@ function testBindPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<a [href]="source"></a>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers.directives).generate().join('\n'));
 }
 
 
@@ -33,42 +34,55 @@ function testBindClassPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [class.my-class]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers.directives).generate().join('\n'));
 }
 
 function testBindClassSpreadPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [class...]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers.directives).generate().join('\n'));
 }
 
 function testBindStylePropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [style.font-size.px]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers.directives).generate().join('\n'));
 }
 
 function testBindStyleSpreadPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div [style...]="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseBindAttribute(attr, DefaultParsers).generate().join('\n'));
+  console.log(parseBindAttribute(attr, DefaultParsers.directives).generate().join('\n'));
 }
 
 function testIfCommandPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div *if="source"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseCommandAttribute(attr, DefaultParsers).generate({ createNode: '' }).join('\n'));
+  console.log(parseCommandAttribute(attr, DefaultParsers.commands).generate({ createNode: [''] }).join('\n'));
 }
 
 function testForCommandPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = '<div *for="let item of items; index as i"></div>';
   const attr: Attr = (container.firstChild as HTMLElement).attributes[0];
-  console.log(parseCommandAttribute(attr, DefaultParsers).generate({ createNode: '' }).join('\n'));
+  console.log(parseCommandAttribute(attr, DefaultParsers.commands).generate({ createNode: [''] }).join('\n'));
+}
+
+function testSwitchCommandPropertyParser() {
+  const container = document.createElement('div');
+  container.innerHTML = ''
+    + '<switch *switch="source">'
+      // + 'invalid text'
+      // + '<invalid-div>invalid</invalid-div>'
+      + '<switch-case *switch-case="case1">case1</switch-case>'
+      + '<switch-case *switch-case="case2">case2</switch-case>'
+      + '<div *switch-default>default</div>'
+    + '</switch>';
+  console.log(parseElementNode(container.firstElementChild, DefaultParsers).generate().join('\n'));
 }
 
 function testEventListenerParser() {
@@ -183,7 +197,7 @@ function testTemplateBuilder() {
     }).activate(),
   };
 
-  const template = templateFromString(templateString);
+  const template = Template.fromString(templateString, DEFAULT_TEMPLATE_BUILD_OPTIONS);
   template.insert(data, document.body)
     .then(() => {
       (window as any).data = data;
@@ -222,10 +236,11 @@ export function testParser(): void {
   // testBindStyleSpreadPropertyParser();
   // testIfCommandPropertyParser();
   // testForCommandPropertyParser();
+  testSwitchCommandPropertyParser();
   // testEventListenerParser();
   // testElementParser();
   // testTemplateParser();
-  testTemplateBuilder();
+  // testTemplateBuilder();
 
   // testHTMLTemplateError();
 }

@@ -1,2 +1,2 @@
 export * from './interfaces';
-export { Style, styleFromString, styleFromURL } from './implementation';
+export { Style } from './implementation';

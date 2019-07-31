@@ -1,7 +1,6 @@
 import { IForCommandGenerator } from './interfaces';
 import { ForCommandGenerator } from './implementation';
-import { ICommandParser } from '../interfaces';
-import { TAttributeGeneratorModifiers } from '../../interfaces';
+import { ICommandAttribute, ICommandParser } from '../interfaces';
 
 const selector: RegExp = new RegExp('^for$');
 
@@ -15,7 +14,7 @@ const variableLetRegExp: RegExp = new RegExp(`^${variableLetPattern}$`);
 
 const localVariableNames: Set<string> = new Set(['index']);
 
-export function GenerateInvalidSyntaxError(expression: string, message: string): Error {
+export function GenerateForCommandInvalidSyntaxError(expression: string, message: string): Error {
   return new Error(`Invalid syntax in the 'for' command '${expression}': ${message}`);
 }
 
@@ -23,7 +22,7 @@ export function TestVariableNameOrThrow(variableName: string, expression: string
   try {
     eval(`var ${variableName} = 1`);
   } catch (e) {
-    throw GenerateInvalidSyntaxError(expression, `invalid variable name '${variableName}'`);
+    throw GenerateForCommandInvalidSyntaxError(expression, `invalid variable name '${variableName}'`);
   }
 }
 
@@ -32,7 +31,7 @@ export function SetLocalVariableMapping(localVariableNamesMap: Map<string, strin
 
   if (localVariableNames.has(localVariableName)) {
     if (localVariableNamesMap.has(localVariableName)) {
-      throw GenerateInvalidSyntaxError(
+      throw GenerateForCommandInvalidSyntaxError(
         expression,
         `local variable '${localVariableName}' already mapped to '${localVariableNamesMap.get(localVariableName)}'`
       );
@@ -40,7 +39,7 @@ export function SetLocalVariableMapping(localVariableNamesMap: Map<string, strin
       localVariableNamesMap.set(localVariableName, localVariableNameMapped);
     }
   } else {
-    throw GenerateInvalidSyntaxError(
+    throw GenerateForCommandInvalidSyntaxError(
       expression,
       `invalid local variable '${localVariableName}'. Available: ${Array.from(localVariableNames).join(', ')}`
     );
@@ -48,7 +47,7 @@ export function SetLocalVariableMapping(localVariableNamesMap: Map<string, strin
 }
 
 
-export function parseForCommandAttribute<T extends IForCommandGenerator>(name: string, value: string, modifiers: Set<TAttributeGeneratorModifiers>): T | null {
+export function parseForCommandAttribute({ name, value, modifiers }: ICommandAttribute): IForCommandGenerator | null {
   if (selector.test(name)) {
     const localVariableNamesMap: Map<string, string> = new Map<string, string>();
     let iterableName: string;
@@ -58,11 +57,11 @@ export function parseForCommandAttribute<T extends IForCommandGenerator>(name: s
 
     const length: number = expressions.length;
     if (length === 0) {
-      throw GenerateInvalidSyntaxError(value, 'missing iterable');
+      throw GenerateForCommandInvalidSyntaxError(value, 'missing iterable');
     } else {
       const match: RegExpExecArray | null = letOfRegExp.exec(expressions[0]);
       if (match === null) {
-        throw GenerateInvalidSyntaxError(value, `invalid 'let ... of ...' syntax`);
+        throw GenerateForCommandInvalidSyntaxError(value, `invalid 'let ... of ...' syntax`);
       } else {
         TestVariableNameOrThrow(match[1], value);
         iterableEntryName = match[1];
@@ -78,7 +77,7 @@ export function parseForCommandAttribute<T extends IForCommandGenerator>(name: s
       } else if ((match = variableLetRegExp.exec(expression)) !== null) {
         SetLocalVariableMapping(localVariableNamesMap, match[2], match[1], value);
       } else {
-        throw GenerateInvalidSyntaxError(value, `unknown expression '${expression}'`);
+        throw GenerateForCommandInvalidSyntaxError(value, `unknown expression '${expression}'`);
       }
     }
 

@@ -2,7 +2,6 @@ import { CodeGenerator } from '../code-generator/implementation';
 import { ITemplateGenerator } from './interfaces';
 import { TElementNodeGeneratorChildren } from '../element-node-generator/interfaces';
 import { IndentLines, ScopeLines } from '../snipets';
-import { AppendToSet } from '../../../helpers';
 
 
 // export const defaultConstantsToImport = [

@@ -1,6 +1,6 @@
 import { IBindGenerator } from './interfaces';
 import { BindPropertyGenerator } from './property/implementation';
-import { IBindDirectiveGenerator } from './directives/interfaces';
+import { IBindDirectiveGenerator, IBindDirectiveParser } from './directives/interfaces';
 import { TAttributeGeneratorModifiers } from '../interfaces';
 import { IParsers } from '../../../interfaces';
 
@@ -10,7 +10,7 @@ const pattern: string = `(?:${bracketPattern})`
   + `|(?:${prefixPattern})`;
 const regExp: RegExp = new RegExp(`^${pattern}$`);
 
-export function parseBindAttribute<T extends IBindGenerator>(attribute: Attr, parsers: IParsers): T | null {
+export function parseBindAttribute<T extends IBindGenerator>(attribute: Attr, directives: Iterable<IBindDirectiveParser>): T | null {
   const match: RegExpExecArray | null = regExp.exec(attribute.name);
   if (match === null) {
     return null;
@@ -29,7 +29,7 @@ export function parseBindAttribute<T extends IBindGenerator>(attribute: Attr, pa
       modifiers.add('expression');
     }
 
-    for (const directive of parsers.directives) {
+    for (const directive of directives) {
       const generator: IBindDirectiveGenerator | null = directive.parse(name, value, modifiers);
       if (generator !== null) {
         return generator as T;

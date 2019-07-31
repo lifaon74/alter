@@ -5,7 +5,7 @@ import { StaticAttributeGenerator } from './attribute/static/implementation';
 import { BindPropertyGenerator } from './attribute/bind/property/implementation';
 import { BindDirectiveGenerator } from './attribute/bind/directives/implementation';
 import { ScopeLines } from '../snipets';
-import { CommandGenerator } from './attribute/commands/implementation';
+import { CommandGenerator, IsCommandGenerator } from './attribute/commands/implementation';
 import { ICommandGenerator } from './attribute/commands/interfaces';
 import { EventListenerGenerator } from './attribute/event/implementation';
 
@@ -103,8 +103,8 @@ export class ElementNodeGenerator extends CodeGenerator implements IElementNodeG
 
   generateBindCommands(lines: string[]): string[] {
     this.attributes
-      .filter((attribute: IAttributeGenerator) => (attribute instanceof CommandGenerator))
-      .sort((a, b) => ((a.constructor as any).priority -  (b.constructor as any).priority))
+      .filter<ICommandGenerator>(IsCommandGenerator)
+      .sort((a: ICommandGenerator, b: ICommandGenerator) => (b.priority -  a.priority))
       .forEach((attribute: ICommandGenerator) => {
         lines = attribute.generate({ createNode: lines });
       });

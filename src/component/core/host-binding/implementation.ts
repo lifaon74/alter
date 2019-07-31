@@ -6,9 +6,10 @@ import {
 import { parseAttribute } from '../../../template/generators/element-node-generator/attribute/parser';
 import { ITemplateBuildOptions, TTemplateRawFunction } from '../../../template/interfaces';
 import {
-  NormalizeTemplateBuildOptions, TemplateCodeToTemplateDebuggableFunction
+  TemplateCodeToTemplateDebuggableFunction
 } from '../../../template/implementation';
 import { TemplateGenerator } from '../../../template/generators/template-generator/implementation';
+import { NormalizeTemplateBuildOptions } from '../../../template/helpers';
 
 
 export const HOST_BINDING_PRIVATE = Symbol('host-binding-private');

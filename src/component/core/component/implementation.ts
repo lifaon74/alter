@@ -3,7 +3,7 @@ import { NodeStateObservableOf } from '../../../custom-node/node-state-observabl
 import { IStyle } from '../../../style/interfaces';
 import { GetNodeDOMState } from '../../../custom-node/node-state-observable/mutations';
 import {
-  INotificationsObservable, INotificationsObservableContext, NotificationsObservable
+  INotificationsObservable, INotificationsObservableContext, NotificationsObservable, TPromiseOrValue
 } from '@lifaon/observables/public';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { Constructor } from '../../../classes/factory';
@@ -12,6 +12,7 @@ import {
 } from './interfaces';
 import { IHostBinding } from '../host-binding/interfaces';
 import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from './decorator';
+import { IsObject } from '../../../helpers';
 
 
 export const COMPONENT_PRIVATE = Symbol('component-private');
@@ -42,6 +43,7 @@ export function InitComponent<T extends object>(component: IComponent<T>, option
 
   const constructorPrivates: IComponentConstructorPrivate = AccessComponentConstructorPrivates(component.constructor as Constructor<IComponent<T>>);
 
+  // INFO: could use CancellablePromise
   Promise.all([
     Promise.all(
       constructorPrivates.hostBindings.map((hostBinding: IHostBinding) => hostBinding.resolve(component))
@@ -63,19 +65,19 @@ export function InitComponent<T extends object>(component: IComponent<T>, option
     }).activate();
 }
 
-export function LoadComponentTemplate<T extends object>(component: IComponent<T>, template?: Promise<ITemplate> | ITemplate): Promise<void> {
+export function LoadComponentTemplate<T extends object>(component: IComponent<T>, template?: TPromiseOrValue<ITemplate>): Promise<void> {
   if (template) {
     return Promise.resolve(template)
       .then((template: ITemplate) => {
         FreezeComponentContext((component as IComponentInternal<T>)[COMPONENT_PRIVATE].context);
-        return template.insert((component as IComponentInternal<T>)[COMPONENT_PRIVATE].context.data, component, 'clear');
+        return template.insert((component as IComponentInternal<T>)[COMPONENT_PRIVATE].context.data, component, 'destroy');
       });
   } else {
     return Promise.resolve();
   }
 }
 
-export function LoadComponentStyle<T extends object>(component: IComponent<T>, style?: Promise<IStyle> | IStyle): Promise<any> {
+export function LoadComponentStyle<T extends object>(component: IComponent<T>, style?: TPromiseOrValue<IStyle>): Promise<any> {
   if (style) {
     return Promise.resolve(style)
       .then((style: IStyle) => {
@@ -109,15 +111,16 @@ export interface IComponentContextInternal<T extends object> extends IComponentC
 
 export function ConstructComponentContext<T extends object>(context: IComponentContext<T>): void {
   ConstructClassWithPrivateMembers(context, COMPONENT_CONTEXT_PRIVATE);
-  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data = void 0;
-  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen = false;
-  (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].attributeListener = new NotificationsObservable((_context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>) => {
-    (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].context = _context;
+  const privates: IComponentContextPrivate<T> = (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE];
+  privates.data = void 0;
+  privates.frozen = false;
+  privates.attributeListener = new NotificationsObservable((_context: INotificationsObservableContext<IComponentContextAttributeListenerKeyValueMap>) => {
+    privates.context = _context;
   });
 }
 
 export function DeepFreeze<T>(value: T): Readonly<T> {
-  if ((typeof value === 'object') && (value !== null)) {
+  if (IsObject(value)) {
     for (const key of Object.keys(value)) {
       DeepFreeze((value as any)[key]);
     }
@@ -126,11 +129,12 @@ export function DeepFreeze<T>(value: T): Readonly<T> {
 }
 
 export function FreezeComponentContext<T extends object>(context: IComponentContext<T>) {
-  if ((context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen) {
+  const privates: IComponentContextPrivate<T> = (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE];
+  if (privates.frozen) {
     throw new Error(`ComponentContext already frozen`);
   } else {
-    DeepFreeze((context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].data);
-    (context as IComponentContextInternal<T>)[COMPONENT_CONTEXT_PRIVATE].frozen = true;
+    DeepFreeze(privates.data);
+    privates.frozen = true;
   }
 }
 

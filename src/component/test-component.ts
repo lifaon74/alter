@@ -1,8 +1,7 @@
-import { templateFromString as TemplateFromString } from '../template/implementation';
+
 import { Attribute, CustomElement } from './core/custom-element/implementation';
 import { IComponent, IComponentContext, OnDestroy, OnInit } from './core/component/interfaces';
 import { NodeStateObservable } from '../custom-node/node-state-observable/implementation';
-import { styleFromString as StyleFromString } from '../style/implementation';
 import { Router } from './router/implementation';
 import { IRoute } from './router/route/interfaces';
 import { Route } from './router/route/implementation';
@@ -13,6 +12,9 @@ import { Component } from './core/component/decorator';
 import { HostBind } from './core/host-binding/decorator';
 import { AppNineGagItem } from './test/app-nine-gag-item/app-nine-gag-item.component';
 import { AppItemList } from './test/app-item-list/app-item-list.component';
+import { Template } from '../template/implementation';
+import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../template/helpers';
+import { Style } from '../style/implementation';
 
 function getFetchProxyURL(url: string): string {
   // return 'https://bypasscors.herokuapp.com/api/?url=' + encodeURIComponent(url);
@@ -37,13 +39,13 @@ function fetchProxy(input: RequestInfo, init?: RequestInit): Promise<Response> {
 
 @Component({
   name: 'app-home',
-  template: TemplateFromString(`
+  template: Template.fromString(`
     <!--<div>{{ data.greetings }}</div>-->
     <!--<div>{{ data.date }}</div>-->
   <!--    <app-nine-gag/>-->
 
-  `),
-  style: StyleFromString(`
+  `, DEFAULT_TEMPLATE_BUILD_OPTIONS),
+  style: Style.fromString(`
     :host {
       display: block;
     }
@@ -95,13 +97,13 @@ interface IItem {
 
 @Component({
   name: 'app-nine-gag',
-  template: TemplateFromString(`
+  template: Template.fromString(`
 <!--    <span>{{ $translate('name') }}</span>-->
     <div class="item" *for="let item of data.items">
       {{ item.type }}
     </div>
-  `),
-  style: StyleFromString(`
+  `, DEFAULT_TEMPLATE_BUILD_OPTIONS),
+  style: Style.fromString(`
     :host {
       display: block;
     }
@@ -161,11 +163,11 @@ class AppNineGag extends HTMLElement implements IComponent<any> {
 
 @Component({
   name: 'app-users',
-  template: TemplateFromString(`
+  template: Template.fromString(`
     users page
     <router/>
-  `),
-  style: StyleFromString(`
+  `, DEFAULT_TEMPLATE_BUILD_OPTIONS),
+  style: Style.fromString(`
     :host {
       display: block;
     }
@@ -188,10 +190,10 @@ class AppUsers extends HTMLElement implements IComponent<any> {
 
 @Component({
   name: 'app-user',
-  template: TemplateFromString(`
+  template: Template.fromString(`
     user page
-  `),
-  style: StyleFromString(`
+  `, DEFAULT_TEMPLATE_BUILD_OPTIONS),
+  style: Style.fromString(`
     :host {
       display: block;
     }
@@ -257,12 +259,12 @@ function testAlterComponent1() {
 
   @Component({
     name: 'app-switch-input',
-    template: TemplateFromString(`
+    template: Template.fromString(`
     <div class="my-div">
       {{ data.text }}
     </div>
-  `),
-    style: StyleFromString(`
+  `, DEFAULT_TEMPLATE_BUILD_OPTIONS),
+    style: Style.fromString(`
     :host {
       display: block;
       background-color: #aaa;
@@ -392,7 +394,7 @@ function testStyle() {
     return element.offsetWidth > 300;
   }
 
-  const style = StyleFromString(css);
+  const style = Style.fromString(css);
   style.insert(document.body);
 
   document.body.appendChild(new Text('hello'));
@@ -404,8 +406,8 @@ function testHostBinding() {
 
   @Component({
     name: 'app-test-host-binding',
-    template: TemplateFromString(``),
-    style: StyleFromString(`
+    template: Template.fromString(``, DEFAULT_TEMPLATE_BUILD_OPTIONS),
+    style: Style.fromString(`
     :host {
       display: block;
     }
@@ -485,7 +487,7 @@ function testAppItemList() {
 }
 
 export function testComponent() {
-  NodeStateObservable.useDOMObserver = false;
+  NodeStateObservable.useDOMObserver = true;
 
   // testCustomElement();
   // testAlterComponent1();
