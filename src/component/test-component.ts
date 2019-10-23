@@ -6,7 +6,7 @@ import { Router } from './router/implementation';
 import { IRoute } from './router/route/interfaces';
 import { Route } from './router/route/implementation';
 import { translateService } from '../localization/translate/implementation';
-import { INotification, IObserver, ISource, Observer, Source } from '@lifaon/observables/public';
+import { INotification, IObserver, ISource, Observer, Source } from '@lifaon/observables/src/public';
 import { HostBinding } from './core/host-binding/implementation';
 import { Component } from './core/component/decorator';
 import { HostBind } from './core/host-binding/decorator';

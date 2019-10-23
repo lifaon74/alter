@@ -1,5 +1,5 @@
 import { INavigationState } from './state/interfaces';
-import { INotificationsObservable, INotificationsObserver, IReadonlyList } from '@lifaon/observables/public';
+import { INotificationsObservable, INotificationsObserver, IReadonlyList } from '@lifaon/observables';
 
 
 // export type TNavigationEvents = 'push' | 'refresh' | 'replace' | 'error' | 'back' | 'forward';

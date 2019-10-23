@@ -5,9 +5,9 @@ import {
   INotification, INotificationsObservable, INotificationsObservableContext, INotificationsObserver, IObserver, IPipe,
   IReadonlyList, KeyValueMapKeys, KeyValueMapToNotifications, mapNotificationsPipe, NotificationsObservable,
   ReadonlyList
-} from '@lifaon/observables/public';
+} from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { PropertyCallInterceptor } from '@lifaon/observables/classes/properties';
+import { PropertyCallInterceptor } from '@lifaon/observables/src/classes/properties';
 import { IsObject } from '../../../helpers';
 
 

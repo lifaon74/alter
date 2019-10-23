@@ -1,4 +1,4 @@
-import { IObservable, IObserver, TPromiseOrValue } from '@lifaon/observables/public';
+import { IObservable, IObserver, TPromiseOrValue } from '@lifaon/observables';
 import { ITemplateBuildOptions } from '../../../template/interfaces';
 
 

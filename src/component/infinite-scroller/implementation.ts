@@ -4,7 +4,7 @@ import { CyclicTypedVectorArray } from '../../classes/cyclic/CyclicTypedVectorAr
 import { IInfiniteScroller, IInfiniteScrollerContentLimitStrategy, TInfiniteScrollerDirection } from './interfaces';
 import { LoadElementsEvent } from './events/load-elements-event/implementation';
 import { UnloadElementsEvent } from './events/unload-elements-event/implementation';
-import { IEventsObservable, EventsObservable, INotificationsObserver } from '@lifaon/observables/public';
+import { IEventsObservable, EventsObservable, INotificationsObserver } from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 
 

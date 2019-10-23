@@ -1,4 +1,4 @@
-import { INotificationsObservable, IPreventable } from '@lifaon/observables/public';
+import { INotificationsObservable, IPreventable } from '@lifaon/observables';
 
 /**
  * TYPES

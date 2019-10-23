@@ -5,7 +5,7 @@ import {
 import {
   INotificationsObservableContext, IObserver, IPreventable, NotificationsObservable,
   Observer, DOMChangeObservable, IDOMChangeObservable
-} from '@lifaon/observables/public';
+} from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 import { IReferenceNode, TReferenceNodeMutation } from '../reference-node/interfaces';
 import { ReferenceNodeUpdate, CommentReferenceNode } from '../reference-node/implementation';

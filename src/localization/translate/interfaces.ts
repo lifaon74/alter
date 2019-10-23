@@ -1,7 +1,7 @@
 
 import {
   ICancellablePromise, ICancelToken, CancelToken
-} from '@lifaon/observables/public';
+} from '@lifaon/observables';
 import { ILocalizationService, ILocalizationServiceKeyValueMap } from '../interfaces';
 
 /** TYPES **/

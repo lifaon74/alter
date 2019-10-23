@@ -27,15 +27,15 @@
   "access": "public",
   "unpkg": "bundle/public.umd.esnext.min.js",
   "devDependencies": {
-    "@babel/cli": "^7.5.0",
-    "@babel/core": "^7.5.4",
-    "@babel/preset-env": "^7.5.4",
-    "@types/node": "latest",
+    "@babel/cli": "^7.6.4",
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "@types/node": "^12.11.5",
     "gulp": "^4.0.2",
     "gulp-better-rollup": "^4.0.1",
     "gulp-cached": "^1.1.1",
     "gulp-debug": "^4.0.0",
-    "gulp-load-plugins": "^1.5.0",
+    "gulp-load-plugins": "^1.6.0",
     "gulp-progeny": "^0.4.1",
     "gulp-rename": "^1.4.0",
     "gulp-sass": "^4.0.2",
@@ -44,17 +44,17 @@
     "gulp-util": "latest",
     "http-server": "^0.11.1",
     "markdown-toc": "^1.2.0",
-    "nodemon": "^1.19.1",
-    "rimraf": "^2.6.3",
-    "rollup": "^1.16.7",
+    "nodemon": "^1.19.4",
+    "rimraf": "^2.7.1",
+    "rollup": "^1.25.2",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rxjs": "^6.5.2",
-    "typescript": "^3.5.3",
+    "rxjs": "^6.5.3",
+    "typescript": "^3.6.3",
     "typescript-tuple": "^2.2.1",
     "uglify-es": "^3.3.9",
     "vinyl-source-stream": "latest"
   },
   "dependencies": {
-    "@lifaon/observables": "^1.4.5"
+    "@lifaon/observables": "^1.6.0"
   }
 }

@@ -1,4 +1,4 @@
-import { IObserver } from '@lifaon/observables/public';
+import { IObserver } from '@lifaon/observables';
 
 export interface IDynamicClassConstructor {
   new(element: Element, name: string): IDynamicClass;

@@ -1,4 +1,4 @@
-import { EventsObservableKeyValueMapGeneric, IEventsObservable, IEventsObservableConstructor } from '@lifaon/observables/public';
+import { EventsObservableKeyValueMapGeneric, IEventsObservable, IEventsObservableConstructor } from '@lifaon/observables';
 
 export interface IDynamicEventListenerConstructor extends IEventsObservableConstructor {
   new(target: Element, name: string): IDynamicEventListener;

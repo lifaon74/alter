@@ -1,5 +1,5 @@
-import { mapPipe, TimerObservable } from '@lifaon/observables/public';
-import { $source } from '@lifaon/observables/operators/misc';
+import { mapPipe, TimerObservable } from '@lifaon/observables';
+import { $source } from '@lifaon/observables/src/operators/misc';
 import { currency, numberFormatService } from './implementation';
 import { NumberFormatOptions } from './interfaces';
 import { $number } from './pipes';

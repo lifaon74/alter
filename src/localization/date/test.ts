@@ -1,6 +1,6 @@
 import { dateFormatService, datePredefined } from './implementation';
-import { IObservable, mapPipe, TimerObservable } from '@lifaon/observables/public';
-import { $source } from '@lifaon/observables/operators/misc';
+import { IObservable, mapPipe, TimerObservable } from '@lifaon/observables';
+import { $source } from '@lifaon/observables/src/operators/misc';
 import { DateTimeFormatOptions } from './interfaces';
 import { $date } from './pipes';
 

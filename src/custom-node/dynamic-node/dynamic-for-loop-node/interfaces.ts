@@ -1,6 +1,6 @@
 import { IDynamicNode } from '../interfaces';
 import { IContainerNode } from '../../container-node/interfaces';
-import { IObservable, IObserver } from '@lifaon/observables/public';
+import { IObservable, IObserver } from '@lifaon/observables';
 
 export interface IDynamicForLoopNodeConstructor {
   new<N extends Node, T>(createNode: TForLoopNodeCreateNodeCallback<N, T>): IDynamicForLoopNode<N, T>;

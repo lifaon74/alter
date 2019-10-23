@@ -1,6 +1,6 @@
 import { NodeStateObservableOf } from '../node-state-observable/implementation';
 import { DOMState, GetNodeDOMState } from '../node-state-observable/mutations';
-import { IObserver } from '@lifaon/observables/public';
+import { IObserver } from '@lifaon/observables';
 import { INodeStateObservable } from '../node-state-observable/interfaces';
 
 /**

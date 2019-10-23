@@ -3,7 +3,7 @@ import { AttachNode, DestroyChildNodes } from '../../custom-node/node-state-obse
 import { navigation, NavigationNavigate } from './navigation/implementation';
 import { IRoute} from './route/interfaces';
 import { IRoutePathEntry, IRouter, IRouterNavigateOptions, IRouterRoutePathParams, TRoutePath } from './interfaces';
-import { ICancelToken, IReadonlyList, CancelToken, ReadonlyList, Reason } from '@lifaon/observables/public';
+import { ICancelToken, IReadonlyList, CancelToken, ReadonlyList, Reason } from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 
 interface NodeSelector {

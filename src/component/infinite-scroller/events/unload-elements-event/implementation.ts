@@ -1,5 +1,5 @@
 import { IUnloadElementsEvent, IUnloadElementsEventInit, TUnloadElementsEventType } from './interfaces';
-import { IReadonlyList, ReadonlyList } from '@lifaon/observables/public';
+import { IReadonlyList, ReadonlyList } from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 

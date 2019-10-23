@@ -1,6 +1,6 @@
 import {
   INotificationsObservableContext, KeyValueMapKeys, NotificationsObservable
-} from '@lifaon/observables/public';
+} from '@lifaon/observables';
 import {
   ILocalizationService, LocalizationServiceKeyValueMapConstraint
 } from './interfaces';
@@ -22,7 +22,7 @@ export function ConstructLocalizationService<TKVMap extends LocalizationServiceK
   ConstructClassWithPrivateMembers(service, LOCALIZATION_SERVICE_PRIVATE);
   (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].context = context;
   (service as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE].locale = null;
-  
+
   LocalizationServiceSetLocale<TKVMap>(service, window.navigator.language || 'en');
 }
 

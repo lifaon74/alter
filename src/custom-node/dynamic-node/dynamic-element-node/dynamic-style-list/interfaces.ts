@@ -1,4 +1,4 @@
-import { IObserver } from '@lifaon/observables/public';
+import { IObserver } from '@lifaon/observables';
 import { TExtractStylesFromAny } from '../helpers';
 
 export interface IDynamicStyleListConstructor {

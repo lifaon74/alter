@@ -1,5 +1,5 @@
 import { translateService } from './implementation';
-import { $source } from '@lifaon/observables/operators/misc';
+import { $source } from '@lifaon/observables/src/operators/misc';
 import { ITranslateParams } from './interfaces';
 import { $translate } from './pipes';
 

@@ -1,4 +1,4 @@
-import { ICancelToken, TPromiseType } from '@lifaon/observables/public';
+import { ICancelToken, TPromiseType } from '@lifaon/observables';
 import { Path } from './classes/Path';
 
 export function noop() {}

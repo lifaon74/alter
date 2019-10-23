@@ -1,4 +1,4 @@
-import { ISource, Source } from '@lifaon/observables/public';
+import { ISource, Source } from '@lifaon/observables';
 import { DeepMap, IDeepMap } from '../classes/DeepMap';
 import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';
 

@@ -1,4 +1,4 @@
-import { Observer } from '@lifaon/observables/public';
+import { Observer } from '@lifaon/observables';
 import { IDynamicStyle, IDynamicStyleConstructor, TDynamicStyleValue } from './interfaces';
 import { BindObserverWithNodeStateObservable } from '../../ObserverNode';
 import { ExtractUnit } from '../helpers';

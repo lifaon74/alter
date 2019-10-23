@@ -1,2 +1,2 @@
-export * from '@lifaon/observables/operators/misc';
-export * from '@lifaon/observables/operators/scopePipe';
+export * from '@lifaon/observables/src/operators/misc';
+export * from '@lifaon/observables/src/operators/scopePipe';

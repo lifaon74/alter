@@ -1,7 +1,7 @@
-import { $observable, TObservableOrValue } from '@lifaon/observables/operators/misc';
-import { IAsyncFunctionObservable } from '@lifaon/observables/observables/distinct/async-function-observable/interfaces';
-import { AsyncFunctionObservable } from '@lifaon/observables/observables/distinct/async-function-observable/implementation';
-import { ICancelToken, KeyValueMapToNotifications } from '@lifaon/observables/public';
+import { $observable, TObservableOrValue } from '@lifaon/observables/src/operators/misc';
+import { IAsyncFunctionObservable } from '@lifaon/observables/src/observables/distinct/async-function-observable/interfaces';
+import { AsyncFunctionObservable } from '@lifaon/observables/src/observables/distinct/async-function-observable/implementation';
+import { ICancelToken, KeyValueMapToNotifications } from '@lifaon/observables';
 import { dateFormatService } from './implementation';
 import { DateTimeFormatOptions, IDateFormatServiceKeyValueMap } from './interfaces';
 

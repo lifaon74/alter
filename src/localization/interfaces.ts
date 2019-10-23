@@ -1,4 +1,4 @@
-import { INotificationsObservable, KeyValueMapConstraint } from '@lifaon/observables/public';
+import { INotificationsObservable, KeyValueMapConstraint } from '@lifaon/observables';
 
 export interface ILocalizationServiceKeyValueMap {
   'locale-change': void;

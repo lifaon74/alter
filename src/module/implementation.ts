@@ -1,5 +1,5 @@
 import { ITemplateModule, ITemplateModuleOptions } from './interfaces';
-import { TPromiseOrValue } from '@lifaon/observables/public';
+import { TPromiseOrValue } from '@lifaon/observables';
 import { IBindDirectiveParser } from '../template/generators/element-node-generator/attribute/bind/directives/interfaces';
 import { ICommandParser } from '../template/generators/element-node-generator/attribute/commands/interfaces';
 import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';

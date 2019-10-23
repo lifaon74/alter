@@ -1,7 +1,7 @@
 import { IComponent, IComponentContext, OnDestroy, OnDisconnected } from '../../core/component/interfaces';
 import { Component } from '../../core/component/decorator';
 
-import { IObservable, IObserver, IsObservable, ISource, Source } from '@lifaon/observables/public';
+import { IObservable, IObserver, IsObservable, ISource, Source } from '@lifaon/observables';
 import { Template } from '../../../template/implementation';
 import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../template/helpers';
 import { Style } from '../../../style/implementation';

@@ -1,4 +1,4 @@
-import { IObserver } from '@lifaon/observables/public';
+import { IObserver } from '@lifaon/observables';
 
 export interface IDynamicPropertyConstructor {
   new<T>(node: Node, name: string): IDynamicProperty<T>;

@@ -3,7 +3,7 @@ import { IDynamicConditionalNode, IDynamicConditionalNodeConstructor, } from './
 import { ContainerNode } from '../../container-node/implementation';
 import { AttachNode, DestroyNode, DetachNode } from '../../node-state-observable/mutations';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { ObserverFactory } from '@lifaon/observables/core/observer/implementation';
+import { ObserverFactory } from '@lifaon/observables/src/core/observer/implementation';
 
 
 export const DYNAMIC_CONDITIONAL_NODE_PRIVATE = Symbol('dynamic-conditional-node-private');

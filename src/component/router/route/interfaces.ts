@@ -1,5 +1,5 @@
 import { IPathMatcher } from '../path-matcher/interfaces';
-import { INotificationsObservable, INotificationsObservableContext, IReadonlyList } from '@lifaon/observables/public';
+import { INotificationsObservable, INotificationsObservableContext, IReadonlyList } from '@lifaon/observables';
 import { Constructor } from '../../../classes/factory';
 
 // export type TRouteNotificationNames = 'activate';

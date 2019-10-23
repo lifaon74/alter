@@ -4,7 +4,7 @@ import { IStyle } from '../../../style/interfaces';
 import { GetNodeDOMState } from '../../../custom-node/node-state-observable/mutations';
 import {
   INotificationsObservable, INotificationsObservableContext, NotificationsObservable, TPromiseOrValue
-} from '@lifaon/observables/public';
+} from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { Constructor } from '../../../classes/factory';
 import {

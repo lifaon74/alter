@@ -6,7 +6,7 @@ import {
 import {
   CancellablePromise, ICancellablePromise, INotificationsObservableContext, ICancelToken,
   NotificationsObservable, CancelToken
-} from '@lifaon/observables/public';
+} from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
 import { IsObject } from '../../helpers';
 import { ILocalizationService } from '../interfaces';

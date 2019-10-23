@@ -1,5 +1,5 @@
 import { IDynamicNode } from '../interfaces';
-import { IObserver } from '@lifaon/observables/public';
+import { IObserver } from '@lifaon/observables';
 
 export interface IDynamicTextNodeConstructor {
   new(): IDynamicTextNode;

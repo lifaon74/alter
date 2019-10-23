@@ -1,4 +1,4 @@
-import { IPreventable, Preventable } from '@lifaon/observables/public';
+import { IPreventable, Preventable } from '@lifaon/observables';
 import {
   ForEachNodeStateObservablesOfNode,
   ForEachNodeStateObservablesOfNodeTree, NodeStateObservableOnMutationAfterAttach,

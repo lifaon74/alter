@@ -3,8 +3,8 @@ import { IDynamicForLoopNode, IDynamicForLoopNodeConstructor, TForLoopNodeCreate
 import { ContainerNode } from '../../container-node/implementation';
 import { DestroyNodeSafe, AttachNode } from '../../node-state-observable/mutations';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { ISource, Source } from '@lifaon/observables/public';
-import { ObserverFactory } from '@lifaon/observables/core/observer/implementation';
+import { ISource, Source } from '@lifaon/observables';
+import { ObserverFactory } from '@lifaon/observables/src/core/observer/implementation';
 
 
 export const DYNAMIC_FOR_LOOP_NODE_PRIVATE = Symbol('dynamic-for-loop-node-private');

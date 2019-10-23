@@ -7,7 +7,7 @@ import { parseTemplate } from './generators/template-generator/parser';
 import { Template } from './implementation';
 import { parseEventListenerAttribute } from './generators/element-node-generator/attribute/event/parser';
 import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../custom-node/node-state-observable/mutations';
-import { NotificationsObserver, Source } from '@lifaon/observables/public';
+import { NotificationsObserver, Source } from '@lifaon/observables';
 import { DefaultParsers } from './generators/default';
 import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from './helpers';
 

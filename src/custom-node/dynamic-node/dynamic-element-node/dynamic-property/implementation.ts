@@ -1,4 +1,4 @@
-import { Observer } from '@lifaon/observables/public';
+import { Observer } from '@lifaon/observables';
 import { IDynamicProperty, IDynamicPropertyConstructor } from './interfaces';
 import { BindObserverWithNodeStateObservable } from '../../ObserverNode';
 import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';

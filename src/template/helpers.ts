@@ -15,8 +15,8 @@ import { DynamicProperty } from '../custom-node/dynamic-node/dynamic-element-nod
 import { DynamicEventListener } from '../custom-node/dynamic-node/dynamic-element-node/dynamic-event-listener/implementation';
 import {
   $add, $and, $divide, $equal, $expression, $multiply, $not, $notEqual, $observable, $observer, $or, $string, $subtract
-} from '@lifaon/observables/operators/misc';
-import { $scope } from '@lifaon/observables/operators/scopePipe';
+} from '@lifaon/observables/src/operators/misc';
+import { $scope } from '@lifaon/observables/src/operators/scopePipe';
 import { IsObject } from '../helpers';
 import { IBindDirectiveParser } from './generators/element-node-generator/attribute/bind/directives/interfaces';
 import { ICommandParser } from './generators/element-node-generator/attribute/commands/interfaces';
@@ -195,11 +195,11 @@ export function TemplateBuildOptionsDataSourceNameToSet(dataSourceName?: Iterabl
   if (dataSourceName === void 0) {
     return new Set<string>(['data']);
   } else if (typeof dataSourceName === 'string') {
-    return new Set<string>(['data']);
+    return new Set<string>([dataSourceName]);
   } else if (Symbol.iterator in dataSourceName) {
     return new Set<string>(dataSourceName);
   } else {
-    throw new TypeError(`Expected void ,string or Iterable<string> as dataSourceName`);
+    throw new TypeError(`Expected void, string or Iterable<string> as dataSourceName`);
   }
 }
 

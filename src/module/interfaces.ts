@@ -1,6 +1,6 @@
 import { IBindDirectiveParser } from '../template/generators/element-node-generator/attribute/bind/directives/interfaces';
 import { ICommandParser } from '../template/generators/element-node-generator/attribute/commands/interfaces';
-import { TPromiseOrValue } from '@lifaon/observables/public';
+import { TPromiseOrValue } from '@lifaon/observables';
 
 
 export interface ITemplateModuleOptions {

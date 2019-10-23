@@ -1,9 +1,9 @@
 import { IDynamicEventListener } from './interfaces';
-import { EventsObservable, EventsObservableKeyValueMapGeneric, INotification, IObserver } from '@lifaon/observables/public';
+import { EventsObservable, EventsObservableKeyValueMapGeneric, INotification, IObserver } from '@lifaon/observables';
 import { DOMState, GetNodeDOMState } from '../../../node-state-observable/mutations';
 import { NodeStateObservableOf } from '../../../node-state-observable/implementation';
-import { IEventsObservableInternal } from '@lifaon/observables/notifications/observables/events/events-observable/implementation';
-import { OBSERVABLE_PRIVATE, ObservableClearObservers } from '@lifaon/observables/core/observable/implementation';
+import { IEventsObservableInternal } from '@lifaon/observables/src/notifications/observables/events/events-observable/implementation';
+import { OBSERVABLE_PRIVATE, ObservableClearObservers } from '@lifaon/observables/src/core/observable/implementation';
 import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 

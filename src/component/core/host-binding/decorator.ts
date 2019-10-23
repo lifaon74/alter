@@ -4,7 +4,7 @@ import { GetCustomElementHTMLElementConstructor } from '../custom-element/implem
 import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from '../component/decorator';
 import {
   DeferredPromise, Expression, IDeferredPromise, IsObservable, IsObserver, ISource, Observer, Source
-} from '@lifaon/observables/public';
+} from '@lifaon/observables';
 import { HostBinding } from './implementation';
 
 export function HostBind(attributeName: string, options?: IHostBindingOptions): PropertyDecorator {

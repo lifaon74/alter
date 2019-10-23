@@ -1,7 +1,7 @@
 import { IQueryParamsObservable, IQueryParamsObservableOptions, TEmitOnObserve, TQueryParamChanges } from './interfaces';
 import { navigation } from '../implementation';
 import { INavigationState } from '../state/interfaces';
-import { INotificationsObserver, IObservableContext, IObserver, Observable } from '@lifaon/observables/public';
+import { INotificationsObserver, IObservableContext, IObserver, Observable } from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
 
 export const QUERY_PARAMS_OBSERVABLE_PRIVATE = Symbol('query-params-observable-private');

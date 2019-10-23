@@ -29,7 +29,7 @@
     "strictNullChecks": false,
 
     "moduleResolution": "node",
-
+    "suppressImplicitAnyIndexErrors": true,
 
     "module": "es6",
     "target": "esnext",
@@ -41,7 +41,8 @@
     ]
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "node_modules/@lifaon/observables/src/**/*"
   ],
   "exclude": [
     "node_modules",

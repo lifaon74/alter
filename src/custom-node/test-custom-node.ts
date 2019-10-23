@@ -12,7 +12,7 @@ import { DynamicClassList } from './dynamic-node/dynamic-element-node/dynamic-cl
 import { DynamicStyleList } from './dynamic-node/dynamic-element-node/dynamic-style-list/implementation';
 import { DynamicForLoopNode } from './dynamic-node/dynamic-for-loop-node/implementation';
 import { DynamicStyle } from './dynamic-node/dynamic-element-node/dynamic-style/implementation';
-import { Expression, IObservable, IObserver, IPipe, ISource, mapPipe, Pipe, Source, TimerObservable } from '@lifaon/observables/public';
+import { Expression, IObservable, IObserver, IPipe, ISource, mapPipe, Pipe, Source, TimerObservable } from '@lifaon/observables';
 
 
 function testExtendableHTMLElement() {

@@ -1,7 +1,7 @@
 import {
   DEEP_MAP_PRIVATE, DeepMap, DeepMapEntries, DeepMapGetPartial, IDeepMap, IDeepMapInternal
 } from '../classes/DeepMap';
-import { ISource, Source } from '@lifaon/observables/public';
+import { ISource, Source } from '@lifaon/observables';
 import { ConstructClassWithPrivateMembers } from '../misc/helpers/ClassWithPrivateMembers';
 import { emit } from 'cluster';
 import { IsObject } from '../helpers';
