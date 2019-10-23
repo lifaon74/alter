@@ -1,6 +1,7 @@
+import { test } from './tests/test';
+
 window.onload = () => {
-  // TODO
-  console.log('Hello world');
+  test();
 };
 
 

@@ -1,7 +1,7 @@
 {
   "name": "@lifaon/alter",
   "version": "1.0.0",
-  "description": "Description",
+  "description": "Reactive UI framework",
   "main": "index.js",
   "scripts": {
     "build_all": "npm-run-all clean_dist copy_sources build_cjs build_esm5 build_esm2015 build_esnext build_esm5_for_rollup build_esnext_for_rollup build_umd build_types generate_packages",
@@ -47,7 +47,6 @@
     "copy_sources": "mkdirp dist && shx cp -r ./src/ ./dist/src",
     "generate_packages": "node tools/make-packages.js",
     "publish_package": "yarn publish ./dist/package --access public",
-
     "dev_browser": "npm-run-all clean_dev_browser watch_dev_browser",
     "watch_dev_browser": "npm-run-all -p tsc_watch_dev_browser serve_dev_browser",
     "tsc_watch_dev_browser": "tsc-watch -p ./tsconfig/tsconfig.dev.browser.json --onSuccess \"npm run build_dev_browser\"",
@@ -56,7 +55,6 @@
     "copy_index_dev_browser": "shx cp src/index.html dist/browser/index.html",
     "serve_dev_browser": " browser-sync start --config bs-config.js",
     "clean_dev_browser": "shx rm -rf ./dist/browser",
-
     "toc": "markdown-toc README.md"
   },
   "repository": {
@@ -88,5 +86,7 @@
     "typescript-tuple": "^2.2.1",
     "uglify-es": "^3.3.9"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@lifaon/observables": "^1.6.0"
+  }
 }

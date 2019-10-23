@@ -13,7 +13,7 @@
 ![npm type definitions](https://img.shields.io/npm/types/@lifaon/alter.svg)
 
 
-## alter2 ##
+## alter ##
 To install:
 ```bash
 yarn add @lifaon/alter

@@ -122,7 +122,7 @@ function makePackageJSON() {
     es2015: './esm2015/index.js',
     esnext: './esnext/index.js',
     'jsnext:main': './esnext/index.js',
-    unpkg: './bundles/alter2.umd.min.js',
+    unpkg: './bundles/alter.umd.min.js',
   };
 
   delete pkg.scripts;

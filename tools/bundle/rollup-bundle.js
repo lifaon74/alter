@@ -37,9 +37,9 @@ module.exports = function rollupBundle(options) {
     .then((bundle) => {
       return bundle.generate({
         format: 'umd',
-        name: 'alter2',
+        name: 'alter',
         amd: {
-          id: 'alter2'
+          id: 'alter'
         },
         sourcemap: true,
       });
