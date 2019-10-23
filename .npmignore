@@ -1,8 +1,8 @@
-old/
 src/
-cert.pem
-key.pem
-gulpfile.js
+certificates/
 tsconfig.json
 .npmrc
+yarn.lock
+.git
+.idea
 
