@@ -1,6 +1,4 @@
-import {
-  ICommandGenerator, ICommandGeneratorConstructor, ICommandGeneratorOptions
-} from '../interfaces';
+import { ICommandGenerator, ICommandGeneratorConstructor, ICommandGeneratorOptions } from '../interfaces';
 
 
 export interface IIfCommandGeneratorOptions extends ICommandGeneratorOptions {

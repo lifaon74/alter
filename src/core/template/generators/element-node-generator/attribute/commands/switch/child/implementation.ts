@@ -1,4 +1,4 @@
-import {  ISwitchChildCommandGenerator, ISwitchChildCommandGeneratorOptions } from './interfaces';
+import { ISwitchChildCommandGenerator, ISwitchChildCommandGeneratorOptions } from './interfaces';
 import { CommandGenerator } from '../../implementation';
 import { TAttributeGeneratorModifiers } from '../../../interfaces';
 import { IndentLines, ValueToObservableCode } from '../../../../../snipets';

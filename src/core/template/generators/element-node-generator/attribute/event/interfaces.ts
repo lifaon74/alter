@@ -1,4 +1,4 @@
-import { IAttributeGenerator, IAttributeGeneratorConstructor, IAttributeGeneratorOptions, TAttributeGeneratorModifiers } from '../interfaces';
+import { IAttributeGenerator, IAttributeGeneratorConstructor, IAttributeGeneratorOptions } from '../interfaces';
 
 export interface IEventListenerGeneratorOptions extends IAttributeGeneratorOptions {
 }

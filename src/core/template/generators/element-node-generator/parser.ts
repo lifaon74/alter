@@ -25,7 +25,7 @@ export function parseChildNodes(node: Node, parsers: IParsers): TElementNodeGene
         children.push(parseElementNode(childNode as Element, parsers));
         break;
       default:
-        console.warn(`Unsupported node's type: '${childNode.nodeType}'`);
+        console.warn(`Unsupported node's type: '${ childNode.nodeType }'`);
         break;
     }
 

@@ -18,8 +18,6 @@ import {
 } from '@lifaon/observables/src/operators/misc';
 import { $scope } from '@lifaon/observables/src/operators/scopePipe';
 import { IsObject } from '../helpers';
-import { IBindDirectiveParser } from './generators/element-node-generator/attribute/bind/directives/interfaces';
-import { ICommandParser } from './generators/element-node-generator/attribute/commands/interfaces';
 import { IParsers } from './generators/interfaces';
 import { union } from '../misc/helpers/set';
 

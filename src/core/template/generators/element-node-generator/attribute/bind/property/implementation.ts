@@ -13,8 +13,8 @@ export class BindPropertyGenerator extends BindGenerator implements IBindPropert
 
   generate(): string[] {
     return [
-      `// bind property '${this.name}'`,
-      `new DynamicProperty(node, ${JSON.stringify(this.name)}).observe(${this.observableValue});`,
+      `// bind property '${ this.name }'`,
+      `new DynamicProperty(node, ${ JSON.stringify(this.name) }).observe(${ this.observableValue });`,
     ];
   }
 }

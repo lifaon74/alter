@@ -1,14 +1,13 @@
 import {
-  ICommentReferenceNodeConstructor,
-  IReferenceNode, IReferenceNodeConstructor, ITextReferenceNodeConstructor, TReferenceNodeConstructorArgs,
-  TReferenceNodeMutation
+  ICommentReferenceNodeConstructor, IReferenceNode, IReferenceNodeConstructor, ITextReferenceNodeConstructor,
+  TReferenceNodeConstructorArgs, TReferenceNodeMutation
 } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../misc/helpers/ClassWithPrivateMembers';
-import {
-  Constructor, FactoryClass, GetSetSuperArgsFunction, HasFactoryWaterMark, IsFactoryClass
-} from '../../classes/factory';
-import { IsObject } from '../../helpers';
+import { IsObject } from '../../../misc/helpers/is/IsObject';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { Constructor, HasFactoryWaterMark } from '../../../classes/factory';
 
+
+/** CONSTRUCTOR **/
 
 export const REFERENCE_NODE_PRIVATE = Symbol('reference-node-private');
 
@@ -30,54 +29,59 @@ export function ConstructReferenceNode(
 
 export function IsReferenceNode(value: any): value is IReferenceNode {
   return IsObject(value)
-    && value.hasOwnProperty(REFERENCE_NODE_PRIVATE);
+    && value.hasOwnProperty(REFERENCE_NODE_PRIVATE as symbol);
 }
 
 const IS_REFERENCE_NODE_CONSTRUCTOR = Symbol('is-reference-node-constructor');
+
 export function IsReferenceNodeConstructor(value: any): value is IReferenceNodeConstructor {
-  return (typeof value === 'function') && ((value === CommentReferenceNode) || (value === TextReferenceNode) || HasFactoryWaterMark(value, IS_REFERENCE_NODE_CONSTRUCTOR));
+  return (typeof value === 'function')
+    && (
+      (value === CommentReferenceNode)
+      || (value === TextReferenceNode)
+      || HasFactoryWaterMark(value, IS_REFERENCE_NODE_CONSTRUCTOR)
+    );
 }
 
 
+/** METHODS **/
 
-export function ReferenceNodeUpdateSafe(instance: IReferenceNode): void {
-  if (ReferenceNodeInferMutation(instance) !== 'none') {
-    ReferenceNodeUpdate(instance);
-  }
+/**
+ * Returns the next sibling of this ReferenceNode ignoring following others ReferenceNode
+ */
+export function ReferenceNodeGetNextVirtualSibling(instance: IReferenceNode): Node | null {
+  let node: Node | null = instance;
+  while (((node = node.nextSibling) !== null) && !IsReferenceNode(node)) {}
+  return node;
 }
 
+
+/**
+ * Update properly the position of this ReferenceNode relatively to its 'node'
+ */
 export function ReferenceNodeUpdate(instance: IReferenceNode): void {
   const targetNode: Node = (instance as IReferenceNodeInternal)[REFERENCE_NODE_PRIVATE].node;
   if (targetNode.parentNode === null) {
-    instance.parentNode.removeChild(instance);
+    if (instance.parentNode !== null) {
+      instance.parentNode.removeChild(instance);
+    }
   } else {
     targetNode.parentNode.insertBefore(instance, targetNode.nextSibling);
   }
 }
 
-// export function ReferenceNodeRequiresUpdate(instance: IReferenceNode): boolean {
-//   const targetNode: Node = (instance as IReferenceNodeInternal)[REFERENCE_NODE_PRIVATE].node;
-//   if (targetNode.parentNode === null) {
-//     return (instance.parentNode !== null);
-//   } else if (targetNode.parentNode !== instance.parentNode) {
-//     return true;
-//   } else { // must ensure than all previousSibling of this referenceNode are ReferenceNode pointing to this node
-//     let node: Node = instance;
-//     while ((node = node.previousSibling) !== null) {
-//       if (node === instance.node) {
-//         return false;
-//       } else if (
-//         !(node instanceof ReferenceNode)
-//         || (node.node !== targetNode)
-//       ) {
-//         return true;
-//       }
-//     }
-//     return true;
-//   }
-// }
+/**
+ * Ensures than this ReferenceNode requires a 'mutation' before updating it
+ */
+export function ReferenceNodeUpdateIfMutate(instance: IReferenceNode): void {
+  if (ReferenceNodeInferMutation(instance) !== 'none') {
+    ReferenceNodeUpdate(instance);
+  }
+}
 
-
+/**
+ * Infers which kind of mutation append to this ReferenceNode's node
+ */
 export function ReferenceNodeInferMutation(instance: IReferenceNode): TReferenceNodeMutation {
   const targetNode: Node = (instance as IReferenceNodeInternal)[REFERENCE_NODE_PRIVATE].node;
 
@@ -91,7 +95,7 @@ export function ReferenceNodeInferMutation(instance: IReferenceNode): TReference
       : 'move';
   } else { // same parentNode => move or doesnt move
     // must ensure than all previousSibling of this referenceNode are ReferenceNode pointing to this node
-    let node: Node = instance;
+    let node: Node | null = instance;
     while ((node = node.previousSibling) !== null) {
       if (node === instance.node) {
         return 'none';
@@ -106,19 +110,13 @@ export function ReferenceNodeInferMutation(instance: IReferenceNode): TReference
   }
 }
 
-export function ReferenceNodeNextVirtualSibling(instance: IReferenceNode): Node | null {
-  let node: Node = instance;
-  while (((node = node.nextSibling) !== null) && !IsReferenceNode(node)) {
-  }
-  return node;
-}
+
 
 export function ReferenceNodeStaticNextSibling(node: Node): Node | null {
   return IsReferenceNode(node.nextSibling)
     ? node.nextSibling.nextVirtualSibling
     : node.nextSibling;
 }
-
 
 
 export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass: TBase) {
@@ -153,7 +151,7 @@ export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass
     }
 
     get nextVirtualSibling(): Node | null {
-      return ReferenceNodeNextVirtualSibling(this);
+      return ReferenceNodeGetNextVirtualSibling(this);
     }
 
     inferMutation(): TReferenceNodeMutation {
@@ -161,10 +159,9 @@ export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass
     }
 
     update(): this {
-      ReferenceNodeUpdateSafe(this);
+      ReferenceNodeUpdateIfMutate(this);
       return this;
     }
-
 
 
   })<TReferenceNodeConstructorArgs>('ReferenceNode', IS_REFERENCE_NODE_CONSTRUCTOR);

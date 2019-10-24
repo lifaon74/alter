@@ -7,7 +7,8 @@ export interface ITemplateConstructor {
 
 export interface ITemplate {
   generate: TTemplateFunction;
-  insert(data: TTemplateDataType, parentNode: Node, refNode?: Node | null | 'clear' | 'destroy'): Promise<void> ;
+
+  insert(data: TTemplateDataType, parentNode: Node, refNode?: Node | null | 'clear' | 'destroy'): Promise<void>;
 }
 
 export interface ITemplateBuildOptions {
@@ -17,7 +18,7 @@ export interface ITemplateBuildOptions {
   dataSourceName?: Iterable<string> | string;
 }
 
-export interface ITemplateBuildOptionsStrict extends ITemplateBuildOptions{
+export interface ITemplateBuildOptionsStrict extends ITemplateBuildOptions {
   parsers: IParsers;
   constantsToImport: Set<string>;
   require: TTemplateRequireFunction;

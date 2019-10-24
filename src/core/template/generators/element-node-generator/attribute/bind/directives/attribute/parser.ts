@@ -26,5 +26,5 @@ export function parseBindAttributeDirective<T extends IBindAttributeDirectiveGen
 }
 
 export const BindAttributeDirectiveParser: IBindDirectiveParser = {
- parse: parseBindAttributeDirective,
+  parse: parseBindAttributeDirective,
 };

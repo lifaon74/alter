@@ -26,5 +26,5 @@ export function parseBindStyleDirective<T extends IBindStyleDirectiveGenerator>(
 }
 
 export const BindStyleDirectiveParser: IBindDirectiveParser = {
- parse: parseBindStyleDirective,
+  parse: parseBindStyleDirective,
 };

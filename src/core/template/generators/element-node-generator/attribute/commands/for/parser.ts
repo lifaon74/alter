@@ -8,21 +8,21 @@ const letOfPattern: string = 'let\\s+(\\S.*)\\s+of\\s+(\\S.*)';
 const variableAsPattern: string = '(\\S.*)\\s+as\\s+(\\S.*)';
 const variableLetPattern: string = 'let\\s+(\\S.*)\\s+=\\s+(\\S.*)';
 
-const letOfRegExp: RegExp = new RegExp(`^${letOfPattern}$`);
-const variableAsRegExp: RegExp = new RegExp(`^${variableAsPattern}$`);
-const variableLetRegExp: RegExp = new RegExp(`^${variableLetPattern}$`);
+const letOfRegExp: RegExp = new RegExp(`^${ letOfPattern }$`);
+const variableAsRegExp: RegExp = new RegExp(`^${ variableAsPattern }$`);
+const variableLetRegExp: RegExp = new RegExp(`^${ variableLetPattern }$`);
 
 const localVariableNames: Set<string> = new Set(['index']);
 
 export function GenerateForCommandInvalidSyntaxError(expression: string, message: string): Error {
-  return new Error(`Invalid syntax in the 'for' command '${expression}': ${message}`);
+  return new Error(`Invalid syntax in the 'for' command '${ expression }': ${ message }`);
 }
 
 export function TestVariableNameOrThrow(variableName: string, expression: string): void {
   try {
-    eval(`var ${variableName} = 1`);
+    eval(`var ${ variableName } = 1`);
   } catch (e) {
-    throw GenerateForCommandInvalidSyntaxError(expression, `invalid variable name '${variableName}'`);
+    throw GenerateForCommandInvalidSyntaxError(expression, `invalid variable name '${ variableName }'`);
   }
 }
 
@@ -33,7 +33,7 @@ export function SetLocalVariableMapping(localVariableNamesMap: Map<string, strin
     if (localVariableNamesMap.has(localVariableName)) {
       throw GenerateForCommandInvalidSyntaxError(
         expression,
-        `local variable '${localVariableName}' already mapped to '${localVariableNamesMap.get(localVariableName)}'`
+        `local variable '${ localVariableName }' already mapped to '${ localVariableNamesMap.get(localVariableName) }'`
       );
     } else {
       localVariableNamesMap.set(localVariableName, localVariableNameMapped);
@@ -41,7 +41,7 @@ export function SetLocalVariableMapping(localVariableNamesMap: Map<string, strin
   } else {
     throw GenerateForCommandInvalidSyntaxError(
       expression,
-      `invalid local variable '${localVariableName}'. Available: ${Array.from(localVariableNames).join(', ')}`
+      `invalid local variable '${ localVariableName }'. Available: ${ Array.from(localVariableNames).join(', ') }`
     );
   }
 }
@@ -77,11 +77,19 @@ export function parseForCommandAttribute({ name, value, modifiers }: ICommandAtt
       } else if ((match = variableLetRegExp.exec(expression)) !== null) {
         SetLocalVariableMapping(localVariableNamesMap, match[2], match[1], value);
       } else {
-        throw GenerateForCommandInvalidSyntaxError(value, `unknown expression '${expression}'`);
+        throw GenerateForCommandInvalidSyntaxError(value, `unknown expression '${ expression }'`);
       }
     }
 
-    return new ForCommandGenerator({ name, value, modifiers, priority: 100, localVariableNamesMap, iterableName, iterableEntryName }) as any;
+    return new ForCommandGenerator({
+      name,
+      value,
+      modifiers,
+      priority: 100,
+      localVariableNamesMap,
+      iterableName,
+      iterableEntryName
+    }) as any;
   } else {
     return null;
   }

@@ -102,8 +102,8 @@ export function ExtractSwitchChildCommandAttribute(element: Element): ICommandAt
 
   if (switchCommandAttributes.length === 0) {
     throw GenerateSwitchCommandInvalidSyntaxError(`children '${ element.tagName.toLowerCase() }' must have one of the following commands 'switch-case' or 'switch-default'`);
-  // } else if (commandAttributes.length > 1) { // INFO: maybe enable any commands on a 'switch-case' or 'switch-default' as it wont impact code execution/template
-  //   throw GenerateSwitchChildCommandInvalidSyntaxError(switchCommandAttributes[0].name.slice(1, -1), `element's cannot contain any other command`);
+    // } else if (commandAttributes.length > 1) { // INFO: maybe enable any commands on a 'switch-case' or 'switch-default' as it wont impact code execution/template
+    //   throw GenerateSwitchChildCommandInvalidSyntaxError(switchCommandAttributes[0].name.slice(1, -1), `element's cannot contain any other command`);
   } else {
     const commandAttribute: ICommandAttribute = switchCommandAttributes[0];
     if ((commandAttribute.name === 'switch-default') && (commandAttribute.value !== '')) {

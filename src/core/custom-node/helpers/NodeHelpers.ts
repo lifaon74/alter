@@ -141,12 +141,12 @@ export function * IterableQuerySelector<E extends Element>(parent: ParentNode & 
     parent,
     NodeFilter.SHOW_ELEMENT,
     {
-        acceptNode: (node: Element) => {
-          return filterFunction(node)
-            ? NodeFilter.FILTER_ACCEPT
-            : NodeFilter.FILTER_SKIP;
-        }
-      },
+      acceptNode: (node: Element) => {
+        return filterFunction(node)
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_SKIP;
+      }
+    },
     false
   );
 
@@ -174,7 +174,6 @@ export function ClearChildNodes(node: Node): void {
     node.removeChild(node.firstChild);
   }
 }
-
 
 
 export type TElementAttributeType = 'boolean' | 'number' | 'string' | string[];

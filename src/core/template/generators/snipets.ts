@@ -22,6 +22,6 @@ export function ScopeLines(lines: string[], copy: boolean = false): string[] {
 
 export function ValueToObservableCode(value: string, expression: boolean = false): string {
   return expression
-    ? `$expression(() => (${value}))`
-    : `$observable(${value})`;
+    ? `$expression(() => (${ value }))`
+    : `$observable(${ value })`;
 }

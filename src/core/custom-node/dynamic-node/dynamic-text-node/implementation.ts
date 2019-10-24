@@ -18,7 +18,6 @@ export function ConstructDynamicTextNode<T>(textNode: IDynamicTextNode): void {
 }
 
 
-
 export const DynamicTextNode: IDynamicTextNodeConstructor = class DynamicTextNode extends ObserverFactory(Text) /*implements IDynamicTextNode*/ {
   constructor() {
     super([(value: string) => {

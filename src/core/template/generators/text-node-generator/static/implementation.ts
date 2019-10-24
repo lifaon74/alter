@@ -12,7 +12,7 @@ export class StaticTextNodeGenerator extends TextNodeGenerator implements IStati
   generate(): string[] {
     return [
       `// static text node`,
-      `AttachNode(document.createTextNode(${JSON.stringify(this.value)}), parentNode);`,
+      `AttachNode(document.createTextNode(${ JSON.stringify(this.value) }), parentNode);`,
     ];
   }
 }

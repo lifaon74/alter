@@ -1,6 +1,5 @@
 import { CreateDocumentFragmentFromNodes } from '../helpers/NodeHelpers';
-import { DOMState} from './mutations';
-import { AttachNode, DetachNode, GetNodeDOMState } from './mutations';
+import { AttachNode, DetachNode, DOMState, GetNodeDOMState } from './mutations';
 
 /**
  * These functions intercept calls on native functions which mutate the DOM, and use AttachNode and DetachNode instead.
@@ -25,13 +24,13 @@ export function AddCustomNodeSupportForNodeAppendChild(): void {
       case 'attaching':
         return _appendChild.call(this, newChild);
       default:
-        throw new Error(`Cannot attach a node in state: ${state}`);
+        throw new Error(`Cannot attach a node in state: ${ state }`);
     }
   };
   // for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(_appendChild))) {
   //   console.log(key);
   // }
-  Node.prototype.appendChild.toString = _appendChild.toString.bind(_appendChild);
+  AssignToStringFunction(Node.prototype, 'appendChild', _appendChild);
 }
 
 export function AddCustomNodeSupportForNodeRemoveChild(): void {
@@ -45,10 +44,10 @@ export function AddCustomNodeSupportForNodeRemoveChild(): void {
       case 'detaching':
         return _removeChild.call(this, oldChild);
       default:
-        throw new Error(`Cannot attach a node in state: ${state}`);
+        throw new Error(`Cannot attach a node in state: ${ state }`);
     }
   };
-  Node.prototype.removeChild.toString = _removeChild.toString.bind(_removeChild);
+  AssignToStringFunction(Node.prototype, 'removeChild', _removeChild);
 }
 
 export function AddCustomNodeSupportForNodeReplaceChild(): void {
@@ -63,10 +62,10 @@ export function AddCustomNodeSupportForNodeReplaceChild(): void {
       case 'detaching':
         return _replaceChild.call(this, newChild, oldChild);
       default:
-        throw new Error(`Cannot attach a node in state: ${oldChildState}`);
+        throw new Error(`Cannot attach a node in state: ${ oldChildState }`);
     }
   };
-  Node.prototype.replaceChild.toString = _replaceChild.toString.bind(_replaceChild);
+  AssignToStringFunction(Node.prototype, 'replaceChild', _replaceChild);
 }
 
 export function AddCustomNodeSupportForNodeInsertBefore(): void {
@@ -82,10 +81,10 @@ export function AddCustomNodeSupportForNodeInsertBefore(): void {
       case 'attaching':
         return _insertBefore.call(this, newChild, refChild);
       default:
-        throw new Error(`Cannot attach a node in state: ${state}`);
+        throw new Error(`Cannot attach a node in state: ${ state }`);
     }
   };
-  Node.prototype.insertBefore.toString = _insertBefore.toString.bind(_insertBefore);
+  AssignToStringFunction(Node.prototype, 'insertBefore', _insertBefore);
 }
 
 export function AddCustomNodeSupportForParentNodeAppend(_constructor: any): void {
@@ -94,7 +93,7 @@ export function AddCustomNodeSupportForParentNodeAppend(_constructor: any): void
     _constructor.prototype.append = function append(...nodes: (Node | string)[]): void {
       this.appendChild(CreateDocumentFragmentFromNodes(nodes));
     };
-    _constructor.prototype.append.toString = _append.toString.bind(_append);
+    AssignToStringFunction(_constructor.prototype, 'append', _append);
   } else {
     Object.defineProperty(_constructor.prototype, 'append', {
       configurable: true,
@@ -104,9 +103,7 @@ export function AddCustomNodeSupportForParentNodeAppend(_constructor: any): void
         this.appendChild(CreateDocumentFragmentFromNodes(nodes));
       }
     });
-    _constructor.prototype.append.toString = function () {
-      return `function append() { [native code] };`;
-    };
+    AssignToStringFunction(_constructor.prototype, 'append');
   }
 }
 
@@ -116,7 +113,7 @@ export function AddCustomNodeSupportForParentNodePrepend(_constructor: any): voi
     _constructor.prototype.prepend = function (...nodes: (Node | string)[]): void {
       this.insertBefore(CreateDocumentFragmentFromNodes(nodes), this.firstChild);
     };
-    _constructor.prototype.prepend.toString = _prepend.toString.bind(_prepend);
+    AssignToStringFunction(_constructor.prototype, 'prepend', _prepend);
   } else {
     Object.defineProperty(_constructor.prototype, 'prepend', {
       configurable: true,
@@ -126,9 +123,7 @@ export function AddCustomNodeSupportForParentNodePrepend(_constructor: any): voi
         this.insertBefore(CreateDocumentFragmentFromNodes(nodes), this.firstChild);
       }
     });
-    _constructor.prototype.prepend.toString = function () {
-      return `function prepend() { [native code] };`;
-    };
+    AssignToStringFunction(_constructor.prototype, 'prepend');
   }
 }
 
@@ -142,7 +137,7 @@ export function AddCustomNodeSupportForChildNodeAfter(_constructor: any): void {
         this.parentNode.insertBefore(CreateDocumentFragmentFromNodes(nodes), this.nextSibling);
       }
     };
-    _constructor.prototype.after.toString = _after.toString.bind(_after);
+    AssignToStringFunction(_constructor.prototype, 'after', _after);
   } else {
     Object.defineProperty(_constructor.prototype, 'after', {
       configurable: true,
@@ -154,9 +149,7 @@ export function AddCustomNodeSupportForChildNodeAfter(_constructor: any): void {
         }
       }
     });
-    _constructor.prototype.after.toString = function () {
-      return `function after() { [native code] };`;
-    };
+    AssignToStringFunction(_constructor.prototype, 'after');
   }
 }
 
@@ -170,7 +163,7 @@ export function AddCustomNodeSupportForChildNodeBefore(_constructor: any): void 
         this.parentNode.insertBefore(CreateDocumentFragmentFromNodes(nodes), this);
       }
     };
-    _constructor.prototype.before.toString = _before.toString.bind(_before);
+    AssignToStringFunction(_constructor.prototype, 'before', _before);
   } else {
     Object.defineProperty(_constructor.prototype, 'before', {
       configurable: true,
@@ -182,9 +175,7 @@ export function AddCustomNodeSupportForChildNodeBefore(_constructor: any): void 
         }
       }
     });
-    _constructor.prototype.before.toString = function () {
-      return `function before() { [native code] };`;
-    };
+    AssignToStringFunction(_constructor.prototype, 'before');
   }
 }
 
@@ -198,7 +189,7 @@ export function AddCustomNodeSupportForChildNodeReplaceWith(_constructor: any): 
         this.parentNode.replaceChild(CreateDocumentFragmentFromNodes(nodes), this);
       }
     };
-    _constructor.prototype.replaceWith.toString = _replaceWith.toString.bind(_replaceWith);
+    AssignToStringFunction(_constructor.prototype, 'replaceWith', _replaceWith);
   } else {
     Object.defineProperty(_constructor.prototype, 'replaceWith', {
       configurable: true,
@@ -210,9 +201,7 @@ export function AddCustomNodeSupportForChildNodeReplaceWith(_constructor: any): 
         }
       }
     });
-    _constructor.prototype.replaceWith.toString = function () {
-      return `function replaceWith() { [native code] };`;
-    };
+    AssignToStringFunction(_constructor.prototype, 'replaceWith');
   }
 }
 
@@ -228,10 +217,22 @@ export function AddCustomNodeSupportForDocumentAdoptNode(): void {
       case 'detaching':
         return _adoptNode.call(this, source);
       default:
-        throw new Error(`Cannot attach a node in state: ${state}`);
+        throw new Error(`Cannot attach a node in state: ${ state }`);
     }
   };
-  Document.prototype.adoptNode.toString = _adoptNode.toString.bind(_adoptNode);
+  AssignToStringFunction(Document.prototype, 'adoptNode', _adoptNode);
+}
+
+function AssignToStringFunction(proto: object, name: string, nativeFunction?: (...args: any[]) => any): void {
+  proto[name] = CreateToStringFunction(name,  nativeFunction);
+}
+
+function CreateToStringFunction(name: string, nativeFunction?: (...args: any[]) => any): () => string {
+  return (typeof nativeFunction === 'function')
+    ? nativeFunction.toString.bind(nativeFunction)
+    : function () {
+      return `function ${ name }() { [native code] };`;
+    };
 }
 
 export function AddCustomNodeSupportForNode(): void {

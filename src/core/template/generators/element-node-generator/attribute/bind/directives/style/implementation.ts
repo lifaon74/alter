@@ -2,7 +2,6 @@ import { IBindStyleDirectiveGenerator, IBindStyleDirectiveGeneratorOptions } fro
 import { BindDirectiveGenerator } from '../implementation';
 
 
-
 /**
  * Generator for a class directive.
  * Syntax:
@@ -29,13 +28,13 @@ export class BindStyleDirectiveGenerator extends BindDirectiveGenerator implemen
   generate(): string[] {
     if (this.isSpreadStyle()) {
       return [
-        `// bind directive '${this.name}'`,
-        `new DynamicStyleList(node).observe(${this.observableValue});`,
+        `// bind directive '${ this.name }'`,
+        `new DynamicStyleList(node).observe(${ this.observableValue });`,
       ];
     } else {
       return [
-        `// bind directive '${this.name}'`,
-        `new DynamicStyle(node, ${JSON.stringify(this.propertyName)}).observe(${this.observableValue});`,
+        `// bind directive '${ this.name }'`,
+        `new DynamicStyle(node, ${ JSON.stringify(this.propertyName) }).observe(${ this.observableValue });`,
       ];
     }
   }

@@ -1,4 +1,4 @@
-import { NodeStateObservableOf } from '../node-state-observable/implementation';
+import { NodeStateObservableStaticOf } from '../node-state-observable/implementation';
 import { DOMState, GetNodeDOMState } from '../node-state-observable/mutations';
 import { IObserver } from '@lifaon/observables';
 import { INodeStateObservable } from '../node-state-observable/interfaces';
@@ -13,7 +13,7 @@ import { INodeStateObservable } from '../node-state-observable/interfaces';
  * @returns undo function
  */
 export function BindObserverWithNodeStateObservable<T>(observer: IObserver<T>, node: Node): () => IObserver<T> {
-  const nodeStateObservable: INodeStateObservable = NodeStateObservableOf(node);
+  const nodeStateObservable: INodeStateObservable = NodeStateObservableStaticOf(node);
 
   function onConnect() {
     observer.activate();

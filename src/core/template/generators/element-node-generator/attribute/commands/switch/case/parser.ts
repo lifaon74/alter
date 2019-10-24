@@ -1,8 +1,9 @@
 import { ISwitchCaseCommandGenerator } from './interfaces';
 import { SwitchCaseCommandGenerator } from './implementation';
 import { ICommandAttribute, ICommandParser } from '../../interfaces';
-import { switchCaseSelector, ExtractSwitchChildParentSwitchCommandAttribute, ExtractSwitchChildCommandAttribute } from '../parser';
-
+import {
+  ExtractSwitchChildCommandAttribute, ExtractSwitchChildParentSwitchCommandAttribute, switchCaseSelector
+} from '../parser';
 
 
 export function parseSwitchCaseCommandAttribute({ name, value, modifiers, attribute }: ICommandAttribute): ISwitchCaseCommandGenerator | null {

@@ -11,8 +11,8 @@ export class StaticAttributeGenerator extends AttributeGenerator implements ISta
 
   generate(): string[] {
     return [
-      `// static attribute '${this.name}'`,
-      `node.setAttribute(${JSON.stringify(this.name)}, ${JSON.stringify(this.value)});`,
+      `// static attribute '${ this.name }'`,
+      `node.setAttribute(${ JSON.stringify(this.name) }, ${ JSON.stringify(this.value) });`,
     ];
   }
 }

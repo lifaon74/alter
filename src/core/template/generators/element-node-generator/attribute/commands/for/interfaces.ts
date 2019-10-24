@@ -1,5 +1,4 @@
 import { ICommandGenerator, ICommandGeneratorConstructor, ICommandGeneratorOptions } from '../interfaces';
-import { ICodeGeneratorOptions } from '../../../../code-generator/interfaces';
 
 /**
  * @example:

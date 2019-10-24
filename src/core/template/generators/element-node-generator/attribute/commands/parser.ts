@@ -4,9 +4,9 @@ import { TAttributeGeneratorModifiers } from '../interfaces';
 
 const starPattern: string = '\\*(\\$)?(.+)';
 const prefixPattern: string = 'cmd-(exp-)?(.+)';
-const pattern: string = `(?:${starPattern})`
-  + `|(?:${prefixPattern})`;
-const regExp: RegExp = new RegExp(`^${pattern}$`);
+const pattern: string = `(?:${ starPattern })`
+  + `|(?:${ prefixPattern })`;
+const regExp: RegExp = new RegExp(`^${ pattern }$`);
 
 
 export function ExtractCommandAttribute(attribute: Attr): ICommandAttribute | null {
@@ -49,6 +49,6 @@ export function parseCommandAttribute<T extends ICommandGenerator>(attribute: At
       }
     }
 
-    throw HTMLTemplateError.fromAttribute(`No command found matching '${name}'`, attribute, HTMLTemplateError.getTopParent<Element>(attribute.ownerElement));
+    throw HTMLTemplateError.fromAttribute(`No command found matching '${ name }'`, attribute, HTMLTemplateError.getTopParent<Element>(attribute.ownerElement));
   }
 }

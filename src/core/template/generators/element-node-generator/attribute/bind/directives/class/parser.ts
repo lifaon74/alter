@@ -20,7 +20,7 @@ export function parseBindClassDirective<T extends IBindClassDirectiveGenerator>(
     if (prefixMode ? (className === '--') : (className === '..')) {
       className = '..';
     } else if (!IsValidCSSIdentifier(className)) {
-      throw new Error(`Invalid className '${className}'`);
+      throw new Error(`Invalid className '${ className }'`);
     }
 
     return new BindClassDirectiveGenerator({ name, value, className, modifiers }) as any;
@@ -28,5 +28,5 @@ export function parseBindClassDirective<T extends IBindClassDirectiveGenerator>(
 }
 
 export const BindClassDirectiveParser: IBindDirectiveParser = {
- parse: parseBindClassDirective,
+  parse: parseBindClassDirective,
 };

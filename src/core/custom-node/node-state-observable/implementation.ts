@@ -3,16 +3,18 @@ import {
   TNodeStateObservableBeforeDetachPreventableType,
 } from './interfaces';
 import {
-  INotificationsObservableContext, IObserver, IPreventable, NotificationsObservable,
-  Observer, DOMChangeObservable, IDOMChangeObservable
+  DOMChangeObservable, IDOMChangeObservable, INotificationsObservableContext, IObserver, IPreventable,
+  NotificationsObservable, Observer
 } from '@lifaon/observables';
 
 import { IReferenceNode, TReferenceNodeMutation } from '../reference-node/interfaces';
-import { ReferenceNodeUpdate, CommentReferenceNode } from '../reference-node/implementation';
+import { CommentReferenceNode, ReferenceNodeUpdate } from '../reference-node/implementation';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 
 
-export const NODE_STATE_OBSERVABLE_PRIVATE = Symbol('node-state-observable-private');
+/** CONSTRUCTOR **/
+
+export const NODE_STATE_OBSERVABLE_PRIVATE = Symbol('node-state-instance-private');
 
 export interface INodeStateObservablePrivate {
   context: INotificationsObservableContext<INodeStateObservableKeyValueMap>;
@@ -33,199 +35,177 @@ export interface INodeStateObservableInternal extends INodeStateObservable {
 }
 
 
-
-export const NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP: WeakMap<Node, INodeStateObservable[]> = new WeakMap<Node, INodeStateObservable[]>();
-
-/**
- * Creates/gets an uniq NodeStateObservable per node
- * @param node
- */
-export function NodeStateObservableOf(node: Node): INodeStateObservable {
-  if (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.has(node)) {
-    return (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.get(node) as INodeStateObservable[])[0];
-  } else {
-    return new NodeStateObservable(node);
-  }
-}
-
-
 export const STATIC_DOM_CHANGE_OBSERVABLE: IDOMChangeObservable = new DOMChangeObservable();
 
 export function ConstructNodeStateObservable(
-  observable: INodeStateObservable,
+  instance: INodeStateObservable,
   context: INotificationsObservableContext<INodeStateObservableKeyValueMap>,
   node: Node
 ): void {
-  ConstructClassWithPrivateMembers(observable, NODE_STATE_OBSERVABLE_PRIVATE);
-  const privates: INodeStateObservablePrivate = (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+  ConstructClassWithPrivateMembers(instance, NODE_STATE_OBSERVABLE_PRIVATE);
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
 
-  privates.context = context;
-  privates.node = node;
+  const doc: Document | null = node.ownerDocument;
+  if (doc === null) {
+    throw new Error(`Expected node having an ownerDocument`);
+  } else {
+    privates.context = context;
+    privates.node = node;
 
-  privates.referenceNode = null;
-  privates.useDOMObserver = false;
+    privates.referenceNode = null;
+    privates.useDOMObserver = false;
 
-  privates.domChangeObserver = new Observer<void>(() => {
-    // something append in the DOM
+    privates.domChangeObserver = new Observer<void>(() => {
+      // something append in the DOM
 
-    const mutation: TReferenceNodeMutation = privates.referenceNode.inferMutation();
-    const connected: boolean = privates.node.ownerDocument.contains(privates.node);
-    // console.warn('DOM detect', mutation);
+      const mutation: TReferenceNodeMutation = (privates.referenceNode as IReferenceNode).inferMutation();
+      const connected: boolean = doc.contains(privates.node);
+      // console.warn('DOM detect', mutation);
 
-    if (mutation !== 'none') {
-      ReferenceNodeUpdate(privates.referenceNode);
+      if (mutation !== 'none') {
+        ReferenceNodeUpdate(privates.referenceNode as IReferenceNode);
 
-      if ((mutation === 'detach') || (mutation === 'move')) {
-        if (!privates.detachDetected) {
-          // console.log('DOM detach');
-          NodeStateObservableOnAfterDetach(observable);
-          NodeStateObservableOnMutationDisconnect(observable);
+        if ((mutation === 'detach') || (mutation === 'move')) {
+          if (!privates.detachDetected) {
+            // console.log('DOM detach');
+            NodeStateObservableOnAfterDetach(instance);
+            NodeStateObservableOnMutationDisconnect(instance);
+          }
         }
-      }
 
-      if ((mutation === 'attach') || (mutation === 'move')) {
-        if (!privates.attachDetected) {
-          // console.log('DOM attach');
-          NodeStateObservableOnAfterAttach(observable);
-          if (connected) {
-            NodeStateObservableOnMutationConnect(observable);
+        if ((mutation === 'attach') || (mutation === 'move')) {
+          if (!privates.attachDetected) {
+            // console.log('DOM attach');
+            NodeStateObservableOnAfterAttach(instance);
+            if (connected) {
+              NodeStateObservableOnMutationConnect(instance);
+            }
           }
         }
       }
-    }
+
+      privates.attachDetected = false;
+      privates.detachDetected = false;
+
+      if ((privates.state === 'connected') !== connected) { // node itself didnt update but one of its parent may have
+        if (connected) {
+          NodeStateObservableOnMutationConnect(instance);
+        } else {
+          NodeStateObservableOnMutationDisconnect(instance);
+        }
+        privates.state = connected ? 'connected' : 'disconnected';
+      }
+    }).observe(STATIC_DOM_CHANGE_OBSERVABLE);
 
     privates.attachDetected = false;
     privates.detachDetected = false;
+    privates.state = doc.contains(privates.node) ? 'connected' : 'disconnected';
 
-    if ((privates.state === 'connected') !== connected) { // node itself didnt update but one of its parent may have
-      if (connected) {
-        NodeStateObservableOnMutationConnect(observable);
-      } else {
-        NodeStateObservableOnMutationDisconnect(observable);
-      }
-      privates.state = connected ? 'connected' : 'disconnected';
+    // register instance
+    if (!NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.has(node)) {
+      NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.set(node, []);
     }
-  }).observe(STATIC_DOM_CHANGE_OBSERVABLE);
-
-  privates.attachDetected = false;
-  privates.detachDetected = false;
-  privates.state = privates.node.ownerDocument.contains(privates.node) ? 'connected' : 'disconnected';
-
-  // register observable
-  if (!NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.has(node)) {
-    NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.set(node, []);
+    (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.get(node) as INodeStateObservable[]).push(instance);
   }
-  (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.get(node) as INodeStateObservable[]).push(observable);
 }
 
-
+/** FUNCTIONS **/
 
 /** HANDLERS FOR MUTATIONS EVENTS **/
 
 /**
- * Triggered when the AttachNode function is called, before attaching the node to its parent
- * @param observable
- * @param preventable
+ * Must be called when the AttachNode function is executed, before attaching the node to its parent
  */
-export function NodeStateObservableOnMutationBeforeAttach(observable: INodeStateObservable, preventable: IPreventable<TNodeStateObservableBeforeAttachPreventableType>): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('beforeAttach', preventable);
+export function NodeStateObservableOnMutationBeforeAttach(instance: INodeStateObservable, preventable: IPreventable<TNodeStateObservableBeforeAttachPreventableType>): void {
+  (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('beforeAttach', preventable);
 }
 
 /**
- * Triggered when the DetachNode function is called, before detaching the node from its parent
- * @param observable
- * @param preventable
+ * Must be called when the DetachNode function is executed, before detaching the node from its parent
  */
-export function NodeStateObservableOnMutationBeforeDetach(observable: INodeStateObservable, preventable: IPreventable<TNodeStateObservableBeforeDetachPreventableType>): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('beforeDetach', preventable);
+export function NodeStateObservableOnMutationBeforeDetach(instance: INodeStateObservable, preventable: IPreventable<TNodeStateObservableBeforeDetachPreventableType>): void {
+  (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('beforeDetach', preventable);
 }
 
 
 /**
- * Triggered when the AttachNode function is called, after the node is attached to its parent
- * @param observable
+ * Must be called when the AttachNode function is executed, after the node is attached to its parent
  */
-export function NodeStateObservableOnMutationAfterAttach(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].attachDetected = true;
-  NodeStateObservableOnAfterAttach(observable);
+export function NodeStateObservableOnMutationAfterAttach(instance: INodeStateObservable): void {
+  (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].attachDetected = true;
+  NodeStateObservableOnAfterAttach(instance);
 }
 
 /**
- * Triggered when an 'afterAttach' is detected
- * @param observable
+ * Must be called when an 'afterAttach' is detected
  */
-export function NodeStateObservableOnAfterAttach(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterAttach', void 0);
+export function NodeStateObservableOnAfterAttach(instance: INodeStateObservable): void {
+  (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterAttach', void 0);
 }
 
 
 /**
- * Triggered when the DetachNode function is called, after the node is detached from its parent
- * @param observable
+ * Must be called when the DetachNode function is executed, after the node is detached from its parent
  */
-export function NodeStateObservableOnMutationAfterDetach(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].detachDetected = true;
-  NodeStateObservableOnAfterDetach(observable);
+export function NodeStateObservableOnMutationAfterDetach(instance: INodeStateObservable): void {
+  (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].detachDetected = true;
+  NodeStateObservableOnAfterDetach(instance);
 }
 
 /**
- * Triggered when an 'afterDetach' is detected
- * @param observable
+ * Must be called when an 'afterDetach' is detected
  */
-export function NodeStateObservableOnAfterDetach(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterDetach', void 0);
+export function NodeStateObservableOnAfterDetach(instance: INodeStateObservable): void {
+  (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('afterDetach', void 0);
 }
 
 /**
- * Triggered when a 'connect' is detected
- * @param observable
+ * Must be called when a 'connect' is detected
  */
-export function NodeStateObservableOnMutationConnect(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state = 'connected';
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('connect', void 0);
+export function NodeStateObservableOnMutationConnect(instance: INodeStateObservable): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+  privates.state = 'connected';
+  privates.context.dispatch('connect', void 0);
 }
 
 /**
- * Triggered when a 'disconnect' is detected
- * @param observable
+ * Must be called when a 'disconnect' is detected
  */
-export function NodeStateObservableOnMutationDisconnect(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state = 'disconnected';
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('disconnect', void 0);
+export function NodeStateObservableOnMutationDisconnect(instance: INodeStateObservable): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+  privates.state = 'disconnected';
+  privates.context.dispatch('disconnect', void 0);
 }
 
 /**
- * Triggered when a 'destroy' is detected
- * @param observable
+ * Must be called when a 'destroy' is detected
  */
-export function NodeStateObservableOnMutationDestroy(observable: INodeStateObservable): void {
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state = 'destroyed';
-  NodeStateObservableDeactivateDOMObserver(observable);
-  (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].context.dispatch('destroy', void 0);
+export function NodeStateObservableOnMutationDestroy(instance: INodeStateObservable): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+  privates.state = 'destroyed';
+  NodeStateObservableDeactivateDOMObserver(instance);
+  privates.context.dispatch('destroy', void 0);
 }
 
 
+/** ITERATORS **/
 
 /**
  * Iterates over the NodeStateObservables observing this node
- * @param node
- * @param callback
  */
-export function ForEachNodeStateObservablesOfNode(node: Node, callback: (observable: INodeStateObservable) => void): void {
+export function ForEachNodeStateObservablesOfNode(node: Node, callback: (instance: INodeStateObservable) => void): void {
   if (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.has(node)) {
-    const observables: INodeStateObservableInternal[] = (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.get(node) as INodeStateObservableInternal[]);
-    for (let i = 0, l = observables.length; i < l; i++) {
-      callback(observables[i]);
+    const instances: INodeStateObservableInternal[] = (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.get(node) as INodeStateObservableInternal[]);
+    for (let i = 0, l = instances.length; i < l; i++) {
+      callback(instances[i]);
     }
   }
 }
 
 /**
  * Iterates over the NodeStateObservables observing this node and all its sub nodes
- * @param node
- * @param callback
  */
-export function ForEachNodeStateObservablesOfNodeTree(node: Node, callback: (observable: INodeStateObservable) => void): void {
+export function ForEachNodeStateObservablesOfNodeTree(node: Node, callback: (instance: INodeStateObservable) => void): void {
   ForEachNodeStateObservablesOfNode(node, callback);
   const treeWalker: TreeWalker = document.createTreeWalker(node);
   while (treeWalker.nextNode()) {
@@ -234,9 +214,10 @@ export function ForEachNodeStateObservablesOfNodeTree(node: Node, callback: (obs
 }
 
 
+/** ACTIVATE/DEACTIVATE **/
 
-export function NodeStateObservableActivateDOMObserver(observable: INodeStateObservable): void {
-  const privates: INodeStateObservablePrivate = (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+export function NodeStateObservableActivateDOMObserver(instance: INodeStateObservable): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
 
   if (!privates.domChangeObserver.activated) {
     if (privates.referenceNode === null) {
@@ -248,52 +229,76 @@ export function NodeStateObservableActivateDOMObserver(observable: INodeStateObs
 }
 
 
-export function NodeStateObservableDeactivateDOMObserver(observable: INodeStateObservable): void {
-  const privates: INodeStateObservablePrivate = (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+export function NodeStateObservableDeactivateDOMObserver(instance: INodeStateObservable): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
 
   if (privates.domChangeObserver.activated) {
     privates.domChangeObserver.deactivate();
-    if (privates.referenceNode.parentNode !== null) {
-      privates.referenceNode.parentNode.removeChild(privates.referenceNode);
+    if ((privates.referenceNode as IReferenceNode).parentNode !== null) {
+      ((privates.referenceNode as IReferenceNode).parentNode as Node).removeChild(privates.referenceNode as IReferenceNode);
     }
   }
 }
 
 
-export function NodeStateObservableUpdateDOMObserverState(observable: INodeStateObservable): void {
+export function NodeStateObservableUpdateDOMObserverState(instance: INodeStateObservable): void {
   if (
-    !(observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver
-    && (observable.observers.length === 0)
+    !(instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver
+    && (instance.observers.length === 0)
   ) {
-    NodeStateObservableDeactivateDOMObserver(observable);
+    NodeStateObservableDeactivateDOMObserver(instance);
   } else if (
-    (observable as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver
-    && (observable.observers.length > 0)
+    (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver
+    && (instance.observers.length > 0)
   ) {
-    NodeStateObservableActivateDOMObserver(observable);
-  }
-}
-
-export function NodeStateObservableUseDOMObserver(observable: INodeStateObservable, use: boolean): void {
-  if (use !== ((observable as unknown) as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver) {
-    ((observable as unknown) as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver = use;
-    NodeStateObservableUpdateDOMObserverState(observable);
+    NodeStateObservableActivateDOMObserver(instance);
   }
 }
 
 
+/** STATIC METHODS **/
 
+export const NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP: WeakMap<Node, INodeStateObservable[]> = new WeakMap<Node, INodeStateObservable[]>();
+
+/**
+ * Creates/gets an uniq NodeStateObservable per node
+ */
+export function NodeStateObservableStaticOf(node: Node): INodeStateObservable {
+  if (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.has(node)) {
+    return (NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.get(node) as INodeStateObservable[])[0];
+  } else {
+    return new NodeStateObservable(node);
+  }
+}
+
+/** METHODS **/
+
+export function NodeStateObservableGetState(instance: INodeStateObservable): TNodeState {
+  return (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state;
+}
+
+export function NodeStateObservableUseDOMObserver(instance: INodeStateObservable, use: boolean): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+  if (use !== privates.useDOMObserver) {
+    privates.useDOMObserver = use;
+    NodeStateObservableUpdateDOMObserverState(instance);
+  }
+}
+
+
+/** CLASS **/
 
 export class NodeStateObservable extends NotificationsObservable<INodeStateObservableKeyValueMap> implements INodeStateObservable {
 
+
   static of(node: Node): INodeStateObservable {
-    return NodeStateObservableOf(node);
+    return NodeStateObservableStaticOf(node);
   }
 
   static useDOMObserver: boolean = false;
 
   constructor(node: Node) {
-    let context: INotificationsObservableContext<INodeStateObservableKeyValueMap> = void 0;
+    let context: INotificationsObservableContext<INodeStateObservableKeyValueMap>;
     super((_context: INotificationsObservableContext<INodeStateObservableKeyValueMap>) => {
       context = _context;
       return {
@@ -306,6 +311,7 @@ export class NodeStateObservable extends NotificationsObservable<INodeStateObser
       };
     });
 
+    // @ts-ignore
     ConstructNodeStateObservable(this, context, node);
 
     if (NodeStateObservable.useDOMObserver) {
@@ -314,7 +320,7 @@ export class NodeStateObservable extends NotificationsObservable<INodeStateObser
   }
 
   get state(): TNodeState {
-    return ((this as unknown) as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state;
+    return NodeStateObservableGetState(this);
   }
 
   useDOMObserver(use: boolean = true): this {

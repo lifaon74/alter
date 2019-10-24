@@ -14,6 +14,6 @@ export function parseAttribute(attribute: Attr, parsers: IParsers): IAttributeGe
   } else if ((generator = parseEventListenerAttribute(attribute)) !== null) {
     return generator;
   } else {
-   return parseStaticAttribute(attribute);
+    return parseStaticAttribute(attribute);
   }
 }

@@ -76,11 +76,11 @@ function testSwitchCommandPropertyParser() {
   const container = document.createElement('div');
   container.innerHTML = ''
     + '<switch *switch="source">'
-      // + 'invalid text'
-      // + '<invalid-div>invalid</invalid-div>'
-      + '<switch-case *switch-case="case1">case1</switch-case>'
-      + '<switch-case *switch-case="case2">case2</switch-case>'
-      + '<div *switch-default>default</div>'
+    // + 'invalid text'
+    // + '<invalid-div>invalid</invalid-div>'
+    + '<switch-case *switch-case="case1">case1</switch-case>'
+    + '<switch-case *switch-case="case2">case2</switch-case>'
+    + '<div *switch-default>default</div>'
     + '</switch>';
   console.log(parseElementNode(container.firstElementChild, DefaultParsers).generate().join('\n'));
 }

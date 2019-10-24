@@ -26,7 +26,8 @@ export function TemplateCodeToTemplateDebuggableFunction(lines: string[]): TTemp
     (navigator as any).clipboard.writeText(lines.join('\n'))
       .then(() => {
         console.warn('generated code copied into clipboard');
-    }, () => {});
+      }, () => {
+      });
 
     throw error;
   }
@@ -47,10 +48,10 @@ export function TemplateCodeToTemplateDebuggableFunction(lines: string[]): TTemp
               const column: number = parseInt(match[2], 10);
               const lines: string[] = fnc.toString().split('\n');
               console.log(
-                `%c Error '${error.message}' at ${line + 1}:${column}: \n`
-                + '%c ' +  lines.slice(line - 3, line).join('\n') + '\n'
+                `%c Error '${ error.message }' at ${ line + 1 }:${ column }: \n`
+                + '%c ' + lines.slice(line - 3, line).join('\n') + '\n'
                 + '%c ' + lines[line] + '\n'
-                + '%c ' +  lines.slice(line + 1, line + 4).join('\n')
+                + '%c ' + lines.slice(line + 1, line + 4).join('\n')
                 , `color: #f00`, `color: #000`, `color: #f50`, `color: #000`);
 
               if (IsDevToolOpened()) {
@@ -92,10 +93,10 @@ export function TemplateURLToTemplateInstance(
       if (response.ok) {
         return response.text();
       } else {
-        throw new Error(`Failed to fetch template at '${url}'`);
+        throw new Error(`Failed to fetch template at '${ url }'`);
       }
     })
-    .then((template: string) =>{
+    .then((template: string) => {
       return TemplateStringToTemplateInstance(template, options);
     });
 }

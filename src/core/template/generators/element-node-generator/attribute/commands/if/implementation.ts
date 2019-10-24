@@ -11,13 +11,13 @@ export class IfCommandGenerator extends CommandGenerator implements IIfCommandGe
 
   generate(options: ICommandCodeGeneratorOptions): string[] {
     return [
-      `// command '${this.name}'`,
+      `// command '${ this.name }'`,
       `const node = new DynamicConditionalNode(() => {`,
       ...IndentLines([
         ...options.createNode,
         `return node;`,
       ]),
-      `}).observe(${this.observableValue});`,
+      `}).observe(${ this.observableValue });`,
     ];
   }
 }

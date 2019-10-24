@@ -15,7 +15,7 @@ export abstract class UpdatableCollection<T> implements ArrayLike<T> {
 
   [index: number]: T;
 
-  *[Symbol.iterator](): Generator<T, void, void> {
+  * [Symbol.iterator](): Generator<T, void, void> {
     for (let i = 0; i < this._length; i++) {
       yield this[i];
     }

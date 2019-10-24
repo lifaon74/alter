@@ -1,4 +1,3 @@
-
 export interface ICodeGeneratorConstructor {
 }
 
@@ -9,4 +8,5 @@ export interface ICodeGenerator {
   generate(options?: ICodeGeneratorOptions): string[];
 }
 
-export interface ICodeGeneratorOptions {}
+export interface ICodeGeneratorOptions {
+}

@@ -2,7 +2,6 @@ import { IBindAttributeDirectiveGenerator, IBindAttributeDirectiveGeneratorOptio
 import { BindDirectiveGenerator } from '../implementation';
 
 
-
 /**
  * Generator for a class directive.
  * Syntax:
@@ -35,8 +34,8 @@ export class BindAttributeDirectiveGenerator extends BindDirectiveGenerator impl
       // ];
     } else {
       return [
-        `// bind directive '${this.name}'`,
-        `new DynamicAttribute(node, ${JSON.stringify(this.propertyName)}).observe(${this.observableValue});`,
+        `// bind directive '${ this.name }'`,
+        `new DynamicAttribute(node, ${ JSON.stringify(this.propertyName) }).observe(${ this.observableValue });`,
       ];
     }
   }

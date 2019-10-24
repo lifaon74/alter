@@ -12,7 +12,7 @@ import { IContainerNode } from './interfaces';
 import { ReferenceNodeStaticNextSibling } from '../reference-node/implementation';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import {
-  DestroyChildNodes, DestroyNode, DestroyNodeSafe, DetachChildNodes, DetachNodeSafe
+  DestroyChildNodes, DestroyNodeSafe, DetachChildNodes, DetachNodeSafe
 } from '../node-state-observable/mutations';
 import { IsValidXMLName } from '../../tokenizers/xml';
 import { uuid } from '../../../misc/helpers/UUID';
@@ -36,33 +36,33 @@ export interface IContainerNodeInternal extends IContainerNode {
 }
 
 export function ConstructContainerNode(
-  containerNode: IContainerNode,
+  instance: IContainerNode,
   transparent: boolean = false
 ): void {
-  ConstructClassWithPrivateMembers(containerNode, CONTAINER_NODE_PRIVATE);
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  ConstructClassWithPrivateMembers(instance, CONTAINER_NODE_PRIVATE);
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
 
-  const doc: Document | null = containerNode.ownerDocument;
+  const doc: Document | null = instance.ownerDocument;
   if (doc === null) {
     throw new Error(`Expected ContainerNode having an ownerDocument`);
   } else {
     privates.fragment = doc.createDocumentFragment();
     privates.startNode = transparent ? doc.createTextNode('') : doc.createComment('START');
-    // privates.startNode = transparent ? new TextReferenceNode(containerNode) : new CommentReferenceNode(containerNode, 'START');
+    // privates.startNode = transparent ? new TextReferenceNode(instance) : new CommentReferenceNode(instance, 'START');
     privates.endNode = transparent ? doc.createTextNode('') : doc.createComment('END');
 
-    privates.childNodes = new VirtualNodeList<ChildNode>(() => Array.from(ContainerNodeChildNodesIterator(containerNode)));
-    privates.children = new VirtualHTMLCollection<Element>(() => Array.from(ContainerNodeChildElementsIterator(containerNode)));
+    privates.childNodes = new VirtualNodeList<ChildNode>(() => Array.from(ContainerNodeChildNodesIterator(instance)));
+    privates.children = new VirtualHTMLCollection<Element>(() => Array.from(ContainerNodeChildElementsIterator(instance)));
 
-    privates.stateObservable = new NodeStateObservable(containerNode);
+    privates.stateObservable = new NodeStateObservable(instance);
 
     privates.stateObservable
       .on('afterAttach', () => {
         // console.log('afterAttach');
-        if (containerNode.parentNode) {
+        if (instance.parentNode) {
           privates.fragment.insertBefore(privates.startNode, privates.fragment.firstChild); // push startNode as first child of fragment
           privates.fragment.appendChild(privates.endNode);
-          containerNode.parentNode.insertBefore(privates.fragment, ReferenceNodeStaticNextSibling(containerNode)); // fragment becomes empty
+          instance.parentNode.insertBefore(privates.fragment, ReferenceNodeStaticNextSibling(instance)); // fragment becomes empty
         } else {
           throw new Error(`Expected ContainerNode having a parent when receiving an 'afterAttach' event`);
         }
@@ -85,16 +85,16 @@ export function ConstructContainerNode(
 }
 
 
-// export function ContainerNodeIsDetached(containerNode: IContainerNode): boolean {
-//   return (containerNode.parentNode === null)
-//     || (containerNode.nextSibling !== (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode)
-//     || ((containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode.parentNode !== containerNode.parentNode);
+// export function ContainerNodeIsDetached(instance: IContainerNode): boolean {
+//   return (instance.parentNode === null)
+//     || (instance.nextSibling !== (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode)
+//     || ((instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].endNode.parentNode !== instance.parentNode);
 // }
 
 /** FUNCTIONS **/
 
-export function ContainerNodeIsDetached(containerNode: IContainerNode): boolean {
-  return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.parentNode === null;
+export function ContainerNodeIsDetached(instance: IContainerNode): boolean {
+  return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].startNode.parentNode === null;
 }
 
 
@@ -103,10 +103,9 @@ export function ContainerNodeIsDetached(containerNode: IContainerNode): boolean 
 
 /**
  * Iterates over the list of child nodes of a ContainerNode when it is attached to the DOM
- * @param containerNode
  */
-export function * ContainerNodeChildNodesIteratorAttached(containerNode: IContainerNode): Generator<ChildNode, void, void> {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+export function * ContainerNodeChildNodesIteratorAttached(instance: IContainerNode): Generator<ChildNode, void, void> {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
   let node: Node | null = privates.startNode.nextSibling;
   while ((node !== null) && (node !== privates.endNode)) {
     yield node as ChildNode;
@@ -116,27 +115,25 @@ export function * ContainerNodeChildNodesIteratorAttached(containerNode: IContai
 
 /**
  * Iterates over the list of child nodes of a ContainerNode when it is detached from the DOM
- * @param containerNode
  */
-export function ContainerNodeChildNodesIteratorDetached(containerNode: IContainerNode): Generator<ChildNode, void, void> {
-  return ChildNodesIterator((containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment);
+export function ContainerNodeChildNodesIteratorDetached(instance: IContainerNode): Generator<ChildNode, void, void> {
+  return ChildNodesIterator((instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment);
 }
 
 /**
- * Creates an iterator over a list composed of the child nodes of 'containerNode' of type ContainerNode, in asc order
- * @param containerNode
+ * Creates an iterator over a list composed of the child nodes of 'instance' of type ContainerNode, in asc order
  */
-export function ContainerNodeChildNodesIterator(containerNode: IContainerNode): Generator<ChildNode, void, void> {
-  return (containerNode.parentNode === null)
-    ? ContainerNodeChildNodesIteratorDetached(containerNode)
-    : ContainerNodeChildNodesIteratorAttached(containerNode);
+export function ContainerNodeChildNodesIterator(instance: IContainerNode): Generator<ChildNode, void, void> {
+  return (instance.parentNode === null)
+    ? ContainerNodeChildNodesIteratorDetached(instance)
+    : ContainerNodeChildNodesIteratorAttached(instance);
 }
 
 
 /** ContainerNodeChildNodesIteratorReversed **/
 
-export function * ContainerNodeChildNodesIteratorAttachedReversed(containerNode: IContainerNode): Generator<ChildNode, void, void> {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+export function * ContainerNodeChildNodesIteratorAttachedReversed(instance: IContainerNode): Generator<ChildNode, void, void> {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
   let node: Node | null = privates.endNode.previousSibling;
   while ((node !== null) && (node !== privates.startNode)) {
     yield node as ChildNode;
@@ -144,36 +141,35 @@ export function * ContainerNodeChildNodesIteratorAttachedReversed(containerNode:
   }
 }
 
-export function ContainerNodeChildNodesIteratorDetachedReversed(containerNode: IContainerNode): Generator<ChildNode, void, void> {
-  return ChildNodesIteratorReversed((containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment);
+export function ContainerNodeChildNodesIteratorDetachedReversed(instance: IContainerNode): Generator<ChildNode, void, void> {
+  return ChildNodesIteratorReversed((instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment);
 }
 
 /**
  * Creates an iterator over a list composed of the child nodes of 'paren' of type ContainerNode, in desc order
- * @param containerNode
  */
-export function ContainerNodeChildNodesIteratorReversed(containerNode: IContainerNode): Generator<ChildNode, void, void> {
-  return (containerNode.parentNode === null)
-    ? ContainerNodeChildNodesIteratorDetachedReversed(containerNode)
-    : ContainerNodeChildNodesIteratorAttachedReversed(containerNode);
+export function ContainerNodeChildNodesIteratorReversed(instance: IContainerNode): Generator<ChildNode, void, void> {
+  return (instance.parentNode === null)
+    ? ContainerNodeChildNodesIteratorDetachedReversed(instance)
+    : ContainerNodeChildNodesIteratorAttachedReversed(instance);
 }
 
 
 /** ContainerNodeChildElementsIterator **/
 
-export function ContainerNodeChildElementsIterator(containerNode: IContainerNode): Generator<Element, void, void> {
-  return PickElementsFromIterator(ContainerNodeChildNodesIterator(containerNode));
+export function ContainerNodeChildElementsIterator(instance: IContainerNode): Generator<Element, void, void> {
+  return PickElementsFromIterator(ContainerNodeChildNodesIterator(instance));
 }
 
-export function ContainerNodeChildElementsIteratorReversed(containerNode: IContainerNode): Generator<Element, void, void> {
-  return PickElementsFromIterator(ContainerNodeChildNodesIteratorReversed(containerNode));
+export function ContainerNodeChildElementsIteratorReversed(instance: IContainerNode): Generator<Element, void, void> {
+  return PickElementsFromIterator(ContainerNodeChildNodesIteratorReversed(instance));
 }
 
 /** ContainerNodeIterableQuerySelector **/
 
-export function * ContainerNodeIterableQuerySelectorAttached<E extends Element>(containerNode: IContainerNode, selectors: string): Generator<E, void, void> {
-  const children: Node[] = Array.from(ContainerNodeChildNodesIteratorAttached(containerNode));
-  const iterator: Generator<E, void, void> = IterableQuerySelector<E>((containerNode as any).parentElement, selectors);
+export function * ContainerNodeIterableQuerySelectorAttached<E extends Element>(instance: IContainerNode, selectors: string): Generator<E, void, void> {
+  const children: Node[] = Array.from(ContainerNodeChildNodesIteratorAttached(instance));
+  const iterator: Generator<E, void, void> = IterableQuerySelector<E>((instance as any).parentElement, selectors);
   let result: IteratorResult<E>;
   while (!(result = iterator.next()).done) {
     for (let i = 0, l = children.length; i < l; i++) {
@@ -184,25 +180,23 @@ export function * ContainerNodeIterableQuerySelectorAttached<E extends Element>(
   }
 }
 
-export function ContainerNodeIterableQuerySelectorDetached<E extends Element>(containerNode: IContainerNode, selectors: string): Generator<E, void, void> {
-  return IterableQuerySelector((containerNode as any)._fragment as DocumentFragment, selectors);
+export function ContainerNodeIterableQuerySelectorDetached<E extends Element>(instance: IContainerNode, selectors: string): Generator<E, void, void> {
+  return IterableQuerySelector((instance as any)._fragment as DocumentFragment, selectors);
 }
 
 /**
  * Creates an iterator over a list composed of the nodes matching 'selectors'
- * @param containerNode
- * @param selectors
  */
-export function ContainerNodeIterableQuerySelector<E extends Element>(containerNode: IContainerNode, selectors: string): Generator<E, void, void> {
-  return ContainerNodeIsDetached(containerNode)
-    ? ContainerNodeIterableQuerySelectorDetached(containerNode, selectors)
-    : ContainerNodeIterableQuerySelectorAttached(containerNode, selectors);
+export function ContainerNodeIterableQuerySelector<E extends Element>(instance: IContainerNode, selectors: string): Generator<E, void, void> {
+  return ContainerNodeIsDetached(instance)
+    ? ContainerNodeIterableQuerySelectorDetached(instance, selectors)
+    : ContainerNodeIterableQuerySelectorAttached(instance, selectors);
 }
 
 
-export function ContainerNodeDestroyChildNodes(containerNode: IContainerNode): void {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeDestroyChildNodes(instance: IContainerNode): void {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     DestroyChildNodes(privates.fragment);
   } else {
     let node: Node | null;
@@ -212,9 +206,9 @@ export function ContainerNodeDestroyChildNodes(containerNode: IContainerNode): v
   }
 }
 
-export function ContainerNodeDetachChildNodes(containerNode: IContainerNode): void {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeDetachChildNodes(instance: IContainerNode): void {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     DetachChildNodes(privates.fragment);
   } else {
     let node: Node | null;
@@ -224,14 +218,14 @@ export function ContainerNodeDetachChildNodes(containerNode: IContainerNode): vo
   }
 }
 
-export function ContainerNodeClearChildNodes(containerNode: IContainerNode): void {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeClearChildNodes(instance: IContainerNode): void {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     ClearChildNodes(privates.fragment);
   } else {
     let node: Node | null;
     while (((node = privates.startNode.nextSibling) !== null) && (node !== privates.endNode)) {
-      (containerNode.parentNode as Node).removeChild(node);
+      (instance.parentNode as Node).removeChild(node);
     }
   }
 }
@@ -240,12 +234,12 @@ export function ContainerNodeClearChildNodes(containerNode: IContainerNode): voi
 
 /** Node - DONE **/
 
-export function ContainerNodeGetTextContent(containerNode: IContainerNode): string | null {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.textContent;
+export function ContainerNodeGetTextContent(instance: IContainerNode): string | null {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.textContent;
   } else {
     let text: string = '';
-    const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(containerNode);
+    const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(instance);
     let result: IteratorResult<Node>;
     while (!(result = iterator.next()).done) {
       switch (result.value.nodeType) {
@@ -259,33 +253,33 @@ export function ContainerNodeGetTextContent(containerNode: IContainerNode): stri
   }
 }
 
-export function ContainerNodeSetTextContent(containerNode: IContainerNode, value: string | null): void {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeSetTextContent(instance: IContainerNode, value: string | null): void {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     privates.fragment.textContent = value;
   } else {
-    ContainerNodeClearChildNodes(containerNode);
+    ContainerNodeClearChildNodes(instance);
     if (value !== null) {
-      (containerNode.parentNode as Node).insertBefore(
-        (containerNode.ownerDocument as Document).createTextNode(value),
+      (instance.parentNode as Node).insertBefore(
+        (instance.ownerDocument as Document).createTextNode(value),
         privates.endNode
       );
     }
   }
 }
 
-export function ContainerNodeGetChildNodes(containerNode: IContainerNode): NodeListOf<ChildNode> {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeGetChildNodes(instance: IContainerNode): NodeListOf<ChildNode> {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.childNodes;
   } else {
     return privates.childNodes.update();
   }
 }
 
-export function ContainerNodeGetFirstChild(containerNode: IContainerNode): ChildNode | null {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeGetFirstChild(instance: IContainerNode): ChildNode | null {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.firstChild;
   } else {
     const node: Node | null = privates.startNode.nextSibling;
@@ -295,60 +289,60 @@ export function ContainerNodeGetFirstChild(containerNode: IContainerNode): Child
   }
 }
 
-export function ContainerNodeGetLastChild(containerNode: IContainerNode): ChildNode | null {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeGetLastChild(instance: IContainerNode): ChildNode | null {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.lastChild;
   } else {
     const node: Node | null = privates.endNode.previousSibling;
-    return ((node === null) || (node === containerNode))
+    return ((node === null) || (node === instance))
       ? null
       : (node as ChildNode);
   }
 }
 
 
-export function ContainerNodeAppendChild<T extends Node>(containerNode: IContainerNode, newChild: T): T {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeAppendChild<T extends Node>(instance: IContainerNode, newChild: T): T {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.appendChild<T>(newChild);
   } else {
-    return (containerNode.parentNode as Node).insertBefore<T>(newChild, privates.endNode);
+    return (instance.parentNode as Node).insertBefore<T>(newChild, privates.endNode);
   }
 }
 
-export function ContainerNodeRemoveChild<T extends Node>(containerNode: IContainerNode, oldChild: T): T {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.removeChild<T>(oldChild);
+export function ContainerNodeRemoveChild<T extends Node>(instance: IContainerNode, oldChild: T): T {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.removeChild<T>(oldChild);
   } else {
-    return (containerNode.parentNode as Node).removeChild<T>(oldChild);
+    return (instance.parentNode as Node).removeChild<T>(oldChild);
   }
 }
 
-export function ContainerNodeReplaceChild<T extends Node>(containerNode: IContainerNode, newChild: Node, oldChild: T): T {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.replaceChild<T>(newChild, oldChild);
+export function ContainerNodeReplaceChild<T extends Node>(instance: IContainerNode, newChild: Node, oldChild: T): T {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.replaceChild<T>(newChild, oldChild);
   } else {
-    return (containerNode.parentNode as Node).replaceChild<T>(newChild, oldChild);
+    return (instance.parentNode as Node).replaceChild<T>(newChild, oldChild);
   }
 }
 
-export function ContainerNodeInsertBefore<T extends Node>(containerNode: IContainerNode, newChild: T, refChild: Node | null): T {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeInsertBefore<T extends Node>(instance: IContainerNode, newChild: T, refChild: Node | null): T {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.insertBefore<T>(newChild, refChild);
   } else {
-    return (containerNode.parentNode as Node).insertBefore<T>(
+    return (instance.parentNode as Node).insertBefore<T>(
       newChild,
       (refChild === null) ? privates.endNode : refChild
     );
   }
 }
 
-export function ContainerNodeCloneNode(containerNode: IContainerNode, deep: boolean = false): IContainerNode {
-  const container: IContainerNode = new ContainerNode(containerNode.data);
+export function ContainerNodeCloneNode(instance: IContainerNode, deep: boolean = false): IContainerNode {
+  const container: IContainerNode = new ContainerNode(instance.data);
   const _container: DocumentFragment = new DocumentFragment();
-  const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(containerNode);
+  const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(instance);
   let result: IteratorResult<Node>;
   while (!(result = iterator.next()).done) {
     _container.appendChild(result.value.cloneNode(deep));
@@ -358,9 +352,9 @@ export function ContainerNodeCloneNode(containerNode: IContainerNode, deep: bool
 }
 
 
-export function ContainerNodeHasChildNodes(containerNode: IContainerNode): boolean {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeHasChildNodes(instance: IContainerNode): boolean {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.hasChildNodes();
   } else {
     const node: Node | null = privates.startNode.nextSibling;
@@ -368,11 +362,11 @@ export function ContainerNodeHasChildNodes(containerNode: IContainerNode): boole
   }
 }
 
-export function ContainerNodeContains(containerNode: IContainerNode, child: Node): boolean {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.contains(child);
+export function ContainerNodeContains(instance: IContainerNode, child: Node): boolean {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.contains(child);
   } else {
-    const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(containerNode);
+    const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(instance);
     let result: IteratorResult<Node>;
     while (!(result = iterator.next()).done) {
       if (result.value === child) {
@@ -385,49 +379,49 @@ export function ContainerNodeContains(containerNode: IContainerNode, child: Node
 
 
 // TODO https://developer.mozilla.org/en-US/docs/Web/API/Node/compareDocumentPosition
-export function ContainerNodeCompareDocumentPosition(containerNode: IContainerNode, other: Node): number {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.compareDocumentPosition(other);
+export function ContainerNodeCompareDocumentPosition(instance: IContainerNode, other: Node): number {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.compareDocumentPosition(other);
   } else {
     // invalid
-    return Comment.prototype.compareDocumentPosition.call(containerNode, other);
+    return Comment.prototype.compareDocumentPosition.call(instance, other);
   }
 }
 
 
-export function ContainerNodeIsDefaultNamespace(containerNode: IContainerNode, namespace: string | null): boolean {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.isDefaultNamespace(namespace);
+export function ContainerNodeIsDefaultNamespace(instance: IContainerNode, namespace: string | null): boolean {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.isDefaultNamespace(namespace);
   } else {
-    return Comment.prototype.isDefaultNamespace.call(containerNode, namespace);
+    return Comment.prototype.isDefaultNamespace.call(instance, namespace);
   }
 }
 
-export function ContainerNodeLookupNamespaceURI(containerNode: IContainerNode, namespace: string | null): string | null {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lookupNamespaceURI(namespace);
+export function ContainerNodeLookupNamespaceURI(instance: IContainerNode, namespace: string | null): string | null {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lookupNamespaceURI(namespace);
   } else {
-    return Comment.prototype.lookupNamespaceURI.call(containerNode, namespace);
+    return Comment.prototype.lookupNamespaceURI.call(instance, namespace);
   }
 }
 
-export function ContainerNodeLookupPrefix(containerNode: IContainerNode, prefix: string | null): string | null {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lookupPrefix(prefix);
+export function ContainerNodeLookupPrefix(instance: IContainerNode, prefix: string | null): string | null {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lookupPrefix(prefix);
   } else {
-    return Comment.prototype.lookupPrefix.call(containerNode, prefix);
+    return Comment.prototype.lookupPrefix.call(instance, prefix);
   }
 }
 
 
-export function ContainerNodeNormalize(containerNode: IContainerNode): void {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.normalize();
+export function ContainerNodeNormalize(instance: IContainerNode): void {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.normalize();
   } else {
-    const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(containerNode);
+    const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(instance);
     let result: IteratorResult<Node>;
     while (!(result = iterator.next()).done) {
-      if (result.value.nodeType === Node.TEXT_NODE) {
+      if (NodeIsTextNode(result.value)) {
         const textNodes: Text[] = [result.value as Text];
         while ((!(result = iterator.next()).done) && NodeIsTextNode(result.value)) {
           textNodes.push(result.value as Text);
@@ -437,7 +431,7 @@ export function ContainerNodeNormalize(containerNode: IContainerNode): void {
           let text: string = textNodes[0].data;
           for (let i = 1; i < length; i++) {
             text += textNodes[i].data;
-            (containerNode.parentNode as Node).removeChild(textNodes[i]);
+            (instance.parentNode as Node).removeChild(textNodes[i]);
           }
           textNodes[0].data = text;
         }
@@ -449,38 +443,38 @@ export function ContainerNodeNormalize(containerNode: IContainerNode): void {
 
 /** ParentNode - DONE **/
 
-export function ContainerNodeGetChildren(containerNode: IContainerNode): HTMLCollection {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeGetChildren(instance: IContainerNode): HTMLCollection {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.children;
   } else {
     return privates.children.update();
   }
 }
 
-export function ContainerNodeGetFirstElementChild(containerNode: IContainerNode): Element | null {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.firstElementChild;
+export function ContainerNodeGetFirstElementChild(instance: IContainerNode): Element | null {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.firstElementChild;
   } else {
-    const result: IteratorResult<Element> = ContainerNodeChildElementsIterator(containerNode).next();
+    const result: IteratorResult<Element> = ContainerNodeChildElementsIterator(instance).next();
     return result.done ? null : result.value;
   }
 }
 
-export function ContainerNodeGetLastElementChild(containerNode: IContainerNode): Element | null {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lastElementChild;
+export function ContainerNodeGetLastElementChild(instance: IContainerNode): Element | null {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.lastElementChild;
   } else {
-    const result: IteratorResult<Element> = ContainerNodeChildElementsIteratorReversed(containerNode).next();
+    const result: IteratorResult<Element> = ContainerNodeChildElementsIteratorReversed(instance).next();
     return result.done ? null : result.value;
   }
 }
 
-export function ContainerNodeGetChildElementCount(containerNode: IContainerNode): number {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.childElementCount;
+export function ContainerNodeGetChildElementCount(instance: IContainerNode): number {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.childElementCount;
   } else {
-    const iterator: Generator<Element, void, void> = ContainerNodeChildElementsIterator(containerNode);
+    const iterator: Generator<Element, void, void> = ContainerNodeChildElementsIterator(instance);
     let result: IteratorResult<Element>;
     let count: number = 0;
     while (!(result = iterator.next()).done) {
@@ -491,47 +485,47 @@ export function ContainerNodeGetChildElementCount(containerNode: IContainerNode)
 }
 
 
-export function ContainerNodeAppend(containerNode: IContainerNode, nodes: (Node | string)[]): void {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeAppend(instance: IContainerNode, nodes: (Node | string)[]): void {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.append(...nodes);
   } else {
     return privates.endNode.before(...nodes);
   }
 }
 
-export function ContainerNodePrepend(containerNode: IContainerNode, nodes: (Node | string)[]): void {
-  const privates: IContainerNodePrivate = (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodePrepend(instance: IContainerNode, nodes: (Node | string)[]): void {
+  const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];
+  if (ContainerNodeIsDetached(instance)) {
     return privates.fragment.prepend(...nodes);
   } else {
     return privates.startNode.after(...nodes);
   }
 }
 
-export function ContainerNodeQuerySelector<E extends Element = Element>(containerNode: IContainerNode, selectors: string): E | null {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.querySelector<E>(selectors);
+export function ContainerNodeQuerySelector<E extends Element = Element>(instance: IContainerNode, selectors: string): E | null {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.querySelector<E>(selectors);
   } else {
-    const result: IteratorResult<E> = ContainerNodeIterableQuerySelector<E>(containerNode, selectors).next();
+    const result: IteratorResult<E> = ContainerNodeIterableQuerySelector<E>(instance, selectors).next();
     return result.done ? null : result.value;
   }
 }
 
-export function ContainerNodeQuerySelectorAll<E extends Element = Element>(containerNode: IContainerNode, selectors: string): NodeListOf<E> {
-  if (ContainerNodeIsDetached(containerNode)) {
-    return (containerNode as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.querySelectorAll<E>(selectors);
+export function ContainerNodeQuerySelectorAll<E extends Element = Element>(instance: IContainerNode, selectors: string): NodeListOf<E> {
+  if (ContainerNodeIsDetached(instance)) {
+    return (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE].fragment.querySelectorAll<E>(selectors);
   } else {
-    return new VirtualNodeList<E>(() => Array.from(ContainerNodeIterableQuerySelector<E>(containerNode, selectors))).update();
+    return new VirtualNodeList<E>(() => Array.from(ContainerNodeIterableQuerySelector<E>(instance, selectors))).update();
   }
 }
 
 
 /** Element **/
 
-export function ContainerNodeGetInnerHTML(containerNode: IContainerNode): string {
+export function ContainerNodeGetInnerHTML(instance: IContainerNode): string {
   let html: string = '';
-  const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(containerNode);
+  const iterator: Generator<Node, void, void> = ContainerNodeChildNodesIterator(instance);
   let result: IteratorResult<Node>;
   while (!(result = iterator.next()).done) {
     const node: Node = result.value;
@@ -550,49 +544,50 @@ export function ContainerNodeGetInnerHTML(containerNode: IContainerNode): string
   return html;
 }
 
-export function ContainerNodeSetInnerHTML(containerNode: IContainerNode, html: string) {
-  const container: HTMLDivElement = (containerNode.ownerDocument as Document).createElement('div');
+export function ContainerNodeSetInnerHTML(instance: IContainerNode, html: string) {
+  const container: HTMLDivElement = (instance.ownerDocument as Document).createElement('div');
   container.innerHTML = html;
-  ContainerNodeClearChildNodes(containerNode);
+  ContainerNodeClearChildNodes(instance);
 
   let node: Node | null = container.firstChild;
   let nextNode: Node | null;
   while (node !== null) {
     nextNode = node.nextSibling;
-    containerNode.appendChild(node);
+    instance.appendChild(node);
     node = nextNode;
   }
 }
 
 
-export function ContainerNodeGetElementsByClassName(containerNode: IContainerNode, classNames: string): HTMLCollectionOf<Element> {
+export function ContainerNodeGetElementsByClassName(instance: IContainerNode, classNames: string): HTMLCollectionOf<Element> {
   const selector: string = classNames
     .split(' ')
     .map((name: string) => '.' + name)
     .join('');
-  return new VirtualHTMLCollection(() => containerNode.querySelectorAll(selector));
+  return new VirtualHTMLCollection(() => instance.querySelectorAll(selector));
 }
 
-export function ContainerNodeGetElementsByTagName(containerNode: IContainerNode, tagName: string): HTMLCollectionOf<Element> {
+export function ContainerNodeGetElementsByTagName(instance: IContainerNode, tagName: string): HTMLCollectionOf<Element> {
   return new VirtualHTMLCollection(
     IsValidXMLName(tagName)
-      ? () => containerNode.querySelectorAll(tagName)
+      ? () => instance.querySelectorAll(tagName)
       : () => []
   );
 }
 
-export function ContainerNodeGetElementById(containerNode: IContainerNode, elementId: string): Element | null {
-  return containerNode.querySelector(`#${ elementId }`);
+export function ContainerNodeGetElementById(instance: IContainerNode, elementId: string): Element | null {
+  return instance.querySelector(`#${ elementId }`);
 }
 
-export function ContainerNodeClosest(containerNode: IContainerNode, selector: string): Element | null {
-  if (ContainerNodeIsDetached(containerNode)) {
+export function ContainerNodeClosest(instance: IContainerNode, selector: string): Element | null {
+  if (ContainerNodeIsDetached(instance)) {
     return null;
   } else {
-    return (containerNode.parentElement as Element).closest(selector);
+    return (instance.parentElement as Element).closest(selector);
   }
 }
 
+/** CLASS **/
 
 export class ContainerNode extends Comment implements IContainerNode {
   static readonly CONTAINER_NODE = 100;

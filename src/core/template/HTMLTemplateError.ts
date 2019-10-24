@@ -1,4 +1,3 @@
-
 function GetCharacterLengthOfAttribute(attribute: Attr): number {
   return attribute.name.length
     + ((attribute.value.length > 0) ? (attribute.value.length + 3 /* ="" */) : 0);

@@ -1,4 +1,3 @@
-
 import { Observer } from '@lifaon/observables';
 import { IDynamicClass, IDynamicClassConstructor } from './interfaces';
 import { BindObserverWithNodeStateObservable } from '../../ObserverNode';

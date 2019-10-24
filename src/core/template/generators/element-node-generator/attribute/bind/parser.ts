@@ -2,13 +2,12 @@ import { IBindGenerator } from './interfaces';
 import { BindPropertyGenerator } from './property/implementation';
 import { IBindDirectiveGenerator, IBindDirectiveParser } from './directives/interfaces';
 import { TAttributeGeneratorModifiers } from '../interfaces';
-import { IParsers } from '../../../interfaces';
 
 const bracketPattern: string = '\\[(\\$)?([^\\]]+)\\]';
 const prefixPattern: string = 'bind-(exp-)?(.+)';
-const pattern: string = `(?:${bracketPattern})`
-  + `|(?:${prefixPattern})`;
-const regExp: RegExp = new RegExp(`^${pattern}$`);
+const pattern: string = `(?:${ bracketPattern })`
+  + `|(?:${ prefixPattern })`;
+const regExp: RegExp = new RegExp(`^${ pattern }$`);
 
 export function parseBindAttribute<T extends IBindGenerator>(attribute: Attr, directives: Iterable<IBindDirectiveParser>): T | null {
   const match: RegExpExecArray | null = regExp.exec(attribute.name);
@@ -37,7 +36,7 @@ export function parseBindAttribute<T extends IBindGenerator>(attribute: Attr, di
     }
 
     if (!(name in attribute.ownerElement)) {
-      console.warn(`Property '${name}' probably doesn't exist on node '${attribute.ownerElement.tagName}'`);
+      console.warn(`Property '${ name }' probably doesn't exist on node '${ attribute.ownerElement.tagName }'`);
     }
 
     return new BindPropertyGenerator({ name, value, modifiers }) as any;

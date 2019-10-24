@@ -1,4 +1,6 @@
-import { IAttributeGenerator, IAttributeGeneratorConstructor, IAttributeGeneratorOptions, TAttributeGeneratorModifiers } from '../interfaces';
+import {
+  IAttributeGenerator, IAttributeGeneratorConstructor, IAttributeGeneratorOptions, TAttributeGeneratorModifiers
+} from '../interfaces';
 import { ICodeGeneratorOptions } from '../../../code-generator/interfaces';
 
 export interface ICommandGeneratorOptions extends IAttributeGeneratorOptions {

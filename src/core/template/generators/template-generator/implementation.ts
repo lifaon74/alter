@@ -51,9 +51,9 @@ export function GenerateConstantsToImport(constantsToImport: Set<string>): strin
     `const [`,
     ...IndentLines(_constantsToImport.map(_ => (_ + ','))),
     `] = await Promise.all([`,
-    ...IndentLines(_constantsToImport.map(_ => `require(${JSON.stringify(_)}),`)),
+    ...IndentLines(_constantsToImport.map(_ => `require(${ JSON.stringify(_) }),`)),
     `]);`,
-  ]
+  ];
 }
 
 export class TemplateGenerator extends CodeGenerator implements ITemplateGenerator {

@@ -1,7 +1,7 @@
 import { BindObserverWithNodeStateObservable } from '../ObserverNode';
 import { IDynamicForLoopNode, IDynamicForLoopNodeConstructor, TForLoopNodeCreateNodeCallback } from './interfaces';
 import { ContainerNode } from '../../container-node/implementation';
-import { DestroyNodeSafe, AttachNode } from '../../node-state-observable/mutations';
+import { AttachNode, DestroyNodeSafe } from '../../node-state-observable/mutations';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { ISource, Source } from '@lifaon/observables';
 import { ObserverFactory } from '@lifaon/observables/src/core/observer/implementation';
@@ -109,7 +109,6 @@ export function DynamicForLoopNodeOnEmit<N extends Node, T>(forLoopNode: IDynami
     }
   }
 }
-
 
 
 export const DynamicForLoopNode: IDynamicForLoopNodeConstructor = class DynamicForLoopNode<N extends Node, T> extends ObserverFactory(ContainerNode) /*implements IDynamicForLoopNode<N, T>*/ {

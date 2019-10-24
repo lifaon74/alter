@@ -11,7 +11,7 @@ export class SwitchCommandGenerator extends CommandGenerator implements ISwitchC
 
   generate(options: ICommandCodeGeneratorOptions): string[] {
     return [
-      `// command '${this.name}'`,
+      `// command '${ this.name }'`,
       `const node = new ContainerNode('SWITCH');`,
       `const switchNode = node;`,
       ...ScopeLines([

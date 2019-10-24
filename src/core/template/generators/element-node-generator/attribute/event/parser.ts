@@ -5,9 +5,9 @@ import { TAttributeGeneratorModifiers } from '../interfaces';
 
 const parenthesisPattern: string = '\\((\\$)?([^\\]]+)\\)';
 const prefixPattern: string = 'on-(exp-)?(.+)';
-const pattern: string = `(?:${parenthesisPattern})`
-  + `|(?:${prefixPattern})`;
-const regExp: RegExp = new RegExp(`^${pattern}$`);
+const pattern: string = `(?:${ parenthesisPattern })`
+  + `|(?:${ prefixPattern })`;
+const regExp: RegExp = new RegExp(`^${ pattern }$`);
 
 export function parseEventListenerAttribute<T extends IEventListenerGenerator>(attribute: Attr): T | null {
   const match: RegExpExecArray | null = regExp.exec(attribute.name);
@@ -29,7 +29,7 @@ export function parseEventListenerAttribute<T extends IEventListenerGenerator>(a
     }
 
     if (!(('on' + name) in attribute.ownerElement)) {
-      console.warn(`Event '${name}' probably doesn't exist on node '${attribute.ownerElement.tagName}'`);
+      console.warn(`Event '${ name }' probably doesn't exist on node '${ attribute.ownerElement.tagName }'`);
     }
 
     return new EventListenerGenerator({ name, value, modifiers }) as any;

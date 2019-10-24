@@ -1,4 +1,3 @@
-
 /**
  * ExtendableHTMLElement: Constructor for a HTMLElement. Takes the element name as input.
  * How it works:

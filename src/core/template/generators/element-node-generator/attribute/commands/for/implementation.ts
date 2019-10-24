@@ -23,13 +23,13 @@ export class ForCommandGenerator extends CommandGenerator implements IForCommand
 
   generate(options: ICommandCodeGeneratorOptions): string[] {
     return [
-      `// command '${this.name}'`,
-      `const node = new DynamicForLoopNode((${this.iterableEntryName}, ${this._getLocalVariableName('index')}) => {`,
+      `// command '${ this.name }'`,
+      `const node = new DynamicForLoopNode((${ this.iterableEntryName }, ${ this._getLocalVariableName('index') }) => {`,
       ...IndentLines([
         ...options.createNode,
         `return node;`,
       ]),
-      `}).observe(${this.observableValue});`,
+      `}).observe(${ this.observableValue });`,
     ];
   }
 

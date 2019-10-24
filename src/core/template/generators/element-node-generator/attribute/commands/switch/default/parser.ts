@@ -2,10 +2,9 @@ import { ISwitchDefaultCommandGenerator } from './interfaces';
 import { SwitchDefaultCommandGenerator } from './implementation';
 import { ICommandAttribute, ICommandParser } from '../../interfaces';
 import {
-  switchDefaultSelector, ExtractSwitchChildParentSwitchCommandAttribute, ExtractSwitchChildCommandAttribute,
-  ExtractDefaultSwitchChildSwitchCaseCommandAttributes
+  ExtractDefaultSwitchChildSwitchCaseCommandAttributes, ExtractSwitchChildCommandAttribute,
+  ExtractSwitchChildParentSwitchCommandAttribute, switchDefaultSelector
 } from '../parser';
-
 
 
 export function parseSwitchDefaultCommandAttribute({ name, value, modifiers, attribute }: ICommandAttribute): ISwitchDefaultCommandGenerator | null {

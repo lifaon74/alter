@@ -28,13 +28,13 @@ export class BindClassDirectiveGenerator extends BindDirectiveGenerator implemen
   generate(): string[] {
     if (this.isSpreadClass()) {
       return [
-        `// bind directive '${this.name}'`,
-        `new DynamicClassList(node).observe(${this.observableValue});`,
+        `// bind directive '${ this.name }'`,
+        `new DynamicClassList(node).observe(${ this.observableValue });`,
       ];
     } else {
       return [
-        `// bind directive '${this.name}'`,
-        `new DynamicClass(node, ${JSON.stringify(this.className)}).observe(${this.observableValue});`,
+        `// bind directive '${ this.name }'`,
+        `new DynamicClass(node, ${ JSON.stringify(this.className) }).observe(${ this.observableValue });`,
       ];
     }
   }

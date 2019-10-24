@@ -1,7 +1,7 @@
 import { IBindGenerator, IBindGeneratorConstructor, IBindGeneratorOptions } from '../interfaces';
 import { TAttributeGeneratorModifiers } from '../../interfaces';
 
-export interface  IBindDirectiveGeneratorOptions extends IBindGeneratorOptions {
+export interface IBindDirectiveGeneratorOptions extends IBindGeneratorOptions {
 }
 
 export interface IBindDirectiveGeneratorConstructor extends IBindGeneratorConstructor {

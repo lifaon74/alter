@@ -1,4 +1,6 @@
-import { IBindDirectiveGenerator, IBindDirectiveGeneratorConstructor, IBindDirectiveGeneratorOptions } from '../interfaces';
+import {
+  IBindDirectiveGenerator, IBindDirectiveGeneratorConstructor, IBindDirectiveGeneratorOptions
+} from '../interfaces';
 
 
 export interface IBindAttributeDirectiveGeneratorOptions extends IBindDirectiveGeneratorOptions {

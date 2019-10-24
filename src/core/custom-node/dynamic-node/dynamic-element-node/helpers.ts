@@ -12,11 +12,11 @@ export function ExtractClassNamesFromArray(array: string[], classNames: Set<stri
       if (IsValidCSSIdentifier(className)) {
         classNames.add(className);
       } else {
-        throw new SyntaxError(`Invalid class name at index ${i}: '${className}'.`);
+        throw new SyntaxError(`Invalid class name at index ${ i }: '${ className }'.`);
       }
     } else {
       console.warn(array);
-      throw new TypeError(`Expected string at index ${i}, found: '${className}'.`);
+      throw new TypeError(`Expected string at index ${ i }, found: '${ className }'.`);
     }
   }
   return classNames;
@@ -36,11 +36,11 @@ export function ExtractClassNamesFromIterable(iterable: Iterable<string>, classN
       if (IsValidCSSIdentifier(className)) {
         classNames.add(className);
       } else {
-        throw new SyntaxError(`Invalid class name: '${className}'.`);
+        throw new SyntaxError(`Invalid class name: '${ className }'.`);
       }
     } else {
       console.warn(iterable);
-      throw new TypeError(`Expected string in iterator, found: '${className}'.`);
+      throw new TypeError(`Expected string in iterator, found: '${ className }'.`);
     }
   }
   return classNames;
@@ -59,7 +59,7 @@ export function ExtractClassNamesFromObject(object: { [key: string]: boolean }, 
         ExtractClassNamesFromString(key, classNames);
       } else {
         console.warn(object);
-        throw new TypeError(`Expected string as key, found: '${key}'.`);
+        throw new TypeError(`Expected string as key, found: '${ key }'.`);
       }
     }
   }
@@ -82,7 +82,13 @@ export function ExtractClassNamesFromString(input: string, classNames: Set<strin
 }
 
 
-export type TExtractClassNamesFromAny = null | undefined | string | string[] | Iterable<string> | { [key: string]: boolean };
+export type TExtractClassNamesFromAny =
+  null
+  | undefined
+  | string
+  | string[]
+  | Iterable<string>
+  | { [key: string]: boolean };
 
 /**
  * Extract a list of class names from an input.
@@ -168,7 +174,7 @@ export function ExtractStylesFromArray(array: [string, TStyleValue][], styles: M
       StyleKeyValueToMap(style[0], style[1], styles);
     } else {
       console.warn(array);
-      throw new TypeError(`Expected [string, string] at index ${i}, found: '${style}'.`);
+      throw new TypeError(`Expected [string, string] at index ${ i }, found: '${ style }'.`);
     }
   }
   return styles;
@@ -188,7 +194,7 @@ export function ExtractStylesFromIterable(iterable: Iterable<[string, TStyleValu
       StyleKeyValueToMap(style[0], style[1], styles);
     } else {
       console.warn(iterable);
-      throw new TypeError(`Expected [string, string] in iterator, found: '${style}'.`);
+      throw new TypeError(`Expected [string, string] in iterator, found: '${ style }'.`);
     }
   }
   return styles;
@@ -203,11 +209,11 @@ export function ExtractStylesFromObject(object: { [key: string]: TStyleValue }, 
         StyleKeyValueToMap(key, String(object[key]), styles);
       } else {
         console.warn(object);
-        throw new TypeError(`Expected string or number as object['${key}'], found: '${value}'.`);
+        throw new TypeError(`Expected string or number as object['${ key }'], found: '${ value }'.`);
       }
     } else {
       console.warn(object);
-      throw new TypeError(`Expected string as key, found: '${key}'.`);
+      throw new TypeError(`Expected string as key, found: '${ key }'.`);
     }
   }
   return styles;
@@ -216,9 +222,9 @@ export function ExtractStylesFromObject(object: { [key: string]: TStyleValue }, 
 export function ExtractStylesFromString(input: string, styles: Map<string, string> = new Map<string, string>()): Map<string, string> {
   const id: string = Date.now().toString(16) + '-' + Math.floor(Math.random() * 1e15).toString(16);
   if (!input.endsWith(';')) {
-    input += ';'
+    input += ';';
   }
-  input = `[elt-${id}] { ${input} }`;
+  input = `[elt-${ id }] { ${ input } }`;
 
   const styleElement: HTMLStyleElement = document.createElement('style');
   styleElement.appendChild(document.createTextNode(input));
@@ -242,7 +248,13 @@ export function ExtractStylesFromString(input: string, styles: Map<string, strin
 }
 
 
-export type TExtractStylesFromAny = null | undefined | string | [string, TStyleValue][] | Iterable<[string, TStyleValue]> | { [key: string]: TStyleValue };
+export type TExtractStylesFromAny =
+  null
+  | undefined
+  | string
+  | [string, TStyleValue][]
+  | Iterable<[string, TStyleValue]>
+  | { [key: string]: TStyleValue };
 
 export function ExtractStylesFromAny(input: TExtractStylesFromAny, styles: Map<string, string> = new Map<string, string>()): Map<string, string> {
   if ((input === null) || (input === void 0) || (input as any === '')) {

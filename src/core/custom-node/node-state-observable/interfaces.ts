@@ -25,7 +25,11 @@ export type TNodeState = 'connected' | 'disconnected' | 'destroyed';
  */
 
 export interface INodeStateObservableConstructor {
+  /**
+   * Creates/gets an uniq NodeStateObservable per node
+   */
   of(node: Node): INodeStateObservable;
+
   new(node: Node): INodeStateObservable;
 }
 
@@ -39,6 +43,7 @@ export interface INodeStateObservableConstructor {
  */
 export interface INodeStateObservable extends INotificationsObservable<INodeStateObservableKeyValueMap> {
   readonly state: TNodeState;
+
   useDOMObserver(use?: boolean): this;
 }
 

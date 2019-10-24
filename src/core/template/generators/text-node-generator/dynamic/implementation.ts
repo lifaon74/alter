@@ -1,5 +1,5 @@
 import { TextNodeGenerator } from '../implementation';
-import { IDynamicTextNodeGenerator} from './interfaces';
+import { IDynamicTextNodeGenerator } from './interfaces';
 import { ValueToObservableCode } from '../../snipets';
 import { TTextNodeGeneratorModifiers } from '../interfaces';
 
@@ -27,7 +27,7 @@ export class DynamicTextNodeGenerator extends TextNodeGenerator implements IDyna
   generate(): string[] {
     return [
       `// dynamic text node`,
-      `AttachNode(new DynamicTextNode().observe(${this.observableValue}), parentNode);`,
+      `AttachNode(new DynamicTextNode().observe(${ this.observableValue }), parentNode);`,
     ];
   }
 }
