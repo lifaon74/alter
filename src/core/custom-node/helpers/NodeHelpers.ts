@@ -1,13 +1,29 @@
 import { EnumToString } from '../../../misc/helpers/EnumToString';
 import { uuid } from '../../../misc/helpers/UUID';
+import { Constructor } from '../../../classes/factory';
 
 export type HTMLElementConstructor = typeof HTMLElement;
+export type NodeConstructor = typeof Node;
+export type TextConstructor = typeof Text;
+export type CommentConstructor = typeof Comment;
 
 
 export function IsNode(value: any): value is Node {
   return (value instanceof Node);
 }
 
+export function IsNodeConstructor(value: any): value is Constructor<Node> {
+  if (typeof value === 'function') {
+    while ((value !== null) && (value !== Node)) {
+      if (value === Node) {
+        return true;
+      } else {
+        value = Object.getPrototypeOf(value);
+      }
+    }
+  }
+  return false;
+}
 
 export function NodeIsTextNode(value: Node): value is Text {
   return (value.nodeType === Node.TEXT_NODE);

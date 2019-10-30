@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@lifaon/observables@^1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@lifaon/observables/-/observables-1.6.0.tgz#ce726cc7f6c5d6de29cd7405187382df866ce805"
-  integrity sha512-mAXULqtit9Eb5g59g7GajqQ0i59/uZbHmeprM3dLZJnxhTtQ9UNXfb2UakBLWQIFYXoMmyuvOWZFy4Y5CQrUNA==
+"@lifaon/observables@1.6.2":
+  version "1.6.2"
+  resolved "https://registry.yarnpkg.com/@lifaon/observables/-/observables-1.6.2.tgz#dc1a4422573e94ee637b026cc58ea7e1b0fa5a28"
+  integrity sha512-ppNKoPoFxg9djghLas017BVR7IEB0V8AGd1GEVlusmi4dT/v7wwmECOz840ABPnv2XXr5rrcTxTLD7E4t/ccQA==
 
 "@types/estree@0.0.39":
   version "0.0.39"

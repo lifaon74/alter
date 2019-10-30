@@ -1,6 +1,6 @@
 import { BindObserverWithNodeStateObservable } from '../ObserverNode';
 import { IDynamicTextNode, IDynamicTextNodeConstructor } from './interfaces';
-import { ObserverFactory } from '@lifaon/observables/src/core/observer/implementation';
+import { IObserver, ObserverFactory } from '@lifaon/observables';
 
 // export const DYNAMIC_TEXT_NODE_PRIVATE = Symbol('dynamic-text-node-private');
 //
@@ -17,8 +17,7 @@ export function ConstructDynamicTextNode<T>(textNode: IDynamicTextNode): void {
   BindObserverWithNodeStateObservable<string>(textNode, textNode);
 }
 
-
-export const DynamicTextNode: IDynamicTextNodeConstructor = class DynamicTextNode extends ObserverFactory(Text) /*implements IDynamicTextNode*/ {
+export const DynamicTextNode: IDynamicTextNodeConstructor = class DynamicTextNode extends ObserverFactory<typeof Text, string>(Text) implements IDynamicTextNode {
   constructor() {
     super([(value: string) => {
       this.data = value;
@@ -26,4 +25,57 @@ export const DynamicTextNode: IDynamicTextNodeConstructor = class DynamicTextNod
     ConstructDynamicTextNode(this as any);
   }
 } as IDynamicTextNodeConstructor;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

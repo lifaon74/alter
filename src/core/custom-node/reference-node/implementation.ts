@@ -4,7 +4,8 @@ import {
 } from './interfaces';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { Constructor, HasFactoryWaterMark } from '../../../classes/factory';
+import { Constructor, HasFactoryWaterMark, MakeFactory } from '../../../classes/factory';
+import { CommentConstructor, IsNodeConstructor, TextConstructor } from '../helpers/NodeHelpers';
 
 
 /** CONSTRUCTOR **/
@@ -51,7 +52,8 @@ export function IsReferenceNodeConstructor(value: any): value is IReferenceNodeC
  */
 export function ReferenceNodeGetNextVirtualSibling(instance: IReferenceNode): Node | null {
   let node: Node | null = instance;
-  while (((node = node.nextSibling) !== null) && !IsReferenceNode(node)) {}
+  while (((node = node.nextSibling) !== null) && !IsReferenceNode(node)) {
+  }
   return node;
 }
 
@@ -111,7 +113,6 @@ export function ReferenceNodeInferMutation(instance: IReferenceNode): TReference
 }
 
 
-
 export function ReferenceNodeStaticNextSibling(node: Node): Node | null {
   return IsReferenceNode(node.nextSibling)
     ? node.nextSibling.nextVirtualSibling
@@ -119,22 +120,14 @@ export function ReferenceNodeStaticNextSibling(node: Node): Node | null {
 }
 
 
-export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass: TBase) {
-  let _superClass: any = superClass;
-  while ((_superClass !== Object) && (_superClass !== Node)) {
-    _superClass = Object.getPrototypeOf(_superClass);
+/** FACTORIES AND CLASSES **/
+
+export function PureReferenceNodeFactory<TBase extends Constructor<Node>>(superClass: TBase) {
+  if (!IsNodeConstructor(superClass)) {
+    throw new TypeError(`Expected Observables' constructor as superClass`);
   }
 
-  if (_superClass !== Node) {
-    throw new TypeError(`Expected Node as superClass`);
-  }
-
-  // if ((superClass !== Text as any) && (superClass !== Comment as any)) {
-  //   throw new TypeError(`Expected Text or Comment as superClass`);
-  // }
-  // const setSuperArgs = GetSetSuperArgsFunction(IsFactoryClass(superClass));
-
-  return FactoryClass(class ReferenceNode extends superClass implements IReferenceNode {
+  return class ReferenceNode extends superClass implements IReferenceNode {
 
     static nextSibling(node: Node): Node | null {
       return ReferenceNodeStaticNextSibling(node);
@@ -162,21 +155,39 @@ export function ReferenceNodeFactory<TBase extends Constructor<Node>>(superClass
       ReferenceNodeUpdateIfMutate(this);
       return this;
     }
-
-
-  })<TReferenceNodeConstructorArgs>('ReferenceNode', IS_REFERENCE_NODE_CONSTRUCTOR);
+  };
 }
 
-export const CommentReferenceNode: ICommentReferenceNodeConstructor = class CommentReferenceNode extends ReferenceNodeFactory<typeof Comment>(Comment) {
-  constructor(node: Node, name: string = 'ref') {
+
+export let CommentReferenceNode: ICommentReferenceNodeConstructor;
+
+export function CommentReferenceNodeFactory<TBase extends CommentConstructor>(superClass: TBase = Comment as TBase) {
+  return MakeFactory<ICommentReferenceNodeConstructor, [], TBase>(PureReferenceNodeFactory, [], superClass, {
+    name: 'CommentReferenceNode',
+    instanceOf: CommentReferenceNode,
+    waterMarks: [IS_REFERENCE_NODE_CONSTRUCTOR],
+  });
+}
+
+CommentReferenceNode = class CommentReferenceNode extends CommentReferenceNodeFactory<CommentConstructor>(Comment) {
+  constructor(node: Node, name?: string) {
     super([node], name);
   }
-};
+} as ICommentReferenceNodeConstructor;
 
-export const TextReferenceNode: ITextReferenceNodeConstructor = class TextReferenceNode extends ReferenceNodeFactory<typeof Text>(Text) {
-  constructor(node: Node) {
-    super([node], '');
+
+export let TextReferenceNode: ITextReferenceNodeConstructor;
+
+export function TextReferenceNodeFactory<TBase extends TextConstructor>(superClass: TBase = Text as TBase) {
+  return MakeFactory<ITextReferenceNodeConstructor, [], TBase>(PureReferenceNodeFactory, [], superClass, {
+    name: 'TextReferenceNode',
+    instanceOf: TextReferenceNode,
+    waterMarks: [IS_REFERENCE_NODE_CONSTRUCTOR],
+  });
+}
+
+TextReferenceNode = class TextReferenceNode extends TextReferenceNodeFactory<TextConstructor>(Text) {
+  constructor(node: Node, name?: string) {
+    super([node], name);
   }
-};
-
-// export const ReferenceNode = ReferenceNodeComment;
+} as ITextReferenceNodeConstructor;

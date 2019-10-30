@@ -257,6 +257,9 @@ export function AddCustomNodeSupportForChildNode(): void {
   });
 }
 
+/**
+ * INFO may consider interceptor for innerHTML and innerText too
+ */
 export function AddCustomNodeCompleteSupportForNode(): void {
   AddCustomNodeSupportForNode();
   AddCustomNodeSupportForParentNode();
