@@ -28,8 +28,9 @@ export function parseEventListenerAttribute<T extends IEventListenerGenerator>(a
       modifiers.add('expression');
     }
 
-    if (!(('on' + name) in attribute.ownerElement)) {
-      console.warn(`Event '${ name }' probably doesn't exist on node '${ attribute.ownerElement.tagName }'`);
+    const ownerElement: Element = attribute.ownerElement as Element;
+    if (!(('on' + name) in ownerElement)) {
+      console.warn(`Event '${ name }' probably doesn't exist on node '${ ownerElement.tagName }'`);
     }
 
     return new EventListenerGenerator({ name, value, modifiers }) as any;

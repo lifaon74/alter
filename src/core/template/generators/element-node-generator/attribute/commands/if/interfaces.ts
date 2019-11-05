@@ -2,6 +2,7 @@ import { ICommandGenerator, ICommandGeneratorConstructor, ICommandGeneratorOptio
 
 
 export interface IIfCommandGeneratorOptions extends ICommandGeneratorOptions {
+  destroyTimeout?: number;
 }
 
 export interface IIfCommandGeneratorConstructor extends ICommandGeneratorConstructor {

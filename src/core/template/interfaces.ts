@@ -1,15 +1,7 @@
 import { IParsers } from './generators/interfaces';
 import { TPromiseOrValue } from '@lifaon/observables';
 
-export interface ITemplateConstructor {
-  new(generate: TTemplateFunction): ITemplate;
-}
-
-export interface ITemplate {
-  generate: TTemplateFunction;
-
-  insert(data: TTemplateDataType, parentNode: Node, refNode?: Node | null | 'clear' | 'destroy'): Promise<void>;
-}
+/** TYPES **/
 
 export interface ITemplateBuildOptions {
   parsers?: IParsers;
@@ -29,3 +21,33 @@ export type TTemplateDataType = { [key: string]: any };
 export type TTemplateFunction = (data: TTemplateDataType) => Promise<DocumentFragment>;
 export type TTemplateRequireFunction = (name: string) => TPromiseOrValue<any>;
 export type TTemplateRawFunction = (require: TTemplateRequireFunction) => Promise<DocumentFragment>;
+
+/** INTERFACES **/
+
+export interface ITemplateConstructor {
+  fromString(
+    template: string,
+    options: ITemplateBuildOptionsStrict,
+  ): ITemplate;
+
+  fromURL(
+    url: string,
+    options: ITemplateBuildOptionsStrict,
+  ): Promise<ITemplate>;
+
+  fromRelativeURL(
+    moduleURL: string,
+    path: string,
+    options: ITemplateBuildOptionsStrict,
+  ): Promise<ITemplate>;
+
+  new(generate: TTemplateFunction): ITemplate;
+}
+
+export interface ITemplate {
+  generate: TTemplateFunction;
+
+  insert(data: TTemplateDataType, parentNode: Node, refNode?: Node | null | 'clear' | 'destroy'): Promise<void>;
+}
+
+

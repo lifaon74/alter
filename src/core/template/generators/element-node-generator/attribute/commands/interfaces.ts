@@ -29,8 +29,8 @@ export interface ICommandCodeGeneratorOptions extends ICodeGeneratorOptions {
 export interface ICommandAttribute {
   name: string;
   value: string;
-  modifiers?: Set<TAttributeGeneratorModifiers>;
-  attribute?: Attr;
+  modifiers: Set<TAttributeGeneratorModifiers>;
+  attribute: Attr;
 }
 
 export interface ICommandParser {

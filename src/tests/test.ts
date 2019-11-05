@@ -1,8 +1,9 @@
+import { testCustomNode } from './test-custom-node';
+import { testParser } from '../core/template/test-parser';
 
-export async function test1() {
-  console.log('tested');
-}
+
 
 export async function test() {
-  await test1();
+  // await testCustomNode();
+  await testParser();
 }

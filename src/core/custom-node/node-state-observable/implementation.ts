@@ -6,10 +6,10 @@ import {
   DOMChangeObservable, IDOMChangeObservable, INotificationsObservableContext, IObserver, IPreventable,
   NotificationsObservable, Observer
 } from '@lifaon/observables';
-
 import { IReferenceNode, TReferenceNodeMutation } from '../reference-node/interfaces';
-import { CommentReferenceNode, ReferenceNodeUpdate } from '../reference-node/implementation';
+import { ReferenceNode, ReferenceNodeUpdate } from '../reference-node/implementation';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { ENVIRONMENT } from '../../../environment';
 
 
 /** CONSTRUCTOR **/
@@ -221,7 +221,7 @@ export function NodeStateObservableActivateDOMObserver(instance: INodeStateObser
 
   if (!privates.domChangeObserver.activated) {
     if (privates.referenceNode === null) {
-      privates.referenceNode = new CommentReferenceNode(privates.node);
+      privates.referenceNode = new ReferenceNode(privates.node, 'reference-node');
     }
     privates.referenceNode.update();
     privates.domChangeObserver.activate();
@@ -290,12 +290,9 @@ export function NodeStateObservableUseDOMObserver(instance: INodeStateObservable
 
 export class NodeStateObservable extends NotificationsObservable<INodeStateObservableKeyValueMap> implements INodeStateObservable {
 
-
   static of(node: Node): INodeStateObservable {
     return NodeStateObservableStaticOf(node);
   }
-
-  static useDOMObserver: boolean = false;
 
   constructor(node: Node) {
     let context: INotificationsObservableContext<INodeStateObservableKeyValueMap>;
@@ -314,7 +311,7 @@ export class NodeStateObservable extends NotificationsObservable<INodeStateObser
     // @ts-ignore
     ConstructNodeStateObservable(this, context, node);
 
-    if (NodeStateObservable.useDOMObserver) {
+    if (ENVIRONMENT.useDOMObserver) {
       this.useDOMObserver(true);
     }
   }

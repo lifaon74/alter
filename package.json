@@ -87,6 +87,10 @@
     "uglify-es": "^3.3.9"
   },
   "dependencies": {
-    "@lifaon/observables": "1.6.2"
+    "@lifaon/observables": "1.6.2",
+    "@lifaon/path": "^1.1.1"
+  },
+  "peerDependencies": {
+    "rxjs": "6.5.3"
   }
 }

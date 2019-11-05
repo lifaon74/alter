@@ -6,9 +6,12 @@ import { IsObject } from '../../../misc/helpers/is/IsObject';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { Constructor, HasFactoryWaterMark, MakeFactory } from '../../../classes/factory';
 import { CommentConstructor, IsNodeConstructor, TextConstructor } from '../helpers/NodeHelpers';
+import { ENVIRONMENT } from '../../../environment';
 
 
-/** CONSTRUCTOR **/
+
+
+/** PRIVATES **/
 
 export const REFERENCE_NODE_PRIVATE = Symbol('reference-node-private');
 
@@ -19,6 +22,8 @@ export interface IReferenceNodePrivate {
 export interface IReferenceNodeInternal extends IReferenceNode {
   [REFERENCE_NODE_PRIVATE]: IReferenceNodePrivate;
 }
+
+/** CONSTRUCTOR **/
 
 export function ConstructReferenceNode(
   instance: IReferenceNode,
@@ -124,7 +129,7 @@ export function ReferenceNodeStaticNextSibling(node: Node): Node | null {
 
 export function PureReferenceNodeFactory<TBase extends Constructor<Node>>(superClass: TBase) {
   if (!IsNodeConstructor(superClass)) {
-    throw new TypeError(`Expected Observables' constructor as superClass`);
+    throw new TypeError(`Expected Node constructor as superClass`);
   }
 
   return class ReferenceNode extends superClass implements IReferenceNode {
@@ -187,7 +192,10 @@ export function TextReferenceNodeFactory<TBase extends TextConstructor>(superCla
 }
 
 TextReferenceNode = class TextReferenceNode extends TextReferenceNodeFactory<TextConstructor>(Text) {
-  constructor(node: Node, name?: string) {
-    super([node], name);
+  constructor(node: Node) {
+    super([node]);
   }
 } as ITextReferenceNodeConstructor;
+
+
+export const ReferenceNode: ICommentReferenceNodeConstructor | ITextReferenceNodeConstructor = ENVIRONMENT.production ? TextReferenceNode : CommentReferenceNode;

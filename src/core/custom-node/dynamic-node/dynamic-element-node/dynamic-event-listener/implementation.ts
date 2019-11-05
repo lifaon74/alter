@@ -2,26 +2,35 @@ import { IDynamicEventListener } from './interfaces';
 import { EventsObservable, EventsObservableKeyValueMapGeneric, INotification, IObserver } from '@lifaon/observables';
 import { DOMState, GetNodeDOMState } from '../../../node-state-observable/mutations';
 import { NodeStateObservableStaticOf } from '../../../node-state-observable/implementation';
-import { IEventsObservableInternal } from '@lifaon/observables/src/notifications/observables/events/events-observable/implementation';
-import { OBSERVABLE_PRIVATE, ObservableClearObservers } from '@lifaon/observables/src/core/observable/implementation';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
+import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
+import { OBSERVABLE_PRIVATE } from '@lifaon/observables/types/core/observable/privates';
+import {
+  IEventsObservableInternal, IEventsObservablePrivatesInternal
+} from '@lifaon/observables/types/notifications/observables/events/events-observable/implementation';
+import { IEventLike } from '@lifaon/observables/types/notifications/observables/events/events-listener/event-like/interfaces';
 
+/** PRIVATES **/
 
 export const DYNAMIC_EVENT_LISTENER_PRIVATE = Symbol('dynamic-event-listener-private');
 
 export interface IDynamicEventListenerPrivate {
 }
 
-export interface IDynamicEventListenerInternal extends IDynamicEventListener, IEventsObservableInternal<EventsObservableKeyValueMapGeneric, Element> {
+export interface IDynamicEventListenerPrivatesInternal extends IEventsObservablePrivatesInternal<EventsObservableKeyValueMapGeneric, Element> {
   [DYNAMIC_EVENT_LISTENER_PRIVATE]: IDynamicEventListenerPrivate;
 }
 
+export interface IDynamicEventListenerInternal extends IDynamicEventListenerPrivatesInternal, IDynamicEventListener {
+}
+
+
+/** CONSTRUCTOR **/
 
 export function ConstructDynamicEventListener(instance: IDynamicEventListener): void {
   ConstructClassWithPrivateMembers(instance, DYNAMIC_EVENT_LISTENER_PRIVATE);
 
   const _onObserveHook = (instance as IDynamicEventListenerInternal)[OBSERVABLE_PRIVATE].onObserveHook;
-  (instance as IDynamicEventListenerInternal)[OBSERVABLE_PRIVATE].onObserveHook = function onObserveHook(observer: IObserver<INotification<string, Event>>) {
+  (instance as IDynamicEventListenerInternal)[OBSERVABLE_PRIVATE].onObserveHook = function onObserveHook(observer: IObserver<INotification<string, IEventLike>>) {
     const nodeState: DOMState = GetNodeDOMState(instance.target);
     if ((nodeState === 'destroyed') || (nodeState === 'destroying')) {
       throw new Error(`Cannot observe a destroyed node`);
@@ -32,10 +41,11 @@ export function ConstructDynamicEventListener(instance: IDynamicEventListener): 
   const observer = NodeStateObservableStaticOf(instance.target)
     .addListener('destroy', () => {
       observer.disconnect();
-      ObservableClearObservers<INotification<string, Event>>(instance);
+      instance.clearObservers();
     }).activate();
 }
 
+/** CLASS **/
 
 export class DynamicEventListener extends EventsObservable<EventsObservableKeyValueMapGeneric, Element> implements IDynamicEventListener {
   constructor(target: Element, name: string) {

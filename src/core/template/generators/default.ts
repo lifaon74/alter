@@ -10,7 +10,7 @@ import { SwitchCommandParser } from './element-node-generator/attribute/commands
 import { SwitchCaseCommandParser } from './element-node-generator/attribute/commands/switch/case/parser';
 import { SwitchDefaultCommandParser } from './element-node-generator/attribute/commands/switch/default/parser';
 
-export const DefaultParsers: IParsers = {
+export const DEFAULT_PARSERS: IParsers = {
   directives: new Set<IBindDirectiveParser>([
     BindClassDirectiveParser,
     BindStyleDirectiveParser,

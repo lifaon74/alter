@@ -6,7 +6,7 @@ import { parseEventListenerAttribute } from './event/parser';
 import { IParsers } from '../../interfaces';
 
 export function parseAttribute(attribute: Attr, parsers: IParsers): IAttributeGenerator {
-  let generator: IAttributeGenerator;
+  let generator: IAttributeGenerator | null;
   if ((generator = parseBindAttribute(attribute, parsers.directives)) !== null) {
     return generator;
   } else if ((generator = parseCommandAttribute(attribute, parsers.commands)) !== null) {

@@ -8,8 +8,9 @@ import {
 
 export function parseSwitchCaseCommandAttribute({ name, value, modifiers, attribute }: ICommandAttribute): ISwitchCaseCommandGenerator | null {
   if (switchCaseSelector.test(name)) {
-    ExtractSwitchChildCommandAttribute(attribute.ownerElement); // ensures 'switch-case' command is valid
-    const parentSwitchCommandAttribute: ICommandAttribute = ExtractSwitchChildParentSwitchCommandAttribute(attribute.ownerElement, 'switch-case'); // ensures 'switch' parent is valid
+    const ownerElement: Element = attribute.ownerElement as Element;
+    ExtractSwitchChildCommandAttribute(ownerElement); // ensures 'switch-case' command is valid
+    const parentSwitchCommandAttribute: ICommandAttribute = ExtractSwitchChildParentSwitchCommandAttribute(ownerElement, 'switch-case'); // ensures 'switch' parent is valid
     return new SwitchCaseCommandGenerator({
       name,
       value,

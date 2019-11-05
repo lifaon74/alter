@@ -1,5 +1,5 @@
 import { EnumToString } from '../../../misc/helpers/EnumToString';
-import { uuid } from '../../../misc/helpers/UUID';
+import { uuid } from '../../../misc/helpers/uuid';
 import { Constructor } from '../../../classes/factory';
 
 export type HTMLElementConstructor = typeof HTMLElement;
@@ -14,7 +14,7 @@ export function IsNode(value: any): value is Node {
 
 export function IsNodeConstructor(value: any): value is Constructor<Node> {
   if (typeof value === 'function') {
-    while ((value !== null) && (value !== Node)) {
+    while (value !== null) {
       if (value === Node) {
         return true;
       } else {

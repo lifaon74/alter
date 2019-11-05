@@ -35,7 +35,7 @@ export class ForCommandGenerator extends CommandGenerator implements IForCommand
 
   protected _getLocalVariableName(key: string): string {
     return this.localVariableNamesMap.has(key)
-      ? this.localVariableNamesMap.get(key)
+      ? this.localVariableNamesMap.get(key) as string
       : key;
   }
 }

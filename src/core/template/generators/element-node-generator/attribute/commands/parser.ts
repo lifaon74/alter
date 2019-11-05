@@ -1,5 +1,5 @@
 import { ICommandAttribute, ICommandGenerator, ICommandParser } from './interfaces';
-import { HTMLTemplateError } from '../../../../HTMLTemplateError';
+import { GetTopParentElementOfNode, HTMLTemplateError } from '../../../../HTMLTemplateError';
 import { TAttributeGeneratorModifiers } from '../interfaces';
 
 const starPattern: string = '\\*(\\$)?(.+)';
@@ -42,13 +42,15 @@ export function parseCommandAttribute<T extends ICommandGenerator>(attribute: At
   if (commandAttribute === null) {
     return null;
   } else {
-    for (const command of commands) {
-      const generator: ICommandGenerator | null = command.parse(commandAttribute);
+    const iterator: Iterator<ICommandParser> = commands[Symbol.iterator]();
+    let result: IteratorResult<ICommandParser>;
+    while (!(result = iterator.next()).done) {
+      const generator: ICommandGenerator | null = result.value.parse(commandAttribute);
       if (generator !== null) {
         return generator as T;
       }
     }
 
-    throw HTMLTemplateError.fromAttribute(`No command found matching '${ name }'`, attribute, HTMLTemplateError.getTopParent<Element>(attribute.ownerElement));
+    throw HTMLTemplateError.fromAttribute(`No command found matching '${ name }'`, attribute, GetTopParentElementOfNode<Element>(attribute.ownerElement as Element));
   }
 }

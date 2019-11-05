@@ -1,7 +1,11 @@
 import { Observer } from '@lifaon/observables';
 import { IDynamicClass, IDynamicClassConstructor } from './interfaces';
 import { BindObserverWithNodeStateObservable } from '../../ObserverNode';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
+import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
+import { IObserverPrivatesInternal } from '@lifaon/observables/types/core/observer/privates';
+
+
+/** PRIVATES **/
 
 export const DYNAMIC_CLASS_PRIVATE = Symbol('dynamic-class-private');
 
@@ -10,21 +14,44 @@ export interface IDynamicClassPrivate {
   name: string;
 }
 
-export interface IDynamicClassInternal extends IDynamicClass {
+export interface IDynamicClassPrivatesInternal extends IObserverPrivatesInternal<boolean> {
   [DYNAMIC_CLASS_PRIVATE]: IDynamicClassPrivate;
 }
 
-
-export function ConstructDynamicClass(dynamicClass: IDynamicClass, element: Element, name: string): void {
-  ConstructClassWithPrivateMembers(dynamicClass, DYNAMIC_CLASS_PRIVATE);
-  BindObserverWithNodeStateObservable(dynamicClass, element);
-  (dynamicClass as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].element = element;
-  (dynamicClass as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].name = name;
+export interface IDynamicClassInternal extends IDynamicClassPrivatesInternal, IDynamicClass {
 }
 
-export function DynamicClassOnEmit(dynamicClass: IDynamicClass, value: boolean): void {
-  (dynamicClass as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].element.classList.toggle((dynamicClass as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].name, value);
+
+/** CONSTRUCTOR **/
+
+export function ConstructDynamicClass(instance: IDynamicClass, element: Element, name: string): void {
+  ConstructClassWithPrivateMembers(instance, DYNAMIC_CLASS_PRIVATE);
+  BindObserverWithNodeStateObservable(instance, element);
+  const privates: IDynamicClassPrivate = (instance as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE];
+  privates.element = element;
+  privates.name = name;
 }
+
+/** FUNCTIONS **/
+
+export function DynamicClassOnEmit(instance: IDynamicClass, value: boolean): void {
+  const privates: IDynamicClassPrivate = (instance as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE];
+  privates.element.classList.toggle(privates.name, value);
+}
+
+/** METHODS **/
+
+/* GETTERS/SETTERS */
+
+export function DynamicClassGetElement(instance: IDynamicClass): Element {
+  return (instance as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].element;
+}
+
+export function DynamicClassGetName(instance: IDynamicClass): string {
+  return (instance as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].name;
+}
+
+/** CLASS **/
 
 export const DynamicClass: IDynamicClassConstructor = class DynamicClass extends Observer<boolean> implements IDynamicClass {
   constructor(element: Element, name: string) {
@@ -35,10 +62,10 @@ export const DynamicClass: IDynamicClassConstructor = class DynamicClass extends
   }
 
   get element(): Element {
-    return ((this as unknown) as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].element;
+    return DynamicClassGetElement(this);
   }
 
   get name(): string {
-    return ((this as unknown) as IDynamicClassInternal)[DYNAMIC_CLASS_PRIVATE].name;
+    return DynamicClassGetName(this);
   }
 };

@@ -7,6 +7,11 @@
   resolved "https://registry.yarnpkg.com/@lifaon/observables/-/observables-1.6.2.tgz#dc1a4422573e94ee637b026cc58ea7e1b0fa5a28"
   integrity sha512-ppNKoPoFxg9djghLas017BVR7IEB0V8AGd1GEVlusmi4dT/v7wwmECOz840ABPnv2XXr5rrcTxTLD7E4t/ccQA==
 
+"@lifaon/path@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@lifaon/path/-/path-1.1.1.tgz#299aa0ca6096fe04089fe7ce371e0f110d74c77e"
+  integrity sha512-zz3hEWFOeOP16PqOO4uhFbiMlzeTCAF8hFVGg9u5wb9d8uuNMxKu3mq7Nk5KRm9ETyBqYU28eiEr9x3W8iuFnQ==
+
 "@types/estree@0.0.39":
   version "0.0.39"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
@@ -2440,6 +2445,13 @@ rx@4.1.0:
   resolved "https://registry.yarnpkg.com/rx/-/rx-4.1.0.tgz#a5f13ff79ef3b740fe30aa803fb09f98805d4782"
   integrity sha1-pfE/957zt0D+MKqAP7CfmIBdR4I=
 
+rxjs@6.5.3:
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-6.5.3.tgz#510e26317f4db91a7eb1de77d9dd9ba0a4899a3a"
+  integrity sha512-wuYsAYYFdWTAnAaPoKGNhfpWwKZbJW+HgAJ+mImp+Epl7BG8oNWBCTyRM8gba9k4lk8BgWdoYm21Mo/RYhhbgA==
+  dependencies:
+    tslib "^1.9.0"
+
 rxjs@^5.5.6:
   version "5.5.12"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.5.12.tgz#6fa61b8a77c3d793dbaf270bee2f43f652d741cc"
@@ -3014,7 +3026,7 @@ tsc-watch@^4.0.0:
     string-argv "^0.1.1"
     strip-ansi "^4.0.0"
 
-tslib@^1.10.0:
+tslib@^1.10.0, tslib@^1.9.0:
   version "1.10.0"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha512-qOebF53frne81cf0S9B41ByenJ3/IuH8yJKngAX35CmiZySA0khhkovshKK+jGCaMnVomla7gVlIcc3EvKPbTQ==

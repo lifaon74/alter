@@ -95,7 +95,7 @@ export function ExtractSwitchChildParentSwitchCommandAttribute(element: Element,
 export function ExtractSwitchChildCommandAttribute(element: Element): ICommandAttribute {
   const commandAttributes: ICommandAttribute[] = Array.from(element.attributes)
     .map(attribute => ExtractCommandAttribute(attribute))
-    .filter(commandAttribute => (commandAttribute !== null));
+    .filter<ICommandAttribute>((commandAttribute: (ICommandAttribute | null)): commandAttribute is ICommandAttribute  => (commandAttribute !== null));
 
   const switchCommandAttributes: ICommandAttribute[] = commandAttributes
     .filter(commandAttribute => (switchCaseSelector.test(commandAttribute.name) || switchDefaultSelector.test(commandAttribute.name)));
@@ -116,14 +116,14 @@ export function ExtractSwitchChildCommandAttribute(element: Element): ICommandAt
 
 
 export function ExtractDefaultSwitchChildSwitchCaseCommandAttributes(element: Element): ICommandAttribute[] {
-  return ExtractSwitchChildrenCommandAttributes(element.parentNode)
+  return ExtractSwitchChildrenCommandAttributes(element.parentNode as Element)
     .filter(commandAttribute => (commandAttribute.name === 'switch-case'));
 }
 
 
 export function parseSwitchCommandAttribute({ name, value, modifiers, attribute }: ICommandAttribute): ISwitchCommandGenerator | null {
   if (switchSelector.test(name)) {
-    ExtractSwitchChildrenCommandAttributes(attribute.ownerElement); // ensures 'switch' command is valid
+    ExtractSwitchChildrenCommandAttributes(attribute.ownerElement as Element); // ensures 'switch' command is valid
     return new SwitchCommandGenerator({ name, value, modifiers, priority: 0 }); // priority is not really important
   } else {
     return null;

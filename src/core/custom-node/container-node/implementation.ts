@@ -15,10 +15,11 @@ import {
   DestroyChildNodes, DestroyNodeSafe, DetachChildNodes, DetachNodeSafe
 } from '../node-state-observable/mutations';
 import { IsValidXMLName } from '../../tokenizers/xml';
-import { uuid } from '../../../misc/helpers/UUID';
+import { uuid } from '../../../misc/helpers/uuid';
+import { ENVIRONMENT } from '../../../environment';
 
 
-/** CONSTRUCTOR **/
+/** PRIVATES **/
 
 export const CONTAINER_NODE_PRIVATE = Symbol('container-node-private');
 
@@ -35,9 +36,11 @@ export interface IContainerNodeInternal extends IContainerNode {
   [CONTAINER_NODE_PRIVATE]: IContainerNodePrivate;
 }
 
+/** CONSTRUCTOR **/
+
 export function ConstructContainerNode(
   instance: IContainerNode,
-  transparent: boolean = false
+  transparent: boolean = ENVIRONMENT.production
 ): void {
   ConstructClassWithPrivateMembers(instance, CONTAINER_NODE_PRIVATE);
   const privates: IContainerNodePrivate = (instance as IContainerNodeInternal)[CONTAINER_NODE_PRIVATE];

@@ -4,31 +4,6 @@ import { TElementNodeGeneratorChildren } from '../element-node-generator/interfa
 import { IndentLines, ScopeLines } from '../snipets';
 
 
-// export const defaultConstantsToImport = [
-//   'NotificationsObserver',
-//   'AttachNode',
-//   'DetachNode',
-//   'DestroyNode',
-//   'ContainerNode',
-//   'DynamicTextNode',
-//   'DynamicConditionalNode',
-//   'DynamicForLoopNode',
-//   'DynamicAttribute',
-//   'DynamicClass',
-//   'DynamicClassList',
-//   'DynamicStyle',
-//   'DynamicStyleList',
-//   'DynamicProperty',
-//   'DynamicEventListener',
-//
-//   '$observable',
-//   '$observer',
-//   '$expression',
-//   '$scope',
-// ] as const;
-//
-// export type TDefaultConstantsToImport = typeof defaultConstantsToImport[keyof typeof defaultConstantsToImport];
-
 export function DetectConstantsToImport(lines: string[], potentialConstantsToImport: Iterable<string>): string[] {
   const remainingConstantsToImport: string[] = Array.from(potentialConstantsToImport);
   const constantsToImport: string[] = [];

@@ -28,17 +28,19 @@ export function parseBindAttribute<T extends IBindGenerator>(attribute: Attr, di
       modifiers.add('expression');
     }
 
-    for (const directive of directives) {
-      const generator: IBindDirectiveGenerator | null = directive.parse(name, value, modifiers);
+    const iterator: Iterator<IBindDirectiveParser> = directives[Symbol.iterator]();
+    let result: IteratorResult<IBindDirectiveParser>;
+    while (!(result = iterator.next()).done) {
+      const generator: IBindDirectiveGenerator | null = result.value.parse(name, value, modifiers);
       if (generator !== null) {
         return generator as T;
       }
     }
 
-    if (!(name in attribute.ownerElement)) {
-      console.warn(`Property '${ name }' probably doesn't exist on node '${ attribute.ownerElement.tagName }'`);
+    if (!(name in (attribute.ownerElement as Element))) {
+      console.warn(`Property '${ name }' probably doesn't exist on node '${ (attribute.ownerElement as Element).tagName }'`);
     }
 
-    return new BindPropertyGenerator({ name, value, modifiers }) as any;
+    return new BindPropertyGenerator({ name, value, modifiers }) as T;
   }
 }

@@ -1,8 +1,8 @@
 import { IBindClassDirectiveGenerator } from './interfaces';
-import { IsValidCSSIdentifier } from '../../../../../../../classes/tokenizers/css';
 import { BindClassDirectiveGenerator } from './implementation';
 import { IBindDirectiveParser } from '../interfaces';
 import { TAttributeGeneratorModifiers } from '../../../interfaces';
+import { IsValidCSSIdentifier } from '../../../../../../../tokenizers/css';
 
 const standardSelector: RegExp = new RegExp('^class\\.(.*)$');
 const prefixSelector: RegExp = new RegExp('^class-(.*)');

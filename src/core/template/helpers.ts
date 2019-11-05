@@ -1,6 +1,6 @@
 import { ITemplateBuildOptions, ITemplateBuildOptionsStrict, TTemplateRequireFunction } from './interfaces';
-import { DefaultParsers } from './generators/default';
-import { NotificationsObserver } from '@lifaon/observables';
+import { DEFAULT_PARSERS } from './generators/default';
+import { NotificationsObserver, TPromiseOrValue } from '@lifaon/observables';
 import { AttachNode, DestroyNode, DetachNode } from '../custom-node/node-state-observable/mutations';
 import { ContainerNode } from '../custom-node/container-node/implementation';
 import { DynamicTextNode } from '../custom-node/dynamic-node/dynamic-text-node/implementation';
@@ -17,9 +17,9 @@ import {
   $add, $and, $divide, $equal, $expression, $multiply, $not, $notEqual, $observable, $observer, $or, $string, $subtract
 } from '@lifaon/observables/src/operators/misc';
 import { $scope } from '@lifaon/observables/src/operators/scopePipe';
-import { IsObject } from '../helpers';
 import { IParsers } from './generators/interfaces';
-import { union } from '../misc/helpers/set';
+import { union } from '../../misc/helpers/set-operations';
+import { IsObject } from '../../misc/helpers/is/IsObject';
 
 // const defaultConstantsToImport = new Map<string, () => TPromiseOrValue<any>>([
 //   ['NotificationsObserver', () => NotificationsObserver],
@@ -69,98 +69,51 @@ import { union } from '../misc/helpers/set';
 // ]);
 
 
-const defaultConstantsToImport = new Map<string, any>([
-  ['NotificationsObserver', NotificationsObserver],
+const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TPromiseOrValue<any>>([
+  ['NotificationsObserver', () => NotificationsObserver],
 
-  ['AttachNode', AttachNode],
-  ['DetachNode', DetachNode],
-  ['DestroyNode', DestroyNode],
+  ['AttachNode', () => AttachNode],
+  ['DetachNode', () => DetachNode],
+  ['DestroyNode', () => DestroyNode],
 
-  ['ContainerNode', ContainerNode],
-  ['DynamicTextNode', DynamicTextNode],
-  ['DynamicConditionalNode', DynamicConditionalNode],
-  ['DynamicForLoopNode', DynamicForLoopNode],
-  ['DynamicAttribute', DynamicAttribute],
-  ['DynamicClass', DynamicClass],
-  ['DynamicClassList', DynamicClassList],
-  ['DynamicStyle', DynamicStyle],
-  ['DynamicStyleList', DynamicStyleList],
-  ['DynamicProperty', DynamicProperty],
-  ['DynamicEventListener', DynamicEventListener],
+  ['ContainerNode', () => ContainerNode],
+  ['DynamicTextNode', () => DynamicTextNode],
+  ['DynamicConditionalNode', () => DynamicConditionalNode],
+  ['DynamicForLoopNode', () => DynamicForLoopNode],
+  ['DynamicAttribute', () => DynamicAttribute],
+  ['DynamicClass', () => DynamicClass],
+  ['DynamicClassList', () => DynamicClassList],
+  ['DynamicStyle', () => DynamicStyle],
+  ['DynamicStyleList', () => DynamicStyleList],
+  ['DynamicProperty', () => DynamicProperty],
+  ['DynamicEventListener', () => DynamicEventListener],
 
-  ['$observable', $observable],
-  ['$observer', $observer],
-  ['$expression', $expression],
-  ['$scope', $scope],
+  ['$observable', () => $observable],
+  ['$observer', () => $observer],
+  ['$expression', () => $expression],
+  ['$scope', () => $scope],
 
-  ['$equal', $equal],
-  ['$notEqual', $notEqual],
+  ['$equal', () => $equal],
+  ['$notEqual', () => $notEqual],
 
-  ['$add', $add],
-  ['$subtract', $subtract],
-  ['$multiply', $multiply],
-  ['$divide', $divide],
-  // ['$min', $min],
-  // ['$max', $max],
+  ['$add', () => $add],
+  ['$subtract', () => $subtract],
+  ['$multiply', () => $multiply],
+  ['$divide', () => $divide],
+  // ['$min', () => $min],
+  // ['$max', () => $max],
 
-  ['$and', $and],
-  ['$or', $or],
-  ['$not', $not],
+  ['$and', () => $and],
+  ['$or', () => $or],
+  ['$not', () => $not],
 
-  ['$string', $string],
+  ['$string', () => $string],
 ]);
 
-// const defaultRequire: TTemplateRequireFunction = async (name: string) => {
-//   switch (name) {
-//     case 'NotificationsObserver':
-//       return NotificationsObserver;
-//     case 'AttachNode':
-//       return AttachNode;
-//     case 'DetachNode':
-//       return DetachNode;
-//     case 'DestroyNode':
-//       return DestroyNode;
-//     case 'ContainerNode':
-//       return ContainerNode;
-//     case 'DynamicTextNode':
-//       return DynamicTextNode;
-//     case 'DynamicConditionalNode':
-//       return DynamicConditionalNode;
-//     case 'DynamicForLoopNode':
-//       return DynamicForLoopNode;
-//     case 'DynamicAttribute':
-//       return DynamicAttribute;
-//     case 'DynamicClass':
-//       return DynamicClass;
-//     case 'DynamicClassList':
-//       return DynamicClassList;
-//     case 'DynamicStyle':
-//       return DynamicStyle;
-//     case 'DynamicStyleList':
-//       return DynamicStyleList;
-//     case 'DynamicProperty':
-//       return DynamicProperty;
-//     case 'DynamicEventListener':
-//       return DynamicEventListener;
-//     case '$observable':
-//       return $observable;
-//     case '$observer':
-//       return $observer;
-//     case '$expression':
-//       return $expression;
-//     case '$scope':
-//       return $scope;
-//     // case '$translate':
-//     //   return $translate;
-//     default:
-//       throw new Error(`Cannot find constant '${name}'.`);
-//   }
-// };
-
-const defaultRequire: TTemplateRequireFunction = (name: string): Promise<any> => {
+const DEFAULT_REQUIRE: TTemplateRequireFunction = (name: string): Promise<any> => {
   return new Promise<any>((resolve: any, reject: any) => {
-    if (defaultConstantsToImport.has(name)) {
-      resolve(defaultConstantsToImport.get(name));
+    if (DEFAULT_CONSTANTS_TO_IMPORT.has(name)) {
+      resolve((DEFAULT_CONSTANTS_TO_IMPORT.get(name) as () => TPromiseOrValue<any>)());
     } else {
       reject(new Error(`Missing constant '${ name }'`));
     }
@@ -171,7 +124,7 @@ export function NormalizeTemplateBuildOptions(options: ITemplateBuildOptions = {
   const _options: ITemplateBuildOptionsStrict = {} as ITemplateBuildOptionsStrict;
 
   if (options.parsers === void 0) {
-    _options.parsers = DefaultParsers;
+    _options.parsers = DEFAULT_PARSERS;
   } else if (IsObject(options.parsers)) {
     _options.parsers = options.parsers;
   } else {
@@ -179,10 +132,10 @@ export function NormalizeTemplateBuildOptions(options: ITemplateBuildOptions = {
   }
 
   _options.dataSourceName = TemplateBuildOptionsDataSourceNameToSet(options.dataSourceName);
-  _options.constantsToImport = union<string>((options.constantsToImport === void 0) ? defaultConstantsToImport.keys() : [], _options.dataSourceName);
+  _options.constantsToImport = union<string>((options.constantsToImport === void 0) ? DEFAULT_CONSTANTS_TO_IMPORT.keys() : [], _options.dataSourceName);
 
   _options.require = (options.require === void 0)
-    ? defaultRequire
+    ? DEFAULT_REQUIRE
     : options.require;
 
   return _options;

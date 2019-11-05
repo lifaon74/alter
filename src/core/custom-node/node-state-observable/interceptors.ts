@@ -224,7 +224,7 @@ export function AddCustomNodeSupportForDocumentAdoptNode(): void {
 }
 
 function AssignToStringFunction(proto: object, name: string, nativeFunction?: (...args: any[]) => any): void {
-  proto[name] = CreateToStringFunction(name,  nativeFunction);
+  proto[name].toString = CreateToStringFunction(name,  nativeFunction);
 }
 
 function CreateToStringFunction(name: string, nativeFunction?: (...args: any[]) => any): () => string {

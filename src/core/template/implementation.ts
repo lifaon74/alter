@@ -4,9 +4,13 @@ import {
   TTemplateRequireFunction
 } from './interfaces';
 import { parseTemplate } from './generators/template-generator/parser';
-import { IsDevToolOpened, RelativeURLPath } from '../helpers';
+import { IsDevToolOpened } from '../../misc/helpers/IsDevToolOpened';
+import { RelativeURLPath } from '../../misc/helpers/RelativeURLPath';
 
 
+/**
+ * Converts some lines of code to a "template" function
+ */
 export function TemplateCodeToTemplateFunction(lines: string[]): TTemplateRawFunction {
   return new Function(
     'require',
@@ -14,6 +18,42 @@ export function TemplateCodeToTemplateFunction(lines: string[]): TTemplateRawFun
   ) as any;
 }
 
+
+/**
+ * Displays properly the code where the error append, and puts a breakpoint if the debugger is activated
+ */
+export function DebugTemplateFunctionError(error: Error, fnc: TTemplateRawFunction): void {
+  if (error.stack) {
+    const reg: RegExp = /<anonymous>:(\d+)\:(\d+)/;
+    const stack: string[] = error.stack.split('\n').slice(1);
+    for (const stackLine of stack) {
+      const match: RegExpExecArray | null = reg.exec(stackLine);
+      if (match !== null) {
+        const line: number = parseInt(match[1], 10) - 1;
+        const column: number = parseInt(match[2], 10);
+        const lines: string[] = fnc.toString().split('\n');
+        console.log(
+          `%c Error '${ error.message }' at ${ line + 1 }:${ column }: \n`
+          + '%c ' + lines.slice(line - 3, line).join('\n') + '\n'
+          + '%c ' + lines[line] + '\n'
+          + '%c ' + lines.slice(line + 1, line + 4).join('\n')
+          , `color: #f00`, `color: #000`, `color: #f50`, `color: #000`);
+
+        if (IsDevToolOpened()) {
+          console.log(`Type 'fnc' to get the 'generate' function`);
+        }
+        debugger;
+        break;
+      }
+    }
+  }
+}
+
+
+/**
+ * Converts some lines of code to a "template" function
+ *  - ensure than the execution of the function works properly and returns a promise, else displays an error message
+ */
 export function TemplateCodeToTemplateDebuggableFunction(lines: string[]): TTemplateRawFunction {
   let fnc: TTemplateRawFunction;
   try {
@@ -38,35 +78,16 @@ export function TemplateCodeToTemplateDebuggableFunction(lines: string[]): TTemp
       resolve(fnc(require));
     })
       .catch((error: any) => {
-        if (error.stack) {
-          const reg: RegExp = /<anonymous>:(\d+)\:(\d+)/;
-          const stack: string[] = error.stack.split('\n').slice(1);
-          for (const stackLine of stack) {
-            const match: RegExpExecArray | null = reg.exec(stackLine);
-            if (match !== null) {
-              const line: number = parseInt(match[1], 10) - 1;
-              const column: number = parseInt(match[2], 10);
-              const lines: string[] = fnc.toString().split('\n');
-              console.log(
-                `%c Error '${ error.message }' at ${ line + 1 }:${ column }: \n`
-                + '%c ' + lines.slice(line - 3, line).join('\n') + '\n'
-                + '%c ' + lines[line] + '\n'
-                + '%c ' + lines.slice(line + 1, line + 4).join('\n')
-                , `color: #f00`, `color: #000`, `color: #f50`, `color: #000`);
-
-              if (IsDevToolOpened()) {
-                console.log(`Type 'fnc' to get the 'generate' function`);
-              }
-              debugger;
-              break;
-            }
-          }
-        }
+        DebugTemplateFunctionError(error, fnc);
         throw error;
       });
   };
 }
 
+
+/**
+ * Parses and converts a template string into a Template instance
+ */
 export function TemplateStringToTemplateInstance(
   template: string,
   options: ITemplateBuildOptionsStrict,
@@ -84,6 +105,9 @@ export function TemplateStringToTemplateInstance(
   });
 }
 
+/**
+ * Parses and converts a template string fetched from 'url' into a Template instance
+ */
 export function TemplateURLToTemplateInstance(
   url: string,
   options: ITemplateBuildOptionsStrict,
@@ -101,13 +125,13 @@ export function TemplateURLToTemplateInstance(
     });
 }
 
-export function TemplateRelativeURLToTemplateInstance(moduleURL: string, url: string, options: ITemplateBuildOptionsStrict): Promise<ITemplate> {
-  return TemplateURLToTemplateInstance(RelativeURLPath(moduleURL, url), options);
+/**
+ * Parses and converts a template string fetched from an url, built from the current module's url and a relative path, into a Template instance
+ */
+export function TemplateRelativeURLToTemplateInstance(moduleURL: string, path: string, options: ITemplateBuildOptionsStrict): Promise<ITemplate> {
+  return TemplateURLToTemplateInstance(RelativeURLPath(moduleURL, path).href, options);
 }
 
-// export const templateFromString = TemplateStringToTemplateInstance;
-// export const templateFromURL = TemplateURLToTemplateInstance;
-// export const templateFromRelativeURL = TemplateRelativeURLToTemplateInstance;
 
 export class Template implements ITemplate {
 
@@ -127,10 +151,10 @@ export class Template implements ITemplate {
 
   static fromRelativeURL(
     moduleURL: string,
-    url: string,
+    path: string,
     options: ITemplateBuildOptionsStrict,
   ): Promise<ITemplate> {
-    return TemplateRelativeURLToTemplateInstance(moduleURL, url, options);
+    return TemplateRelativeURLToTemplateInstance(moduleURL, path, options);
   }
 
 

@@ -9,9 +9,10 @@ import {
 
 export function parseSwitchDefaultCommandAttribute({ name, value, modifiers, attribute }: ICommandAttribute): ISwitchDefaultCommandGenerator | null {
   if (switchDefaultSelector.test(name)) {
-    ExtractSwitchChildCommandAttribute(attribute.ownerElement); // ensures 'switch-case' command is valid
-    const parentSwitchCommandAttribute: ICommandAttribute = ExtractSwitchChildParentSwitchCommandAttribute(attribute.ownerElement, 'switch-case'); // ensures 'switch' parent is valid
-    const switchCaseCommandAttributes: ICommandAttribute[] = ExtractDefaultSwitchChildSwitchCaseCommandAttributes(attribute.ownerElement);
+    const ownerElement: Element = attribute.ownerElement as Element;
+    ExtractSwitchChildCommandAttribute(ownerElement); // ensures 'switch-case' command is valid
+    const parentSwitchCommandAttribute: ICommandAttribute = ExtractSwitchChildParentSwitchCommandAttribute(ownerElement, 'switch-case'); // ensures 'switch' parent is valid
+    const switchCaseCommandAttributes: ICommandAttribute[] = ExtractDefaultSwitchChildSwitchCaseCommandAttributes(ownerElement);
     return new SwitchDefaultCommandGenerator({
       name,
       value,
