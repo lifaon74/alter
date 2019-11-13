@@ -246,8 +246,8 @@ export function testParser(): void {
   // testBindClassSpreadPropertyParser();
   // testBindStylePropertyParser();
   // testBindStyleSpreadPropertyParser();
-  testIfCommandPropertyParser();
-  // testForCommandPropertyParser();
+  // testIfCommandPropertyParser();
+  testForCommandPropertyParser();
   // testSwitchCommandPropertyParser();
   // testEventListenerParser();
   // testElementParser();
