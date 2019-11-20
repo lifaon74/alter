@@ -15,6 +15,18 @@ function mapValues(input, mapper) {
     }, {});
 }
 
+const aliasResolver = {
+  resolveId(source, importer) {
+    const match = (/^@lifaon\/observables\/([^/]+)\/(.*)$/g).exec(source);
+    if (match !== null) {
+      // console.log(match);
+      const path = $path.join(process.cwd(), 'node_modules', `@lifaon/observables/esnext/${ match[2] }.js`);
+      // console.log(path);
+      return path;
+    }
+  }
+};
+
 module.exports = function rollupBundle(options) {
   const dest = options.dest;
   const sourcemapFullFile = dest + '.map';
@@ -32,6 +44,7 @@ module.exports = function rollupBundle(options) {
           return ['tslib', key];
         }),
       }),
+      aliasResolver,
     ],
   })
     .then((bundle) => {

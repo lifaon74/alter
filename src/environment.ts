@@ -1,5 +1,5 @@
 
 export const ENVIRONMENT = {
-  production: false,
+  production: true,
   useDOMObserver: false,
 };

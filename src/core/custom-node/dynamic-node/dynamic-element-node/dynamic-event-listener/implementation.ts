@@ -3,11 +3,9 @@ import { EventsObservable, EventsObservableKeyValueMapGeneric, INotification, IO
 import { DOMState, GetNodeDOMState } from '../../../node-state-observable/mutations';
 import { NodeStateObservableStaticOf } from '../../../node-state-observable/implementation';
 import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
-import { OBSERVABLE_PRIVATE } from '@lifaon/observables/types/core/observable/privates';
-import {
-  IEventsObservableInternal, IEventsObservablePrivatesInternal
-} from '@lifaon/observables/types/notifications/observables/events/events-observable/implementation';
 import { IEventLike } from '@lifaon/observables/types/notifications/observables/events/events-listener/event-like/interfaces';
+import { IEventsObservablePrivatesInternal } from '@lifaon/observables/types/notifications/observables/events/events-observable/privates';
+import { OBSERVABLE_PRIVATE } from '@lifaon/observables/types/core/observable/privates';
 
 /** PRIVATES **/
 

@@ -1,6 +1,9 @@
 import { ITemplateBuildOptions, ITemplateBuildOptionsStrict, TTemplateRequireFunction } from './interfaces';
 import { DEFAULT_PARSERS } from './generators/default';
-import { NotificationsObserver, TPromiseOrValue } from '@lifaon/observables';
+import {
+  $add, $and, $divide, $equal, $expression, $max, $min, $multiply, $not, $notEqual, $observable, $observer, $or, $scope,
+  $string, $subtract, NotificationsObserver, TPromiseOrValue
+} from '@lifaon/observables';
 import { AttachNode, DestroyNode, DetachNode } from '../custom-node/node-state-observable/mutations';
 import { ContainerNode } from '../custom-node/container-node/implementation';
 import { DynamicTextNode } from '../custom-node/dynamic-node/dynamic-text-node/implementation';
@@ -13,10 +16,6 @@ import { DynamicStyle } from '../custom-node/dynamic-node/dynamic-element-node/d
 import { DynamicStyleList } from '../custom-node/dynamic-node/dynamic-element-node/dynamic-style-list/implementation';
 import { DynamicProperty } from '../custom-node/dynamic-node/dynamic-element-node/dynamic-property/implementation';
 import { DynamicEventListener } from '../custom-node/dynamic-node/dynamic-element-node/dynamic-event-listener/implementation';
-import {
-  $add, $and, $divide, $equal, $expression, $multiply, $not, $notEqual, $observable, $observer, $or, $string, $subtract
-} from '@lifaon/observables/src/operators/misc';
-import { $scope } from '@lifaon/observables/src/operators/scopePipe';
 import { IParsers } from './generators/interfaces';
 import { union } from '../../misc/helpers/set-operations';
 import { IsObject } from '../../misc/helpers/is/IsObject';
@@ -100,8 +99,8 @@ const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TPromiseOrValue<any>>(
   ['$subtract', () => $subtract],
   ['$multiply', () => $multiply],
   ['$divide', () => $divide],
-  // ['$min', () => $min],
-  // ['$max', () => $max],
+  ['$min', () => $min],
+  ['$max', () => $max],
 
   ['$and', () => $and],
   ['$or', () => $or],
