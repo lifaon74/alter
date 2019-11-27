@@ -1,5 +1,5 @@
 import { ICommandAttribute, ICommandGenerator, ICommandParser } from './interfaces';
-import { GetTopParentElementOfNode, HTMLTemplateError } from '../../../../HTMLTemplateError';
+import { GetTopParentElementOfNode, HTMLTemplateError } from '../../../../others/HTMLTemplateError';
 import { TAttributeGeneratorModifiers } from '../interfaces';
 
 const starPattern: string = '\\*(\\$)?(.+)';

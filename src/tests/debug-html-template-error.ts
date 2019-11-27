@@ -1,4 +1,4 @@
-import { HTMLTemplateError } from '../core/template/HTMLTemplateError';
+import { HTMLTemplateError } from '../core/template/others/HTMLTemplateError';
 
 export function debugHTMLTemplateError() {
   const template = `

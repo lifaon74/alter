@@ -1,17 +1,17 @@
-import { parseText } from './generators/text-node-generator/parser';
-import { parseStaticAttribute } from './generators/element-node-generator/attribute/static/parser';
-import { parseBindAttribute } from './generators/element-node-generator/attribute/bind/parser';
-import { parseElementNode } from './generators/element-node-generator/parser';
-import { parseCommandAttribute } from './generators/element-node-generator/attribute/commands/parser';
-import { parseTemplate } from './generators/template-generator/parser';
-import { Template } from './implementation';
-import { parseEventListenerAttribute } from './generators/element-node-generator/attribute/event/parser';
-import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../custom-node/node-state-observable/mutations';
+import { parseText } from '../core/template/generators/text-node-generator/parser';
+import { parseStaticAttribute } from '../core/template/generators/element-node-generator/attribute/static/parser';
+import { parseBindAttribute } from '../core/template/generators/element-node-generator/attribute/bind/parser';
+import { parseElementNode } from '../core/template/generators/element-node-generator/parser';
+import { parseCommandAttribute } from '../core/template/generators/element-node-generator/attribute/commands/parser';
+import { parseTemplate } from '../core/template/generators/template-generator/parser';
+import { Template } from '../core/template/implementation';
+import { parseEventListenerAttribute } from '../core/template/generators/element-node-generator/attribute/event/parser';
+import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../core/custom-node/node-state-observable/mutations';
 import { NotificationsObserver, Source } from '@lifaon/observables';
-import { DEFAULT_PARSERS } from './generators/default';
-import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from './helpers';
-import { IBindGenerator } from './generators/element-node-generator/attribute/bind/interfaces';
-import { ICodeGenerator, ICodeGeneratorOptions } from './generators/code-generator/interfaces';
+import { DEFAULT_PARSERS } from '../core/template/generators/default';
+import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../core/template/helpers';
+import { IBindGenerator } from '../core/template/generators/element-node-generator/attribute/bind/interfaces';
+import { ICodeGenerator, ICodeGeneratorOptions } from '../core/template/generators/code-generator/interfaces';
 
 function generate(generator: ICodeGenerator | null, options?: ICodeGeneratorOptions): void {
   if (generator === null) {

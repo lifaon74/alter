@@ -15,7 +15,7 @@ import { DynamicStyle } from '../core/custom-node/dynamic-node/dynamic-element-n
 import { Expression, IObservable, IObserver, IPipe, ISource, mapPipe, Pipe, Source, TimerObservable } from '@lifaon/observables';
 
 
-function testExtendableHTMLElement() {
+function debugExtendableHTMLElement() {
   class A extends ExtendableHTMLElement {
     public a: number;
 
@@ -31,7 +31,7 @@ function testExtendableHTMLElement() {
   console.log((document.body.querySelector('a-node') as A).a);
 }
 
-function testNodeStateObservable() {
+function debugNodeStateObservable() {
   const node = document.createElement('div');
 
   const observable = new NodeStateObservable(node)/*.useDOMObserver()*/
@@ -65,7 +65,7 @@ function testNodeStateObservable() {
 
 // NAME: AlterJS  => al-
 
-function testContainerNode() {
+function debugContainerNode() {
   const node = new ContainerNode();
   node.appendChild(new Text('hello'));
 
@@ -76,7 +76,7 @@ function testContainerNode() {
 }
 
 
-function testDynamicTextNode() {
+function debugDynamicTextNode() {
   const node = new DynamicTextNode();
   AttachNode(node, document.body);
 
@@ -91,7 +91,7 @@ function testDynamicTextNode() {
   // }, 3000);
 }
 
-function testDynamicConditionalNode() {
+function debugDynamicConditionalNode() {
   const node = new DynamicConditionalNode(() => new Text('if - hello'));
   AttachNode(node, document.body);
 
@@ -103,7 +103,7 @@ function testDynamicConditionalNode() {
   (window as any).node = node;
 }
 
-function testDynamicAttribute() {
+function debugDynamicAttribute() {
   const node = document.createElement('my-element');
   AttachNode(node, document.body);
 
@@ -118,7 +118,7 @@ function testDynamicAttribute() {
   (window as any).observer = dynamicAttribute;
 }
 
-function testDynamicProperty() {
+function debugDynamicProperty() {
   const node = document.createElement('input');
   AttachNode(node, document.body);
 
@@ -132,7 +132,7 @@ function testDynamicProperty() {
   (window as any).observer = dynamicProperty;
 }
 
-function testDynamicClass() {
+function debugDynamicClass() {
   const node = document.createElement('my-element');
   AttachNode(node, document.body);
 
@@ -143,7 +143,7 @@ function testDynamicClass() {
   (window as any).observer = observer;
 }
 
-function testDynamicClassList() {
+function debugDynamicClassList() {
   const node = document.createElement('my-element');
   AttachNode(node, document.body);
 
@@ -156,7 +156,7 @@ function testDynamicClassList() {
   (window as any).observer = observer;
 }
 
-function testDynamicStyle() {
+function debugDynamicStyle() {
   const node = document.createElement('my-element');
   AttachNode(node, document.body);
 
@@ -168,7 +168,7 @@ function testDynamicStyle() {
   (window as any).observer = observer;
 }
 
-function testDynamicStyleList() {
+function debugDynamicStyleList() {
   const node = document.createElement('my-element');
   AttachNode(node, document.body);
 
@@ -182,7 +182,7 @@ function testDynamicStyleList() {
   (window as any).observer = observer;
 }
 
-function testDynamicForLoopNode() {
+function debugDynamicForLoopNode() {
   const node = new DynamicForLoopNode((item: IObservable<string>, index: IObservable<number>) => {
     const container = document.createElement('div');
     container.appendChild(new Text('item: '));
@@ -213,7 +213,7 @@ function testDynamicForLoopNode() {
 }
 
 
-function testDynamicTextNodeWithExpression() {
+function debugDynamicTextNodeWithExpression() {
   const formatter = new Intl.DateTimeFormat(navigator.language, {
     year: 'numeric', month: 'numeric', day: 'numeric',
     hour: 'numeric', minute: 'numeric', second: 'numeric',
@@ -243,7 +243,7 @@ function testDynamicTextNodeWithExpression() {
 }
 
 //
-// function testSourceProxy(): void {
+// function debugSourceProxy(): void {
 //
 //   type SourceCast<T extends object> = {
 //     [P in keyof T]: ISource<T[P]>;
@@ -366,7 +366,7 @@ function testDynamicTextNodeWithExpression() {
 //   // (window as any).data = data;
 // }
 //
-// function testSourceProxy2(): void {
+// function debugSourceProxy2(): void {
 //
 //   class SourceProxy {
 //     public readonly sources: Map<string, ISource<any>>;
@@ -541,7 +541,7 @@ function testDynamicTextNodeWithExpression() {
 
 
 
-export function testCustomNode() {
+export function debugCustomNode() {
   // AddCustomNodeCompleteSupportForNode();
   // NodeStateObservable.useDOMObserver = true;
 
@@ -550,25 +550,25 @@ export function testCustomNode() {
   (window as any).DestroyNode = DestroyNodeSafe;
 
 
-  // testExtendableHTMLElement();
-  // testNodeStateObservable();
+  // debugExtendableHTMLElement();
+  // debugNodeStateObservable();
 
-  // testContainerNode();
+  // debugContainerNode();
 
-  // testDynamicTextNode();
-  // testDynamicConditionalNode();
-  // testDynamicAttribute();
-  // testDynamicProperty();
-  // testDynamicClass();
-  // testDynamicClassList();
-  // testDynamicStyle();
-  // testDynamicStyleList();
+  // debugDynamicTextNode();
+  // debugDynamicConditionalNode();
+  // debugDynamicAttribute();
+  // debugDynamicProperty();
+  // debugDynamicClass();
+  // debugDynamicClassList();
+  // debugDynamicStyle();
+  // debugDynamicStyleList();
 
-  // testDynamicForLoopNode();
+  // debugDynamicForLoopNode();
 
-  // testDynamicTextNodeWithExpression();
+  // debugDynamicTextNodeWithExpression();
 
-  // testSourceProxy();
-  // testSourceProxy2();
+  // debugSourceProxy();
+  // debugSourceProxy2();
 
 }

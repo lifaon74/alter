@@ -1,3 +1,4 @@
+import { HighlightStringPortion } from '../../../misc/helpers/highlight-string-portion';
 
 /**
  * Returns the character's length of an html attribute including: name="value"
@@ -114,9 +115,8 @@ export function GetTopParentElementOfNode<T extends Node>(node: Node): T {
 export function HTMLTemplateErrorStaticCreateMessage(message: string, template: string, start: number, end: number): string {
   return message + ', '
     + 'in template: \n\n'
-    + template.substring(start - 100, start) + '■■■'
-    + template.substring(start, end)
-    + '■■■' + template.substring(end, end + 100) + '\n'
+    + HighlightStringPortion(template, start, end)
+    + '\n'
     ;
 
   // const lines: string[] = template.split('\n');

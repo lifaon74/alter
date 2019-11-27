@@ -1,6 +1,7 @@
 import { EnumToString } from '../../../misc/helpers/EnumToString';
 import { uuid } from '../../../misc/helpers/uuid';
 import { Constructor } from '../../../classes/factory';
+import { TupleToUnion } from '../../../classes/types';
 
 export type HTMLElementConstructor = typeof HTMLElement;
 export type NodeConstructor = typeof Node;
@@ -59,12 +60,24 @@ export function IsDocumentFragmentNode(value: any): value is DocumentFragment {
   return IsNode(value) && NodeIsDocumentFragmentNode(value);
 }
 
+
+export function IsHTMLElementConstructor(value: any): value is Constructor<HTMLElement> {
+  if (typeof value === 'function') {
+    while (value !== null) {
+      if (value === HTMLElement) {
+        return true;
+      }
+      value = Object.getPrototypeOf(value);
+    }
+  }
+  return false;
+}
+
 /*----------*/
 
 
 /**
  * Creates an iterator over a list composed of 'node' and its nextSiblings
- * @param node
  */
 export function * NodeIterator(node: Node | null): Generator<Node, void, void> {
   while (node !== null) {
@@ -75,7 +88,6 @@ export function * NodeIterator(node: Node | null): Generator<Node, void, void> {
 
 /**
  * Creates an iterator over a list composed of 'node' and its previousSibling
- * @param node
  */
 export function * NodeIteratorReversed(node: Node | null): Generator<Node, void, void> {
   while (node !== null) {
@@ -86,7 +98,6 @@ export function * NodeIteratorReversed(node: Node | null): Generator<Node, void,
 
 /**
  * Creates an iterator over a list composed of the child nodes of 'parent', in asc order
- * @param parent
  */
 export function ChildNodesIterator(parent: Node): Generator<ChildNode, void, void> {
   return NodeIterator(parent.firstChild) as Generator<ChildNode, void, void>;
@@ -94,7 +105,6 @@ export function ChildNodesIterator(parent: Node): Generator<ChildNode, void, voi
 
 /**
  * Creates an iterator over a list composed of the child nodes of 'parent', in desc order
- * @param parent
  */
 export function ChildNodesIteratorReversed(parent: Node): Generator<ChildNode, void, void> {
   return NodeIterator(parent.lastChild) as Generator<ChildNode, void, void>;
@@ -102,7 +112,6 @@ export function ChildNodesIteratorReversed(parent: Node): Generator<ChildNode, v
 
 /**
  * Returns an iterator retuning Element only, from a Node iterator.
- * @param iterator
  */
 export function * PickElementsFromIterator(iterator: Iterator<Node>): Generator<Element, void, void> {
   let result: IteratorResult<Node>;
@@ -173,7 +182,6 @@ export function * IterableQuerySelector<E extends Element>(parent: ParentNode & 
 
 /**
  * Creates a DocumentFragment from a list of nodes.
- * @param nodes
  */
 export function CreateDocumentFragmentFromNodes(nodes: (Node | string)[]): DocumentFragment {
   const documentFragment: DocumentFragment = document.createDocumentFragment();
@@ -185,6 +193,9 @@ export function CreateDocumentFragmentFromNodes(nodes: (Node | string)[]): Docum
   return documentFragment;
 }
 
+/**
+ * Removes all child nodes of 'node'
+ */
 export function ClearChildNodes(node: Node): void {
   while (node.firstChild !== null) {
     node.removeChild(node.firstChild);
@@ -192,10 +203,32 @@ export function ClearChildNodes(node: Node): void {
 }
 
 
-export type TElementAttributeType = 'boolean' | 'number' | 'string' | string[];
+/*--------------*/
 
-// TODO could improve type by returning TElementAttributeTypeMap<TElementAttributeType>
-export function GetElementAttribute<T>(element: HTMLElement, name: string, type: TElementAttributeType = 'string', defaultValue?: boolean | number | string): T {
+export interface IElementAttributeTypeMap {
+  'boolean': boolean;
+  'number': number;
+  'string': string;
+}
+export type TElementAttributeType = (keyof IElementAttributeTypeMap) | string[];
+
+export type TGetElementAttributeReturn<TType extends TElementAttributeType> =
+  TType extends string[]
+    ? TupleToUnion<TType>
+    : TType extends (keyof IElementAttributeTypeMap)
+    ? IElementAttributeTypeMap[TType]
+    : never;
+
+
+/**
+ * Gets the attribute 'name' of 'element', and converts its value according to 'type'
+ */
+export function GetElementAttribute<TType extends TElementAttributeType>(
+  element: Element,
+  name: string,
+  type: TType,
+  defaultValue?: IElementAttributeTypeMap[keyof IElementAttributeTypeMap]
+): TGetElementAttributeReturn<TType> {
   const value: string | null = element.getAttribute(name);
   if ((value === null) && (defaultValue !== void 0)) {
     return defaultValue as any;
@@ -217,7 +250,16 @@ export function GetElementAttribute<T>(element: HTMLElement, name: string, type:
   }
 }
 
-export function SetElementAttribute(element: Element, name: string, value: any = '', type: TElementAttributeType = 'string'): void {
+
+/**
+ * Sets the attribute 'name' of 'element',
+ */
+export function SetElementAttribute(
+  element: Element,
+  name: string,
+  value: any = '',
+  type: TElementAttributeType = 'string'
+): void {
   if ((value === void 0) || (value === null)) {
     element.removeAttribute(name);
   } else {
@@ -229,13 +271,4 @@ export function SetElementAttribute(element: Element, name: string, value: any =
 }
 
 
-export function IsHTMLElementConstructor(target: any): boolean {
-  while (target !== null) {
-    if (target === HTMLElement) {
-      return true;
-    } else {
-      target = Object.getPrototypeOf(target);
-    }
-  }
-  return false;
-}
+

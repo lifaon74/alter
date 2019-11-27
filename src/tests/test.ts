@@ -1,5 +1,5 @@
-import { testCustomNode } from './debug-custom-node';
-import { debugParser } from '../core/template/test-parser';
+import { debugCustomNode } from './debug-custom-node';
+import { debugParser } from './debug-parser';
 
 
 
