@@ -1,6 +1,9 @@
 import { DynamicCSSRuleError } from './DynamicCSSRuleError';
 
 
+/**
+ * Represents a portion of a CSSStyleRule
+ */
 export class CSSRuleRange {
   public readonly rule: CSSStyleRule;
   public readonly start: number;
@@ -17,10 +20,10 @@ export class CSSRuleRange {
   }
 }
 
-export class CSSRuleToken {
+export abstract class CSSRuleToken {
   public readonly range: CSSRuleRange;
 
-  constructor(range: CSSRuleRange) {
+  protected constructor(range: CSSRuleRange) {
     this.range = range;
   }
 }
@@ -64,7 +67,14 @@ export class DynamicCSSRuleToken extends CSSRuleToken {
 }
 
 
-
+/**
+ * Syntax:
+ *  [--key]
+ *  [--key="value"]
+ *
+ * 'key' must be: [a-z\-]+
+ * 'value' must be in JSON format
+ */
 export function ParseDynamicCSSRule(rule: CSSStyleRule, ruleTokens: DynamicCSSRuleToken[] = []): DynamicCSSRuleToken[] {
   let index: number = 0;
   while (true) {

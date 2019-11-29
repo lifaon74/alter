@@ -1,5 +1,9 @@
 // https://github.com/tc39/proposal-set-methods
 
+/**
+ * Returns a new Set composed of all uniq values from 'iterables'
+ * https://en.wikipedia.org/wiki/Union_(set_theory)
+ */
 export function union<T>(...iterables: Iterable<T>[]): Set<T> {
   const newSet: Set<T> = new Set<T>((iterables.length === 0) ? [] : iterables[0]);
   for (let i = 1, l = iterables.length; i < l; i++) {
@@ -16,7 +20,10 @@ export function union<T>(...iterables: Iterable<T>[]): Set<T> {
   return newSet;
 }
 
-
+/**
+ * Returns a new Set composed of all common values from 'iterables'
+ * https://en.wikipedia.org/wiki/Intersection_(set_theory)
+ */
 export function intersection<T>(...iterables: Iterable<T>[]): Set<T> {
   const newSet: Set<T> = new Set<T>((iterables.length === 0) ? [] : iterables[0]);
   for (let i = 1, l = iterables.length; i < l; i++) {
@@ -36,6 +43,10 @@ export function intersection<T>(...iterables: Iterable<T>[]): Set<T> {
   return newSet;
 }
 
+/**
+ * Returns a new Set composed of all values from 'iterables[0]' minus all values form other 'iterables[1+]'
+ * https://en.wikipedia.org/wiki/Complement_(set_theory)#Relative_complement
+ */
 export function difference<T>(...iterables: Iterable<T>[]): Set<T> {
   const newSet: Set<T> = new Set<T>((iterables.length === 0) ? [] : iterables[0]);
   for (let i = 1, l = iterables.length; i < l; i++) {
@@ -54,6 +65,10 @@ export function difference<T>(...iterables: Iterable<T>[]): Set<T> {
   return newSet;
 }
 
+/**
+ * Returns a new Set composed of all uniq values from 'iterables' minus all common values
+ * https://en.wikipedia.org/wiki/Symmetric_difference
+ */
 export function symmetricDifference<T>(...iterables: Iterable<T>[]): Set<T> {
   return difference(union(...iterables), intersection(...iterables));
 }

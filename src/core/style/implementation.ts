@@ -72,6 +72,7 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
 
     // const dynamicCSS: DynamicCSS = new DynamicCSS(styleElement);
     //
+    // console.log(dynamicCSS);
     // if (dynamicCSS.rules.length > 0) {
     //   let requestIdleTimer: any;
     //   function update(): void {

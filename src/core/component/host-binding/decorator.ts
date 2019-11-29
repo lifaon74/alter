@@ -1,7 +1,7 @@
 import { IHostBinding, IHostBindingOptions } from './interfaces';
 import { Constructor } from '../../../classes/factory';
 import { GetCustomElementHTMLElementConstructor } from '../custom-element/implementation';
-import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from '../component/decorator';
+import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from '../component/decorator/decorator';
 import {
   DeferredPromise, Expression, IDeferredPromise, IsObservable, IsObserver, ISource, Observer, Source
 } from '@lifaon/observables';

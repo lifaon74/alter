@@ -75,6 +75,7 @@ export function IsHTMLElementConstructor(value: any): value is Constructor<HTMLE
 
 /*----------*/
 
+export type TParentNode = ParentNode & Node;
 
 /**
  * Creates an iterator over a list composed of 'node' and its nextSiblings
@@ -125,17 +126,17 @@ export function * PickElementsFromIterator(iterator: Iterator<Node>): Generator<
 const SCOPE_REGEXP = /((^|,)\s*):scope/g;
 
 // Element, Document, DocumentFragment
-export function * IterableQuerySelector<E extends Element>(parent: ParentNode & Node, selectors: string): Generator<E, void, void> {
+export function * IterableQuerySelector<E extends Element>(parent: TParentNode, selector: string): Generator<E, void, void> {
   let filterFunction: (node: Element) => boolean;
   SCOPE_REGEXP.lastIndex = 0;
 
   // only if selectors contains :scope
-  if (SCOPE_REGEXP.test(selectors)) {
+  if (SCOPE_REGEXP.test(selector)) {
     SCOPE_REGEXP.lastIndex = 0;
 
     if (IsElementNode(parent)) {
       const id: string = `id-${ uuid() }`;
-      const noScopeSelectors: string = selectors.replace(SCOPE_REGEXP, `$1#${ id }`); // replace :scope with #ID
+      const noScopeSelectors: string = selector.replace(SCOPE_REGEXP, `$1#${ id }`); // replace :scope with #ID
       filterFunction = (node: Element): boolean => {
         const elementId: string | null = parent.getAttribute('id'); // remember current element id
         parent.id = id; // set uuid
@@ -149,7 +150,7 @@ export function * IterableQuerySelector<E extends Element>(parent: ParentNode & 
         return match;
       };
     } else if (IsDocumentNode(parent)) {
-      const noScopeSelectors: string = selectors.replace(SCOPE_REGEXP, '$1html'); // replace :scope with html
+      const noScopeSelectors: string = selector.replace(SCOPE_REGEXP, '$1html'); // replace :scope with html
       filterFunction = (node: Element): boolean => {
         return node.matches(noScopeSelectors);
       };
@@ -158,7 +159,7 @@ export function * IterableQuerySelector<E extends Element>(parent: ParentNode & 
     }
   } else {
     filterFunction = (node: Element): boolean => {
-      return node.matches(selectors);
+      return node.matches(selector);
     };
   }
 
@@ -177,6 +178,98 @@ export function * IterableQuerySelector<E extends Element>(parent: ParentNode & 
 
   while (treeWalker.nextNode()) {
     yield treeWalker.currentNode as E;
+  }
+}
+
+/** EXPERIMENTAL **/
+
+/*
+export interface IMultiIterableQuerySelectorInput {
+  selector: string;
+  parent?: TParentNode;
+}
+
+export interface IMultiIterableQuerySelectorOutput<E extends Element> extends IMultiIterableQuerySelectorInput {
+  index: number;
+  element: E;
+}
+
+export function * MultiIterableQuerySelector<E extends Element>(selectors: IMultiIterableQuerySelectorInput[]): Generator<IMultiIterableQuerySelectorOutput<E>, void, void> {
+  let topParent: TParentNode = document;
+
+  const filterFunctions: ((node: Element) => boolean)[] = selectors.map((selector: IMultiIterableQuerySelectorInput) => {
+    const selectorString: string = selector.selector;
+    const selectorParent: TParentNode = (selector.parent === void 0) ? document.documentElement : selector.parent;
+
+    SCOPE_REGEXP.lastIndex = 0;
+
+    // only if selectors contains :scope
+    if (SCOPE_REGEXP.test(selectorString)) {
+      SCOPE_REGEXP.lastIndex = 0;
+
+      if (IsElementNode(selectorParent)) {
+        const id: string = `id-${ uuid() }`;
+        const noScopeSelectors: string = selectorString.replace(SCOPE_REGEXP, `$1#${ id }`); // replace :scope with #ID
+        return (node: Element): boolean => {
+          const elementId: string | null = selectorParent.getAttribute('id'); // remember current element id
+          selectorParent.id = id; // set uuid
+          const match: boolean = node.matches(noScopeSelectors);
+          // restore previous id
+          if (elementId === null) {
+            selectorParent.removeAttribute('id');
+          } else {
+            selectorParent.setAttribute('id', elementId);
+          }
+          return match;
+        };
+      } else if (IsDocumentNode(selectorParent)) {
+        const noScopeSelectors: string = selectorString.replace(SCOPE_REGEXP, `$1${ selectorParent.documentElement.tagName }`); // replace :scope with html
+        return (node: Element): boolean => {
+          return node.matches(noScopeSelectors);
+        };
+      } else {
+        throw new Error(`Unsupported element type with :scope`);
+      }
+    } else {
+      return (node: Element): boolean => {
+        return node.matches(selectorString);
+      };
+    }
+  });
+
+
+  const treeWalker: TreeWalker = document.createTreeWalker(
+    topParent,
+    NodeFilter.SHOW_ELEMENT,
+    {
+      acceptNode: (node: Element) => {
+        return filterFunction(node)
+          ? NodeFilter.FILTER_ACCEPT
+          : NodeFilter.FILTER_SKIP;
+      }
+    },
+    false
+  );
+
+  while (treeWalker.nextNode()) {
+    yield treeWalker.currentNode as E;
+  }
+}*/
+
+/** EXPERIMENTAL **/
+
+export function * ListElementCSSParents<E extends Element>(node: Node | null): Generator<E, void, void> {
+  let parentNode: Node | null = node;
+  while (parentNode !== null) {
+    let previousNode: Node | null = parentNode;
+    do {
+      if (previousNode.nodeType === Node.ELEMENT_NODE) {
+        yield previousNode as E;
+      }
+      previousNode = previousNode.previousSibling;
+    } while (previousNode !== null);
+
+    parentNode = parentNode.parentElement;
   }
 }
 

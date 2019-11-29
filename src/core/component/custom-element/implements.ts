@@ -1,6 +1,3 @@
-/**
- * Contains functions and helpers for Custom Element (elements that extend HTMLElement)
- */
 
 /** IMPLEMENTS **/
 

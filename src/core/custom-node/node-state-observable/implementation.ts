@@ -35,7 +35,10 @@ export interface INodeStateObservableInternal extends INodeStateObservable {
 }
 
 
-export const STATIC_DOM_CHANGE_OBSERVABLE: IDOMChangeObservable = new DOMChangeObservable();
+export const STATIC_DOM_TREE_CHANGE_OBSERVABLE: IDOMChangeObservable = new DOMChangeObservable(document, {
+  childList: true,
+  subtree: true,
+});
 
 export function ConstructNodeStateObservable(
   instance: INodeStateObservable,
@@ -95,7 +98,7 @@ export function ConstructNodeStateObservable(
         }
         privates.state = connected ? 'connected' : 'disconnected';
       }
-    }).observe(STATIC_DOM_CHANGE_OBSERVABLE);
+    }).observe(STATIC_DOM_TREE_CHANGE_OBSERVABLE);
 
     privates.attachDetected = false;
     privates.detachDetected = false;
