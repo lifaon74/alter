@@ -13,7 +13,29 @@ export function NewObservableContext<TData extends object>(): IComponentContext<
   return context;
 }
 
-// TODO methods
+/** METHODS **/
+
+/* GETTERS/SETTERS */
+
+export function ComponentContextGetData<TData extends object>(instance: IComponentContext<TData>): TData {
+  return (instance as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].data;
+}
+
+export function ComponentContextSetData<TData extends object>(instance: IComponentContext<TData>, data: TData): void {
+  if ((instance as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].frozen) {
+    throw new SyntaxError(`Cannot set data after the context is frozen`);
+  } else {
+    (instance as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].data = data;
+  }
+}
+
+export function ComponentContextGetFrozen<TData extends object>(instance: IComponentContext<TData>): boolean {
+  return (instance as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].frozen;
+}
+
+export function ComponentContextGetAttributeListener<TData extends object>(instance: IComponentContext<TData>): INotificationsObservable<IComponentContextAttributeListenerKeyValueMap> {
+  return (instance as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].attributeListener;
+}
 
 /** CLASS **/
 
@@ -25,23 +47,19 @@ export class ComponentContext<TData extends object> implements IComponentContext
   }
 
   get data(): TData {
-    return ((this as unknown) as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].data;
+    return ComponentContextGetData<TData>(this);
   }
 
   set data(data: TData) {
-    if (((this as unknown) as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].frozen) {
-      throw new SyntaxError(`Cannot set data after the context is frozen`);
-    } else {
-      ((this as unknown) as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].data = data;
-    }
+    ComponentContextSetData<TData>(this, data);
   }
 
   get frozen(): boolean {
-    return ((this as unknown) as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].frozen;
+    return ComponentContextGetFrozen<TData>(this);
   }
 
   get attributeListener(): INotificationsObservable<IComponentContextAttributeListenerKeyValueMap> {
-    return ((this as unknown) as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].attributeListener;
+    return ComponentContextGetAttributeListener<TData>(this);
   }
 }
 

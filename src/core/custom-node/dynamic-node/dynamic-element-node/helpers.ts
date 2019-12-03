@@ -170,7 +170,7 @@ export function ParseStyleProperty(property: TStylePropertyName, value: TStylePr
   const stylePropertyWithNameUnit: IStylePropertyWithNameUnit = ParseStylePropertyWithNameAndUnit(property);
   return {
     property: stylePropertyWithNameUnit.property,
-    value: (stylePropertyWithNameUnit.unit === null)
+    value: (stylePropertyWithNameUnit.unit === void 0)
       ? value
       : (value + stylePropertyWithNameUnit.unit)
   };

@@ -9,5 +9,5 @@ import { IHostBinding } from '../host-binding/interfaces';
 export interface IComponentOptions extends ICustomElementOptions {
   template?: TPromiseOrValue<ITemplate>;
   style?: TPromiseOrValue<IStyle>;
-  host?: IHostBinding[];
+  host?: IHostBinding<any>[];
 }

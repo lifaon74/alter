@@ -82,7 +82,7 @@
     "shx": "^0.3.2",
     "tsc-watch": "^4.0.0",
     "tslib": "^1.10.0",
-    "typescript": "3.6.3",
+    "typescript": "3.7.2",
     "typescript-tuple": "^2.2.1",
     "uglify-es": "^3.3.9"
   },

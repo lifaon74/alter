@@ -1,32 +1,62 @@
-import { IHostBinding, IHostBindingOptions } from './interfaces';
+import { IHostBinding } from './interfaces';
 import { Constructor } from '../../../classes/factory';
-import { GetCustomElementHTMLElementConstructor } from '../custom-element/implementation';
-import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from '../component/decorator/decorator';
 import {
-  DeferredPromise, Expression, IDeferredPromise, IsObservable, IsObserver, ISource, Observer, Source
+  DeferredPromise, Expression, IDeferredPromise, IObserver, IsObservable, IsObserver, ISource, Observer, Source
 } from '@lifaon/observables';
 import { HostBinding } from './implementation';
+import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from '../component/class/privates';
+import { MustExtendHTMLElement } from '../helpers/MustExtendHTMLElement';
+import { IHostBindingOptions, THostBindingOnResolveResultValue } from './types';
 
-export function HostBind(attributeName: string, options?: IHostBindingOptions): PropertyDecorator {
-  return (target: HTMLElement, propertyKey: string | symbol, descriptor: PropertyDescriptor = Object.getOwnPropertyDescriptor(target, propertyKey)): void | PropertyDescriptor => {
 
-    const elementConstructor: Constructor<HTMLElement> | null = GetCustomElementHTMLElementConstructor<Constructor<HTMLElement>>(target.constructor as Constructor<HTMLElement>);
-    if (elementConstructor === null) {
-      throw new TypeError(`The class '${ target.constructor.name }' must extend an HTMLElement.`);
-    }
+export type THostBindValue<T> = THostBindingOnResolveResultValue<T> | ((value: T) => void);
+
+
+/**
+ * DECORATOR (PROPERTY, including setters and getters)
+ *
+ * Creates a new HostBinding for this specific class.
+ *
+ *  - the behaviour may vary depending on the descriptor (is it a setter/getter ? does it exists ? etc...):
+ *
+ *     - if descriptor is undefined (for example on a simple class attribute) => the first value assigned will determine the data source
+ *        - if it's an observable => this observable will be used as data source, and setting another value will throw an error
+ *        - if it's an observer => this observer will be used as data source, and setting another value will throw an error
+ *        - if it's a function => creates a new Observer based on this function and apply the same behaviour seen just above
+ *        - else (some value) => creates a new Source which will emit and cache this value, and all future values set
+ *
+ *     - if descriptor has a 'value' property => follow the same behaviour as above using this value
+ *
+ *     - if descriptor is a getter (has a 'get' property) => creates a new Expression based on this getter function, and use it as the data source
+ *       -> info: no setter is allowed and setting a value will throw an error
+ *
+ *     - if descriptor is a setter (has a 'set' property) => creates a new Observer based on this setter function, and use it as the data source
+ *       -> info: no getter is allowed and getting a value will throw an error
+ *       -> getter and setter cannot exists simultaneously for an HostBind !
+ */
+export function HostBind<T>(attributeName: string, options?: IHostBindingOptions): PropertyDecorator {
+  return (
+    target: Object,
+    propertyKey: string | symbol,
+    descriptor: TypedPropertyDescriptor<T> | undefined = Object.getOwnPropertyDescriptor(target, propertyKey)
+  ): void | TypedPropertyDescriptor<THostBindValue<T>> => {
+
+    MustExtendHTMLElement(target);
+
+    type TValue = THostBindValue<T>;
 
     const privates: IComponentConstructorPrivate = AccessComponentConstructorPrivates(target.constructor as Constructor<HTMLElement>);
-    const dataMap: WeakMap<Element, IDeferredPromise<any>> = new WeakMap<Element, IDeferredPromise<any>>();
+    const dataMap: WeakMap<Element, IDeferredPromise<THostBindingOnResolveResultValue<T>>> = new WeakMap<Element, IDeferredPromise<THostBindingOnResolveResultValue<T>>>();
     let resolveTarget: (node: Element) => void;
 
-    const hostBinding: IHostBinding = new HostBinding(attributeName, (node: Element) => {
+    const hostBinding: IHostBinding<T> = new HostBinding<T>(attributeName, (node: Element) => {
       resolveTarget(node);
-      return dataMap.get(node).promise;
+      return (dataMap.get(node) as IDeferredPromise<THostBindingOnResolveResultValue<T>>).promise;
     }, options);
 
     privates.hostBindings.push(hostBinding);
 
-    const newDescriptor: PropertyDescriptor = {
+    const newDescriptor: TypedPropertyDescriptor<THostBindValue<T>> = {
       configurable: false,
       enumerable: (descriptor === void 0) ? true : descriptor.enumerable,
       get() {
@@ -37,8 +67,8 @@ export function HostBind(attributeName: string, options?: IHostBindingOptions): 
       }
     };
 
-    function resolveObservableMode(node: Element, valuesMap: WeakMap<Element, any>): void {
-      dataMap.set(node, DeferredPromise.resolve<any>(valuesMap.get(node)));
+    function resolveObservableMode(node: Element, valuesMap: WeakMap<Element, TValue>): void {
+      dataMap.set(node, DeferredPromise.resolve<THostBindingOnResolveResultValue<T>>(valuesMap.get(node) as T));
       Object.defineProperty(node, propertyKey, Object.assign(newDescriptor, {
         set() {
           throw new TypeError(`The property '${ String(propertyKey) }' has been detected as an Observable, thus, its setter can't be updated`);
@@ -46,13 +76,13 @@ export function HostBind(attributeName: string, options?: IHostBindingOptions): 
       }));
     }
 
-    function resolveObserverMode(node: Element, valuesMap: WeakMap<Element, any>): void {
-      const observer: any = valuesMap.get(node);
-      dataMap.set(node, DeferredPromise.resolve<any>(
+    function resolveObserverMode(node: Element, valuesMap: WeakMap<Element, TValue>): void {
+      const observer: TValue = valuesMap.get(node) as TValue;
+      dataMap.set(node, DeferredPromise.resolve<THostBindingOnResolveResultValue<T>>(
         IsObserver(observer)
-          ? observer
-          : new Observer((value: any) => {
-            observer.call(node, value);
+          ? observer as IObserver<T>
+          : new Observer<T>((value: T) => {
+            (observer as (value: T) => void).call(node, value);
           }).activate()
       ));
       Object.defineProperty(node, propertyKey, Object.assign(newDescriptor, {
@@ -62,11 +92,11 @@ export function HostBind(attributeName: string, options?: IHostBindingOptions): 
       }));
     }
 
-    function resolveSourceMode(node: Element, valuesMap: WeakMap<Element, any>): void {
-      const source: ISource<any> = new Source<any>().emit(valuesMap.get(node));
-      dataMap.set(node, DeferredPromise.resolve<any>(source));
+    function resolveSourceMode(node: Element, valuesMap: WeakMap<Element, TValue>): void {
+      const source: ISource<T> = new Source<T>().emit(valuesMap.get(node) as T);
+      dataMap.set(node, DeferredPromise.resolve<THostBindingOnResolveResultValue<T>>(source));
       Object.defineProperty(node, propertyKey, Object.assign(newDescriptor, {
-        set(value: any) {
+        set(this: Element, value: T) {
           if (this === node) {
             if (IsObservable(value) || IsObserver(value) || (typeof value === 'function')) {
               throw new TypeError(`The property '${ String(propertyKey) }' has been detected as a Source, thus, its setter can't receive data of type Observable, Observer or function`);
@@ -83,7 +113,7 @@ export function HostBind(attributeName: string, options?: IHostBindingOptions): 
 
     if (descriptor === void 0) {
       type TMode = 'observer' | 'observable' | 'source';
-      const valuesMap: WeakMap<Element, any> = new WeakMap<Element, any>();
+      const valuesMap: WeakMap<Element, TValue> = new WeakMap<Element, TValue>();
       const modesMap: WeakMap<Element, TMode> = new WeakMap<Element, TMode>();
 
       resolveTarget = (node: Element) => {
@@ -106,11 +136,11 @@ export function HostBind(attributeName: string, options?: IHostBindingOptions): 
         }
       };
 
-      newDescriptor.get = function () {
-        return valuesMap.get(this);
+      newDescriptor.get = function (this: Element) {
+        return valuesMap.get(this) as TValue;
       };
 
-      newDescriptor.set = function (value: any) {
+      newDescriptor.set = function (this: Element, value: TValue) {
         valuesMap.set(this, value);
         if (modesMap.has(this)) { // direct call to the setter, bad behaviour
           // nothing to do
@@ -127,34 +157,35 @@ export function HostBind(attributeName: string, options?: IHostBindingOptions): 
       };
 
     } else if ('value' in descriptor) {
-      const valuesMap: WeakMap<Element, any> = new WeakMap<Element, any>();
+      const valuesMap: WeakMap<Element, TValue> = new WeakMap<Element, TValue>();
+      let value: TValue = descriptor.value as TValue;
 
       newDescriptor.get = function () {
-        return descriptor.value;
+        return value;
       };
 
-      newDescriptor.set = function (value) {
-        descriptor.value = value;
+      newDescriptor.set = function (_value: TValue) {
+        value = _value;
       };
 
-      if (IsObservable(descriptor.value)) {
+      if (IsObservable(value)) {
         resolveTarget = (node: Element) => {
           if (!dataMap.has(node)) {
-            valuesMap.set(node, descriptor.value);
+            valuesMap.set(node, value);
             resolveObservableMode(node, valuesMap);
           }
         };
-      } else if (IsObserver(descriptor.value) || (typeof descriptor.value === 'function')) {
+      } else if (IsObserver(value) || (typeof value === 'function')) {
         resolveTarget = (node: Element) => {
           if (!dataMap.has(node)) {
-            valuesMap.set(node, descriptor.value);
+            valuesMap.set(node, value);
             resolveObserverMode(node, valuesMap);
           }
         };
       } else {
         resolveTarget = (node: Element) => {
           if (!dataMap.has(node)) {
-            valuesMap.set(node, descriptor.value);
+            valuesMap.set(node, value);
             resolveSourceMode(node, valuesMap);
           }
         };
@@ -165,31 +196,31 @@ export function HostBind(attributeName: string, options?: IHostBindingOptions): 
       } else {
         resolveTarget = (node: Element) => {
           if (!dataMap.has(node)) {
-            dataMap.set(node, DeferredPromise.resolve<any>(new Expression<any>(() => descriptor.get.call(node))));
+            dataMap.set(node, DeferredPromise.resolve<THostBindingOnResolveResultValue<T>>(new Expression<T>(() => (descriptor.get as () => T).call(node))));
 
             Object.defineProperty(node, propertyKey, Object.assign(newDescriptor, {
               get: descriptor.get
             }));
           }
         };
-        newDescriptor.get = function () {
+        newDescriptor.get = function (this: Element) {
           resolveTarget(this);
-          descriptor.get.call(this);
+          return (descriptor.get as () => T).call(this);
         };
       }
     } else if (typeof descriptor.set === 'function') {  // setter only => observer
       resolveTarget = (node: Element) => {
         if (!dataMap.has(node)) {
-          dataMap.set(node, DeferredPromise.resolve<any>(new Observer<any>((value: any) => descriptor.set.call(node, value)).activate()));
+          dataMap.set(node, DeferredPromise.resolve<THostBindingOnResolveResultValue<T>>(new Observer<T>((value: T) => (descriptor.set as (value: T) => void).call(node, value)).activate()));
 
           Object.defineProperty(node, propertyKey, Object.assign(newDescriptor, {
             set: descriptor.set
           }));
         }
       };
-      newDescriptor.set = function (value: any) {
+      newDescriptor.set = function (this: Element, value: TValue) {
         resolveTarget(this);
-        descriptor.set.call(this, value);
+        (descriptor.set as (value: TValue) => void).call(this, value);
       };
     } else {
       throw new Error(`Malformed descriptor`);

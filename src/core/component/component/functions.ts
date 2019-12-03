@@ -3,15 +3,15 @@ import { INotificationsObservableContext, TPromiseOrValue } from '@lifaon/observ
 import { ITemplate } from '../../template/interfaces';
 import { FreezeComponentContext } from './context/functions';
 import { COMPONENT_PRIVATE, IComponentInternal, IComponentPrivate } from './privates';
-import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from './decorator/decorator';
 import { Constructor } from '../../../classes/factory';
 import { IHostBinding } from '../host-binding/interfaces';
-import { GetNodeDOMState } from '../../custom-node/node-state-observable/mutations';
+import { DOMState, GetNodeDOMState } from '../../custom-node/node-state-observable/mutations';
 import { NodeStateObservable } from '../../custom-node/node-state-observable/implementation';
 import { IComponentContextAttributeListenerKeyValueMap } from './context/types';
 import { COMPONENT_CONTEXT_PRIVATE, IComponentContextInternal } from './context/privates';
 import { IStyle } from '../../style/interfaces';
 import { IComponentOptions } from './types';
+import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from './class/privates';
 
 /** FUNCTIONS **/
 
@@ -22,8 +22,10 @@ import { IComponentOptions } from './types';
  *  - releases resources on destroy (and calls onDestroy)
  */
 export function InitComponent<TData extends object>(instance: IComponent<TData>, options: IComponentOptions): void {
+  const privates: IComponentPrivate<TData> = (instance as IComponentInternal<TData>)[COMPONENT_PRIVATE];
+
   if (typeof instance.onCreate === 'function') {
-    instance.onCreate.call(instance, (instance as IComponentInternal<TData>)[COMPONENT_PRIVATE].context);
+    instance.onCreate.call(instance, privates.context);
   }
 
   const constructorPrivates: IComponentConstructorPrivate = AccessComponentConstructorPrivates(instance.constructor as Constructor<IComponent<TData>>);
@@ -31,12 +33,13 @@ export function InitComponent<TData extends object>(instance: IComponent<TData>,
   // INFO: could use CancellablePromise
   Promise.all([
     Promise.all(
-      constructorPrivates.hostBindings.map((hostBinding: IHostBinding) => hostBinding.resolve(instance))
+      constructorPrivates.hostBindings.map((hostBinding: IHostBinding<any>) => hostBinding.resolve(instance))
     ),
     LoadComponentTemplate<TData>(instance, options.template),
     LoadComponentStyle<TData>(instance, options.style),
   ]).then(() => {
-    if ((typeof instance.onInit === 'function') && (GetNodeDOMState(instance) === 'attached')) {
+    const state: DOMState = GetNodeDOMState(instance);
+    if ((typeof instance.onInit === 'function') && (state !== 'destroying') && (state !== 'destroyed')) {
       instance.onInit.call(instance);
     }
   });
@@ -81,6 +84,24 @@ export function LoadComponentStyle<TData extends object>(instance: IComponent<TD
   }
 }
 
+
+/**
+ * Function to call when the component is connected to the DOM
+ */
+export function EmitConnectedForComponent<TData extends object>(instance: IComponent<TData>): void {
+  if ((typeof instance.onConnected === 'function') && instance.isConnected) {
+    instance.onConnected.call(instance);
+  }
+}
+
+/**
+ * Function to call when the component is disconnected from the DOM
+ */
+export function EmitDisconnectedForComponent<TData extends object>(instance: IComponent<TData>): void {
+  if ((typeof instance.onDisconnected === 'function') && !instance.isConnected) {
+    instance.onDisconnected.call(instance);
+  }
+}
 
 /**
  * Function to call when an attribute changed

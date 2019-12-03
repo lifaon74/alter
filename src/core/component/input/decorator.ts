@@ -1,4 +1,9 @@
-import { IsObservable } from '@lifaon/observables';
+import { IObserver, IsObservable } from '@lifaon/observables';
+import { MustExtendHTMLElement } from '../helpers/MustExtendHTMLElement';
+
+export interface IInputDecorationOption {
+
+}
 
 /**
  * Input()
@@ -6,12 +11,14 @@ import { IsObservable } from '@lifaon/observables';
  *  - setter will be called when Observable emits a value
  * get => if getter is defined, calls the getter, else returns last emitted value
  */
-export function Input(): PropertyDecorator {
+export function Input<T>(options?: IInputDecorationOption): PropertyDecorator {
   return (
     target: Object,
     propertyKey: string | symbol,
-    descriptor: PropertyDescriptor | undefined = Object.getOwnPropertyDescriptor(target, propertyKey)
-  ): void | PropertyDescriptor => {
+    descriptor: TypedPropertyDescriptor<T> | undefined = Object.getOwnPropertyDescriptor(target, propertyKey)
+  ): void | TypedPropertyDescriptor<T> => {
+
+    MustExtendHTMLElement(target);
 
     if (
       (descriptor === void 0)
@@ -21,38 +28,39 @@ export function Input(): PropertyDecorator {
     }
 
 
-    const valueObservers = new WeakMap<any, any>();
-    const values = new WeakMap<any, any>();
+    const valueObservers = new WeakMap<any, IObserver<T>>();
+    const values = new WeakMap<any, T>();
 
     return {
       configurable: false,
       enumerable: descriptor.enumerable,
       get: (typeof descriptor.get === 'function')
         ? descriptor.get
-        : function get(this: any): any {
-          values.get(this);
+        : function get(this: any): T {
+          return values.get(this) as T;
         },
-      set: function (value: any) {
+      set: function (value: T) {
         if (valueObservers.has(this)) {
-          valueObservers.get(this).deactivate();
+          (valueObservers.get(this) as IObserver<T>).deactivate();
           valueObservers.delete(this);
         }
 
-        const set: (v: any) => void = descriptor.set as (v: any) => void;
+        // const set: (v: any) => void = descriptor.set as (v: any) => void;
+        const set = (value: T) => {
+          values.set(this, value);
+          (descriptor.set as (v: T) => void).call(this, value);
+        };
 
         if (IsObservable(value)) {
-          const observer = value.pipeTo((value: any) => {
-            values.set(this, value);
-            set.call(this, value);
-          });
+          const observer = value.pipeTo(set);
           valueObservers.set(this, observer);
           observer.activate();
         } else {
-          values.set(this, value);
-          set.call(this, value);
+          set(value);
         }
       }
     };
   };
 }
 
+// INFO: think about some enhancement able to link directly an input with a data's property

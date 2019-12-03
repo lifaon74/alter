@@ -18,7 +18,7 @@ export class SwitchDefaultCommandGenerator extends SwitchChildCommandGenerator i
       return `$notEqual(${ ValueToObservableCode(commandAttribute.value, commandAttribute.modifiers.has('expression')) }, ${ this.observableParentValue })`;
     });
     return (observables.length === 0)
-      ? `$observable(${ ValueToObservableCode('true', false) })`
+      ? ValueToObservableCode('true', false)
       : (observables.length === 1)
         ? observables[0]
         : `$and(${ observables.join(', ') })`;
