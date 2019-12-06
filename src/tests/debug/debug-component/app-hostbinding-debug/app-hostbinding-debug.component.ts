@@ -1,12 +1,12 @@
 import { Expression, INotification, IObserver, ISource, Observer, Source } from '@lifaon/observables';
-import { Component } from '../../../core/component/component/class/decorator';
-import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../core/template/helpers';
-import { IComponent } from '../../../core/component/component/interfaces';
-import { OnCreate } from '../../../core/component/component/implements';
-import { IComponentContext } from '../../../core/component/component/context/interfaces';
-import { HostBind } from '../../../core/component/host-binding/decorator';
-import { HostBinding } from '../../../core/component/host-binding/implementation';
-import { Style } from '../../../core/style/implementation';
+import { Component } from '../../../../core/component/component/class/decorator';
+import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../../core/template/helpers';
+import { IComponent } from '../../../../core/component/component/interfaces';
+import { OnCreate } from '../../../../core/component/component/implements';
+import { IComponentContext } from '../../../../core/component/component/context/interfaces';
+import { HostBind } from '../../../../core/component/host-binding/decorator';
+import { HostBinding } from '../../../../core/component/host-binding/implementation';
+import { Style } from '../../../../core/style/implementation';
 
 
 export interface IData {

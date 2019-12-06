@@ -1,4 +1,4 @@
-import { AttachNode, DestroyNode, DetachNode } from '../../../core/custom-node/node-state-observable/mutations';
+import { AttachNode, DestroyNode, DetachNode } from '../../../../core/custom-node/node-state-observable/mutations';
 import { AppLifeCycleDebug } from './app-life-cycle-debug.component';
 import { $delay } from '@lifaon/observables';
 

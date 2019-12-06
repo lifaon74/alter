@@ -33,7 +33,7 @@ export type THostBindValue<T> = THostBindingOnResolveResultValue<T> | ((this: HT
  *          - creates a new Observer based on this function
  *          - this observer will be used as data source
  *          - setting another value will throw an error
- *        - if its not a function throw an error
+ *        - if it's not a function, throws an error
  *
  *     - if descriptor is a getter (has a 'get' property) => creates a new Expression based on this getter function, and use it as the data source
  *       -> info: no setter is allowed and setting a value will throw an error

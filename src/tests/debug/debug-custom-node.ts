@@ -1,17 +1,17 @@
-import { ExtendableHTMLElement } from '../core/custom-node/helpers/ExtendableHTMLElement';
-import { AttachNode, AttachNodeSafe, DestroyNodeSafe, DetachNode } from '../core/custom-node/node-state-observable/mutations';
-import { NodeStateObservable } from '../core/custom-node/node-state-observable/implementation';
-import { AddCustomNodeCompleteSupportForNode } from '../core/custom-node/node-state-observable/interceptors';
-import { ContainerNode } from '../core/custom-node/container-node/implementation';
-import { DynamicTextNode } from '../core/custom-node/dynamic-node/dynamic-text-node/implementation';
-import { DynamicConditionalNode } from '../core/custom-node/dynamic-node/dynamic-conditional-node/implementation';
-import { DynamicAttribute } from '../core/custom-node/dynamic-node/dynamic-element-node/dynamic-attribute/implementation';
-import { DynamicProperty } from '../core/custom-node/dynamic-node/dynamic-element-node/dynamic-property/implementation';
-import { DynamicClass } from '../core/custom-node/dynamic-node/dynamic-element-node/dynamic-class/implementation';
-import { DynamicClassList } from '../core/custom-node/dynamic-node/dynamic-element-node/dynamic-class-list/implementation';
-import { DynamicStyleList } from '../core/custom-node/dynamic-node/dynamic-element-node/dynamic-style-list/implementation';
-import { DynamicForLoopNode } from '../core/custom-node/dynamic-node/dynamic-for-loop-node/implementation';
-import { DynamicStyle } from '../core/custom-node/dynamic-node/dynamic-element-node/dynamic-style/implementation';
+import { ExtendableHTMLElement } from '../../core/custom-node/helpers/ExtendableHTMLElement';
+import { AttachNode, AttachNodeSafe, DestroyNodeSafe, DetachNode } from '../../core/custom-node/node-state-observable/mutations';
+import { NodeStateObservable } from '../../core/custom-node/node-state-observable/implementation';
+import { AddCustomNodeCompleteSupportForNode } from '../../core/custom-node/node-state-observable/interceptors';
+import { ContainerNode } from '../../core/custom-node/container-node/implementation';
+import { DynamicTextNode } from '../../core/custom-node/dynamic-node/dynamic-text-node/implementation';
+import { DynamicConditionalNode } from '../../core/custom-node/dynamic-node/dynamic-conditional-node/implementation';
+import { DynamicAttribute } from '../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-attribute/implementation';
+import { DynamicProperty } from '../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-property/implementation';
+import { DynamicClass } from '../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-class/implementation';
+import { DynamicClassList } from '../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-class-list/implementation';
+import { DynamicStyleList } from '../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-style-list/implementation';
+import { DynamicForLoopNode } from '../../core/custom-node/dynamic-node/dynamic-for-loop-node/implementation';
+import { DynamicStyle } from '../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-style/implementation';
 import { Expression, IObservable, IObserver, IPipe, ISource, mapPipe, Pipe, Source, TimerObservable } from '@lifaon/observables';
 
 

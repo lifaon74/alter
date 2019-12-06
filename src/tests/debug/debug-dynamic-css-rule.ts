@@ -3,7 +3,7 @@ import {
   IDOMChangeObservable,
   IObservable, IObservableContext, IObserver, IReadonlyList, Observable, Observer, ReadonlyList
 } from '@lifaon/observables';
-import { difference, intersection, isSameSet } from '../misc/helpers/set-operations';
+import { difference, intersection, isSameSet } from '../../misc/helpers/set-operations';
 
 // TODO function able ton convert a css selector with special rules into a valid css selector
 

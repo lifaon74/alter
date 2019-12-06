@@ -1,7 +1,7 @@
-import { Component } from '../../../core/component/component/class/decorator';
-import { IComponent } from '../../../core/component/component/interfaces';
-import { OnConnected, OnCreate, OnDestroy, OnDisconnected, OnInit } from '../../../core/component/component/implements';
-import { IComponentContext } from '../../../core/component/component/context/interfaces';
+import { Component } from '../../../../core/component/component/class/decorator';
+import { IComponent } from '../../../../core/component/component/interfaces';
+import { OnConnected, OnCreate, OnDestroy, OnDisconnected, OnInit } from '../../../../core/component/component/implements';
+import { IComponentContext } from '../../../../core/component/component/context/interfaces';
 
 
 export interface IData {

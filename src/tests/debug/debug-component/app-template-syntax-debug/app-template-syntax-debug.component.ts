@@ -1,12 +1,12 @@
 import { INotification, IObserver, ISource, Observer, Source } from '@lifaon/observables';
-import { Component } from '../../../core/component/component/class/decorator';
-import { Template } from '../../../core/template/implementation';
-import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../core/template/helpers';
-import { IComponent } from '../../../core/component/component/interfaces';
-import { OnCreate } from '../../../core/component/component/implements';
-import { IComponentContext } from '../../../core/component/component/context/interfaces';
-import { TDynamicStyleListValue } from '../../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-style-list/interfaces';
-import { TDynamicClassListValue } from '../../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-class-list/interfaces';
+import { Component } from '../../../../core/component/component/class/decorator';
+import { Template } from '../../../../core/template/implementation';
+import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../../core/template/helpers';
+import { IComponent } from '../../../../core/component/component/interfaces';
+import { OnCreate } from '../../../../core/component/component/implements';
+import { IComponentContext } from '../../../../core/component/component/context/interfaces';
+import { TDynamicStyleListValue } from '../../../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-style-list/interfaces';
+import { TDynamicClassListValue } from '../../../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-class-list/interfaces';
 
 
 export interface IData {

@@ -1,13 +1,13 @@
 import { ISource, Source } from '@lifaon/observables';
-import { Component } from '../../../core/component/component/class/decorator';
-import { Template } from '../../../core/template/implementation';
-import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../core/template/helpers';
-import { Style } from '../../../core/style/implementation';
-import { IComponent } from '../../../core/component/component/interfaces';
-import { OnCreate } from '../../../core/component/component/implements';
-import { IComponentContext } from '../../../core/component/component/context/interfaces';
-import { Input } from '../../../core/component/input/decorator';
-import { IAttributeChange } from '../../../core/component/component/context/types';
+import { Component } from '../../../../core/component/component/class/decorator';
+import { Template } from '../../../../core/template/implementation';
+import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../../core/template/helpers';
+import { Style } from '../../../../core/style/implementation';
+import { IComponent } from '../../../../core/component/component/interfaces';
+import { OnCreate } from '../../../../core/component/component/implements';
+import { IComponentContext } from '../../../../core/component/component/context/interfaces';
+import { Input } from '../../../../core/component/input/decorator';
+import { IAttributeChange } from '../../../../core/component/component/context/types';
 
 
 export interface IData {
