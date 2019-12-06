@@ -23,7 +23,7 @@ export function ComponentContextGetData<TData extends object>(instance: ICompone
 
 export function ComponentContextSetData<TData extends object>(instance: IComponentContext<TData>, data: TData): void {
   if ((instance as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].frozen) {
-    throw new SyntaxError(`Cannot set data after the context is frozen`);
+    throw new Error(`Cannot set data after the context is frozen`);
   } else {
     (instance as IComponentContextInternal<TData>)[COMPONENT_CONTEXT_PRIVATE].data = data;
   }

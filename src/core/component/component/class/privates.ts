@@ -15,7 +15,7 @@ export interface IComponentConstructorInternal {
 }
 
 export function AccessComponentConstructorPrivates(_class: Constructor<HTMLElement>): IComponentConstructorPrivate {
-  if (!_class.hasOwnProperty(COMPONENT_CONSTRUCTOR_PRIVATE)) {
+  if (typeof _class[COMPONENT_CONSTRUCTOR_PRIVATE] !== 'object') { // to fix symbol polyfill
     ConstructClassWithPrivateMembers(_class, COMPONENT_CONSTRUCTOR_PRIVATE);
     ((_class as unknown) as IComponentConstructorInternal)[COMPONENT_CONSTRUCTOR_PRIVATE].hostBindings = [];
   }

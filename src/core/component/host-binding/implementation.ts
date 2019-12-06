@@ -1,12 +1,12 @@
 import { IHostBinding } from './interfaces';
-import { IHostBindingOptions, THostBindingOnResolve, THostBindingOnResolveResultValue } from './types';
+import { IHostBindingOptionsStrict, THostBindingOnResolve, THostBindingOnResolveResultValue } from './types';
 import { HOST_BINDING_PRIVATE, IHostBindingInternal, IHostBindingPrivate } from './privates';
 import { ConstructHostBinding } from './constructor';
 
 
 /** METHODS **/
 
-export function HostBindingResolve<T>(instance: IHostBinding<T>, node: Element): Promise<void> {
+export function HostBindingResolve<T>(instance: IHostBinding<T>, node: HTMLElement): Promise<void> {
   const privates: IHostBindingPrivate<T> = (instance as IHostBindingInternal<T>)[HOST_BINDING_PRIVATE];
   if (!privates.nodeToResolvePromiseWeakMap.has(node)) {
     privates.nodeToResolvePromiseWeakMap.set(node,
@@ -34,7 +34,7 @@ export function HostBindingResolve<T>(instance: IHostBinding<T>, node: Element):
 /** CLASS **/
 
 export class HostBinding<T> implements IHostBinding<T> {
-  constructor(attributeName: string, onResolve: THostBindingOnResolve<T>, options?: IHostBindingOptions) {
+  constructor(attributeName: string, onResolve: THostBindingOnResolve<T>, options: IHostBindingOptionsStrict) {
     ConstructHostBinding(this, attributeName, onResolve, options);
   }
 
@@ -42,7 +42,7 @@ export class HostBinding<T> implements IHostBinding<T> {
     return ((this as unknown) as IHostBindingInternal<T>)[HOST_BINDING_PRIVATE].attributeName;
   }
 
-  resolve(node: Element): Promise<void> {
+  resolve(node: HTMLElement): Promise<void> {
     return HostBindingResolve(this, node);
   }
 }

@@ -5,7 +5,7 @@ import { IObservable, IObserver, TPromiseOrValue } from '@lifaon/observables';
 
 export type THostBindingOnResolveResultValue<T> = T | IObservable<T> | IObserver<T>;
 export type THostBindingOnResolveResult<T> = TPromiseOrValue<THostBindingOnResolveResultValue<T>>;
-export type THostBindingOnResolve<T> = (node: Element) => THostBindingOnResolveResult<T>;
+export type THostBindingOnResolve<T> = (node: HTMLElement) => THostBindingOnResolveResult<T>;
 
 // export type THostBindOptionsMode = 'source' | 'destination' | 'expression' | 'observable' | 'observer' | 'auto';
 

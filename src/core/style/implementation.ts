@@ -23,7 +23,6 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
         (rule as CSSStyleRule).selectorText = (rule as CSSStyleRule).selectorText
           .replace(/:host/g, `[${id}]`)
         ;
-        console.log((rule as CSSStyleRule).selectorText);
         break;
       case CSSRule.SUPPORTS_RULE:
         break;

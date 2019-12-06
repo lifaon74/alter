@@ -23,6 +23,7 @@ export interface IData {
   a13: ISource<'a' | 'b' | any>;
 }
 
+
 @Component({
   name: 'app-template-syntax-debug',
   template: Template.fromString(`
@@ -51,7 +52,7 @@ export interface IData {
       <div class="switch2" *switch-default>default</div>
     </div>
     
-<!--    <div class="test">{{ $string\`\${data.a2} - \${data.a4}\` }}</div>-->
+    <div class="test">{{ $string\`\${data.a2} - \${data.a4}\` }}</div>
   `, DEFAULT_TEMPLATE_BUILD_OPTIONS)
 })
 export class AppTemplateSyntaxDebug extends HTMLElement implements IComponent<IData>, OnCreate<IData> {
@@ -85,7 +86,6 @@ export class AppTemplateSyntaxDebug extends HTMLElement implements IComponent<ID
       a12: new Source<ISource<string>[]>().emit(createStringSourceArray(10)),
       a13: new Source<'a' | 'b' | any>().emit('a'),
     };
-
 
 
     setInterval(() => {

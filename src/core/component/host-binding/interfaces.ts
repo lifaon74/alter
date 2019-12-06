@@ -1,4 +1,4 @@
-import { IHostBindingOptions, THostBindingOnResolve } from './types';
+import { IHostBindingOptionsStrict, THostBindingOnResolve } from './types';
 
 
 /** INTERFACES **/
@@ -11,7 +11,7 @@ import { IHostBindingOptions, THostBindingOnResolve } from './types';
  *  INFO: HostBinding is probably easier to use with the decorator @HostBind
  */
 export interface IHostBindingConstructor {
-  new<T>(attributeName: string, onResolve: THostBindingOnResolve<T>, options?: IHostBindingOptions): IHostBinding<T>;
+  new<T>(attributeName: string, onResolve: THostBindingOnResolve<T>, options: IHostBindingOptionsStrict): IHostBinding<T>;
 }
 
 export interface IHostBinding<T> {
@@ -20,6 +20,6 @@ export interface IHostBinding<T> {
   /**
    * Call this function to apply this HostBinding to a Node
    */
-  resolve(node: Element): Promise<void>;
+  resolve(node: HTMLElement): Promise<void>;
 }
 

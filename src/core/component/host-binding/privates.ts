@@ -11,7 +11,7 @@ export interface IHostBindingPrivate<T> {
   onResolve: THostBindingOnResolve<T>;
   options: IHostBindingOptionsStrict;
   templateFunction: TTemplateRawFunction;
-  nodeToResolvePromiseWeakMap: WeakMap<Element, Promise<void>>;
+  nodeToResolvePromiseWeakMap: WeakMap<HTMLElement, Promise<void>>;
 }
 
 export interface IHostBindingPrivatesInternal<T> {

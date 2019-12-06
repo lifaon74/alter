@@ -25,7 +25,7 @@ export function Attribute(options: IAttributeOptions): PropertyDecorator {
   ): void | PropertyDescriptor => {
 
     if (typeof propertyKey !== 'string') {
-      throw new SyntaxError(`Expected string property`);
+      throw new TypeError(`Expected string property`);
     } else if (!IsCamelCase(propertyKey)) {
       throw new SyntaxError(`Expected camel case property`);
     }
