@@ -5,6 +5,7 @@ import { debugComponents } from './debug/debug-component/debug-components';
 import { debugDateFormatPipe } from '../side/localization/date/debug';
 import { debugNumberFormatPipe } from '../side/localization/number/debug';
 import { debugTranslatePipe, debugTranslateService } from '../side/localization/translate/debug';
+import { debugDataProxy } from '../side/data-proxy/data-proxy';
 
 
 
@@ -16,5 +17,6 @@ export async function test() {
   // await debugDateFormatPipe();
   // await debugNumberFormatPipe();
   // await debugTranslateService();
-  await debugTranslatePipe();
+  // await debugTranslatePipe();
+  await debugDataProxy();
 }
