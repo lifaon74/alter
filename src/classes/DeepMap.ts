@@ -1,51 +1,65 @@
+/** INTERFACES **/
 
-export interface IDeepMap<T> {
+export interface IDeepMap<TKeys extends any[], TValue> {
   readonly size: number;
   readonly empty: boolean;
 
-  set(keys: any[], value: T): this;
-  get(keys: any[]): T | undefined;
-  has(keys: any[]): boolean;
-  delete(keys: any[]): boolean;
+  set(keys: TKeys, value: TValue): this;
+  get(keys: TKeys): TValue | undefined;
+  has(keys: TKeys): boolean;
+  delete(keys: TKeys): boolean;
+  clear(keys?: any[]): boolean;
 
-  entries(): IterableIterator<[any[], T]>;
-  keys(): IterableIterator<any[]>;
-  values(): IterableIterator<T>;
-  [Symbol.iterator](): IterableIterator<[any[], T]>;
-  forEach(callback: (entry: T, key: any[], map: this) => void): void;
+  entries(): Generator<[TKeys, TValue]>;
+  keys(): Generator<TKeys>;
+  values(): Generator<TValue>;
+  [Symbol.iterator](): Generator<[TKeys, TValue]>;
+  forEach(callback: (entry: TValue, key: TKeys, map: this) => void): void;
 }
 
+
+/** PRIVATES **/
 
 export const DEEP_MAP_PRIVATE = Symbol('deep-map-private');
 
-export interface IDeepMapPrivate<T> {
+export interface IDeepMapPrivate<TKeys extends any[], TValue> {
   map: Map<any, any>;
 }
 
-export interface IDeepMapInternal<T> extends IDeepMap<T> {
-  [DEEP_MAP_PRIVATE]: IDeepMapPrivate<T>;
+export interface IDeepMapPrivatesInternal<TKeys extends any[], TValue> {
+  [DEEP_MAP_PRIVATE]: IDeepMapPrivate<TKeys, TValue>;
 }
 
-export function ConstructDeepMap<T>(map: IDeepMap<T>): void {
-  Object.defineProperty(map, DEEP_MAP_PRIVATE, {
+export interface IDeepMapInternal<TKeys extends any[], TValue> extends IDeepMapPrivatesInternal<TKeys, TValue>, IDeepMap<TKeys, TValue> {
+}
+
+/** CONSTRUCTOR **/
+
+export function ConstructDeepMap<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>): void {
+  Object.defineProperty(instance, DEEP_MAP_PRIVATE, {
     value: {},
     configurable: false,
     writable: false,
     enumerable: false,
   });
 
-  (map as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map = new Map<any, any>();
+  (instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map = new Map<any, any>();
 }
 
+/** METHODS **/
 
-export function DeepMapSize(map: Map<any, any>): number {
+export function DeepMapSize<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>): number {
+  return DeepMapInternalSize((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map);
+}
+
+function DeepMapInternalSize(map: Map<any, any>): number {
   const iterator: IterableIterator<any> = map.values();
   let entry: IteratorResult<any>;
   let size: number = 0;
 
   while (!(entry = iterator.next()).done) {
     if (entry.value instanceof Map) {
-      size += DeepMapSize(entry.value);
+      size += DeepMapInternalSize(entry.value);
     } else {
       size++;
     }
@@ -54,13 +68,18 @@ export function DeepMapSize(map: Map<any, any>): number {
   return size;
 }
 
-export function DeepMapIsEmpty(map: Map<any, any>): boolean {
+
+export function DeepMapInternalEmpty<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>): boolean {
+  return DeepMapInternalIsEmpty((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map);
+}
+
+export function DeepMapInternalIsEmpty(map: Map<any, any>): boolean {
   const iterator: IterableIterator<any> = map.values();
   let entry: IteratorResult<any>;
 
   while (!(entry = iterator.next()).done) {
     if (entry.value instanceof Map) {
-      if (!DeepMapIsEmpty(entry.value)) {
+      if (!DeepMapInternalIsEmpty(entry.value)) {
         return false;
       }
     } else {
@@ -72,7 +91,11 @@ export function DeepMapIsEmpty(map: Map<any, any>): boolean {
 }
 
 
-export function DeepMapSet<T>(map: Map<any, any>, keys: any[], value: T): void {
+export function DeepMapSet<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>, keys: TKeys, value: TValue): void {
+  return DeepMapInternalSet<TKeys, TValue>((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map, keys, value);
+}
+
+export function DeepMapInternalSet<TKeys extends any[], TValue>(map: Map<any, any>, keys: TKeys, value: TValue): void {
   let entry: any, _entry: any;
   let i: number = 0;
   let key: any;
@@ -110,7 +133,12 @@ export function DeepMapSet<T>(map: Map<any, any>, keys: any[], value: T): void {
   }
 }
 
-export function DeepMapGet<T>(map: Map<any, any>, keys: any[]): T | undefined {
+
+export function DeepMapGet<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>, keys: TKeys): TValue | undefined {
+  return DeepMapInternalGet<TKeys, TValue>((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map, keys);
+}
+
+export function DeepMapInternalGet<TKeys extends any[], TValue>(map: Map<any, any>, keys: TKeys): TValue | undefined {
   let entry: any;
   let i: number = 0;
   let arg: any;
@@ -134,7 +162,12 @@ export function DeepMapGet<T>(map: Map<any, any>, keys: any[]): T | undefined {
   }
 }
 
-export function DeepMapHas(map: Map<any, any>, keys: any[]): boolean {
+
+export function DeepMapHas<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>, keys: TKeys): boolean {
+  return DeepMapInternalHas<TKeys>((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map, keys);
+}
+
+export function DeepMapInternalHas<TKeys extends any[]>(map: Map<any, any>, keys: TKeys): boolean {
   let entry: any;
   let i: number = 0;
   let arg: any;
@@ -156,7 +189,12 @@ export function DeepMapHas(map: Map<any, any>, keys: any[]): boolean {
   }
 }
 
-export function DeepMapDelete(map: Map<any, any>, keys: any[]): boolean {
+
+export function DeepMapDelete<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>, keys: TKeys): boolean {
+  return DeepMapInternalDelete<TKeys>((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map, keys);
+}
+
+export function DeepMapInternalDelete<TKeys extends any[]>(map: Map<any, any>, keys: TKeys): boolean {
   let entry: any;
   let i: number = 0;
   let arg: any;
@@ -180,7 +218,11 @@ export function DeepMapDelete(map: Map<any, any>, keys: any[]): boolean {
 }
 
 
-export function DeepMapClear(map: Map<any, any>, keys: any[] = []): boolean {
+export function DeepMapClear<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>, keys?: any[]): boolean {
+  return DeepMapInternalClear((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map, keys);
+}
+
+export function DeepMapInternalClear(map: Map<any, any>, keys: any[] = []): boolean {
   if (keys.length === 0) {
     map.clear();
     return true;
@@ -215,40 +257,45 @@ export function DeepMapClear(map: Map<any, any>, keys: any[] = []): boolean {
   }
 }
 
-export function DeepMapGetPartialOld(map: Map<any, any>, keys: any[]): Map<any, any> | any | undefined {
-  if (keys.length === 0) {
-    return map;
-  } else {
-    let entry: any;
-    let i: number = 0;
-    let arg: any;
-    const length: number = keys.length;
-    const lengthMinusOne: number = length - 1;
 
-    while (true) {
-      arg = (i < length) ? keys[i] : void 0;
-      if (map.has(arg)) {
-        entry = map.get(arg);
-        if (entry instanceof Map) {
-          if (i < lengthMinusOne) {
-            map = entry;
-            i++;
-          } else {
-            return entry;
-          }
-        } else {
-          return (i < length)
-            ? entry
-            : void 0;
-        }
-      } else {
-        return void 0;
-      }
-    }
-  }
+// export function DeepMapGetPartialOld(map: Map<any, any>, keys: TKeys): Map<any, any> | any | undefined {
+//   if (keys.length === 0) {
+//     return map;
+//   } else {
+//     let entry: any;
+//     let i: number = 0;
+//     let arg: any;
+//     const length: number = keys.length;
+//     const lengthMinusOne: number = length - 1;
+//
+//     while (true) {
+//       arg = (i < length) ? keys[i] : void 0;
+//       if (map.has(arg)) {
+//         entry = map.get(arg);
+//         if (entry instanceof Map) {
+//           if (i < lengthMinusOne) {
+//             map = entry;
+//             i++;
+//           } else {
+//             return entry;
+//           }
+//         } else {
+//           return (i < length)
+//             ? entry
+//             : void 0;
+//         }
+//       } else {
+//         return void 0;
+//       }
+//     }
+//   }
+// }
+
+export function DeepMapGetPartial<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>, keys: any[]): Map<any, any> | any | undefined {
+  return DeepMapInternalGetPartial((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map, keys);
 }
 
-export function DeepMapGetPartial(map: Map<any, any>, keys: any[]): Map<any, any> | any | undefined {
+export function DeepMapInternalGetPartial(map: Map<any, any>, keys: any[]): Map<any, any> | any | undefined {
   let key: any;
   for (let i = 0, l = keys.length; i < l; i++) {
     key = keys[i];
@@ -262,7 +309,12 @@ export function DeepMapGetPartial(map: Map<any, any>, keys: any[]): Map<any, any
   return map;
 }
 
-export function * DeepMapEntries<T>(map: Map<any, any>, keys: any[] = []): IterableIterator<[any[], T]> {
+
+export function DeepMapEntries<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>): Generator<[TKeys, TValue]> {
+  return DeepMapInternalEntries<TKeys, TValue>((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map);
+}
+
+export function * DeepMapInternalEntries<TKeys extends any[], TValue>(map: Map<any, any>, keys: any[] = []): Generator<[TKeys, TValue]> {
   const iterator: IterableIterator<[any, any]> = map.entries();
   let entry: IteratorResult<[any, any]>;
   let value: any;
@@ -271,17 +323,22 @@ export function * DeepMapEntries<T>(map: Map<any, any>, keys: any[] = []): Itera
     value = entry.value[1];
     const _keys: any[] = keys.concat([entry.value[0]]);
     if (value instanceof Map) {
-      yield * DeepMapEntries(value, _keys) as any;
+      yield * DeepMapInternalEntries(value, _keys) as any;
     } else {
       while ((_keys.length > 0) && (_keys[_keys.length - 1] === void 0)) {
         _keys.pop();
       }
-      yield [_keys, value];
+      yield [_keys as TKeys, value];
     }
   }
 }
 
-export function* DeepMapKeys(map: Map<any, any>, keys: any[] = []): IterableIterator<any[]> {
+
+export function DeepMapKeys<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>): Generator<TKeys> {
+  return DeepMapInternalKeys<TKeys>((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map);
+}
+
+export function * DeepMapInternalKeys<TKeys extends any[]>(map: Map<any, any>, keys: any[] = []): Generator<TKeys> {
   const iterator: IterableIterator<[any, any]> = map.entries();
   let entry: IteratorResult<[any, any]>;
   let value: any;
@@ -290,23 +347,28 @@ export function* DeepMapKeys(map: Map<any, any>, keys: any[] = []): IterableIter
     value = entry.value[1];
     const _keys: any[] = keys.concat([entry.value[0]]);
     if (value instanceof Map) {
-      yield* DeepMapKeys(value, _keys) as any;
+      yield * DeepMapInternalKeys(value, _keys) as any;
     } else {
       while ((_keys.length > 0) && (_keys[_keys.length - 1] === void 0)) {
         _keys.pop();
       }
-      yield _keys;
+      yield _keys as TKeys;
     }
   }
 }
 
-export function* DeepMapValues<T>(map: Map<any, any>): IterableIterator<T> {
+
+export function DeepMapValues<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>): Generator<TValue> {
+  return DeepMapInternalValues<TValue>((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map);
+}
+
+export function * DeepMapInternalValues<TValue>(map: Map<any, any>): Generator<TValue> {
   const iterator: IterableIterator<any> = map.values();
-  let entry: IteratorResult<T>;
+  let entry: IteratorResult<any>;
 
   while (!(entry = iterator.next()).done) {
     if (entry.value instanceof Map) {
-      yield* DeepMapValues(entry.value) as any;
+      yield * DeepMapInternalValues(entry.value) as any;
     } else {
       yield entry.value;
     }
@@ -314,8 +376,24 @@ export function* DeepMapValues<T>(map: Map<any, any>): IterableIterator<T> {
 }
 
 
-export function DeepMapForEach<T>(map: Map<any, any>, callback: (entry: T, key: any[], map: any) => void, thisArg: any = map): void {
-  const iterator: IterableIterator<[any, any]> = DeepMapEntries<T>(map);
+export function DeepMapForEach<TKeys extends any[], TValue>(
+  instance: IDeepMap<TKeys, TValue>,
+  callback: (entry: TValue, key: TKeys, map: any) => void,
+  thisArg: any = instance
+): void {
+  return DeepMapInternalForEach<TKeys, TValue>(
+    (instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map,
+    callback,
+    thisArg,
+  );
+}
+
+export function DeepMapInternalForEach<TKeys extends any[], TValue>(
+  map: Map<any, any>,
+  callback: (entry: TValue, key: TKeys, map: any) => void,
+  thisArg: any
+): void {
+  const iterator: Generator<[any, any]> = DeepMapInternalEntries<TKeys, TValue>(map);
   let entry: IteratorResult<[any, any]>;
   while (!(entry = iterator.next()).done) {
     callback.call(thisArg, entry.value[1], entry.value[0], thisArg);
@@ -323,10 +401,14 @@ export function DeepMapForEach<T>(map: Map<any, any>, callback: (entry: T, key: 
 }
 
 
-export function DeepMapCompact(map: Map<any, any>): void {
+export function DeepMapCompact<TKeys extends any[], TValue>(instance: IDeepMap<TKeys, TValue>): void {
+  return DeepMapInternalCompact((instance as IDeepMapInternal<TKeys, TValue>)[DEEP_MAP_PRIVATE].map);
+}
+
+export function DeepMapInternalCompact(map: Map<any, any>): void {
   map.forEach((entry: any, key: any) => {
     if (entry instanceof Map) {
-      DeepMapCompact(entry);
+      DeepMapInternalCompact(entry);
       if (entry.size === 0) {
         map.delete(key);
       }
@@ -335,28 +417,29 @@ export function DeepMapCompact(map: Map<any, any>): void {
 }
 
 
+/** CLASS **/
 
 /**
  * DeepMap is a Map which accept many keys as key
  */
-export class DeepMap<T> implements IDeepMap<T> {
+export class DeepMap<TKeys extends any[], TValue> implements IDeepMap<TKeys, TValue> {
 
   constructor() {
-    ConstructDeepMap(this);
+    ConstructDeepMap<TKeys, TValue>(this);
   }
 
   /**
    * Returns the number of entries in this map.
    */
   get size(): number {
-    return DeepMapSize(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
+    return DeepMapSize<TKeys, TValue>(this);
   }
 
   /**
    * Returns false if this map contains some entries.
    */
   get empty(): boolean {
-    return DeepMapIsEmpty(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
+    return DeepMapInternalEmpty<TKeys, TValue>(this);
   }
 
   /**
@@ -364,8 +447,8 @@ export class DeepMap<T> implements IDeepMap<T> {
    * @param keys
    * @param value
    */
-  set(keys: any[], value: T): this {
-    DeepMapSet<T>(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map, keys, value);
+  set(keys: TKeys, value: TValue): this {
+    DeepMapSet<TKeys, TValue>(this, keys, value);
     return this;
   }
 
@@ -373,61 +456,61 @@ export class DeepMap<T> implements IDeepMap<T> {
    * Gets the value associated with a key composed of the 'keys' elements.
    * @param keys
    */
-  get(keys: any[]): T | undefined {
-    return DeepMapGet<T>(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map, keys);
+  get(keys: TKeys): TValue | undefined {
+    return DeepMapGet<TKeys, TValue>(this, keys);
   }
 
   /**
    * Returns true if a values has been set with this key.
    * @param keys
    */
-  has(keys: any[]): boolean {
-    return DeepMapHas(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map, keys);
+  has(keys: TKeys): boolean {
+    return DeepMapHas<TKeys, TValue>(this, keys);
   }
 
   /**
    * Removes any value associated with this key.
    * @param keys
    */
-  delete(keys: any[]): boolean {
-    return DeepMapDelete(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map, keys);
+  delete(keys: TKeys): boolean {
+    return DeepMapDelete<TKeys, TValue>(this, keys);
   }
 
   /**
    * Removes all entries.
    */
-  clear(keys: any[] = []): boolean {
-    return DeepMapClear(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map, keys);
+  clear(keys?: any[]): boolean {
+    return DeepMapClear<TKeys, TValue>(this, keys);
   }
 
   /**
    * Returns a iterable over the list of entries [key, value]
    */
-  entries(): IterableIterator<[any[], T]> {
-    return DeepMapEntries(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
+  entries(): Generator<[TKeys, TValue]> {
+    return DeepMapEntries<TKeys, TValue>(this);
   }
 
-  keys(): IterableIterator<any[]> {
-    return DeepMapKeys(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
+  keys(): Generator<TKeys> {
+    return DeepMapKeys<TKeys, TValue>(this);
   }
 
-  values(): IterableIterator<T> {
-    return DeepMapValues(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
+  values(): Generator<TValue> {
+    return DeepMapValues<TKeys, TValue>(this);
   }
 
-  [Symbol.iterator](): IterableIterator<[any[], T]> {
-    return DeepMapEntries(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
+  [Symbol.iterator](): Generator<[TKeys, TValue]> {
+    return DeepMapEntries<TKeys, TValue>(this);
   }
 
-  forEach(callback: (entry: T, key: any[], map: this) => void): void {
-    return DeepMapForEach<T>(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map, callback, this);
+  forEach(callback: (entry: TValue, key: TKeys, map: this) => void): void {
+    return DeepMapForEach<TKeys, TValue>(this, callback, this);
   }
 
   /**
    * Removes unnecessary used space in this map.
    */
   compact(): void {
-    return DeepMapCompact(((this as unknown) as IDeepMapInternal<T>)[DEEP_MAP_PRIVATE].map);
+    return DeepMapCompact<TKeys, TValue>(this);
   }
 
 }
