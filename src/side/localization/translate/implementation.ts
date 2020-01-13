@@ -78,19 +78,19 @@ export function TranslateServiceSetStaticTranslations(
 export function TranslateServiceSetTranslationsFromLoader(
   instance: ITranslateService,
   locale: string,
-  signal: IAdvancedAbortSignal = new AdvancedAbortController().signal
+  signal?: IAdvancedAbortSignal
 ): ICancellablePromise<TTranslations> {
   const privates: ITranslateServicePrivate = (instance as ITranslateServiceInternal)[TRANSLATE_SERVICE_PRIVATE];
   if (privates.translationsLoaderCallback === null) {
-    return CancellablePromise.reject(new Error(`Translations loader missing`), signal) as unknown as ICancellablePromise<TTranslations>;
+    return CancellablePromise.reject(new Error(`Translations loader missing`), { signal }) as unknown as ICancellablePromise<TTranslations>;
   } else {
-    return new CancellablePromise(
+    return new CancellablePromise<TTranslations>(
       TranslateServiceSetTranslationsFromPromise(
         instance,
         locale,
         privates.translationsLoaderCallback(locale, signal)
       ),
-      signal
+      { signal }
     );
   }
 }
@@ -148,14 +148,14 @@ export function NormalizeTranslations(
 export function TranslateServiceGetTranslations(
   instance: ITranslateService,
   locale: string,
-  signal: IAdvancedAbortSignal = new AdvancedAbortController().signal
+  signal?: IAdvancedAbortSignal
 ): ICancellablePromise<TTranslations> {
   const privates: ITranslateServicePrivate = (instance as ITranslateServiceInternal)[TRANSLATE_SERVICE_PRIVATE];
   if (privates.translations.has(locale)) {
-    return new CancellablePromise(privates.translations.get(locale) as Promise<TTranslations>, signal);
+    return new CancellablePromise<TTranslations>(privates.translations.get(locale) as Promise<TTranslations>, { signal });
   } else {
     if (privates.translationsLoaderCallback === null) {
-      return CancellablePromise.reject(new Error(`Translations missing for '${ locale }'`), signal) as unknown as ICancellablePromise<TTranslations>;
+      return CancellablePromise.reject(new Error(`Translations missing for '${ locale }'`), { signal }) as unknown as ICancellablePromise<TTranslations>;
     } else {
       return TranslateServiceSetTranslationsFromLoader(instance, locale);
     }

@@ -13,7 +13,7 @@ export function FetchTranslation(
   signal: IAdvancedAbortSignal = new AdvancedAbortController().signal
 ): ICancellablePromise<TTranslations> {
   url = url.replace(/\{\{ *locale *\}\}/g, locale);
-  return CancellablePromise.fetch(url, void 0, signal)
+  return CancellablePromise.fetch(url, void 0, { signal })
     .then((response: Response) => {
       if (response.ok) {
         return response.json();
