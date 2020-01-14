@@ -1,9 +1,14 @@
 import {
   Expression, INotificationsObservable, INotificationsObservableContext, INotificationsObserver, IObservable, IObserver,
-  IsNotificationsObserver, NotificationsObservable
+  IReadonlyList,
+  IsNotificationsObserver, NotificationsObservable, Observer, ReadonlyList
 } from '@lifaon/observables';
 import { GetPropertyDescriptor } from '../../misc/helpers/object-helpers';
-import { debugObjectPropertiesObservable } from './object-properties-observable/implementation';
+import {
+  debugObjectPropertiesObservable, ObjectPropertiesObservable
+} from './object-properties-observable/implementation';
+import { PatchArrayProxy } from './object-properties-observable/functions';
+import { debugObjectDeepPropertiesObservable } from './deep/object-deep-properties-observable/implementation';
 
 /**
  * INFO: 'get' properties (getter like array.length) cant be observed except by using Expression, because they may change at any time
@@ -14,17 +19,6 @@ import { debugObjectPropertiesObservable } from './object-properties-observable/
 
 // IDEA create a function able to shorten object's property path in case of shared reference
 // => no feasible
-
-export function IsArrayIndex(propertyName: PropertyKey): number {
-  if (typeof propertyName === 'symbol') {
-    return -1;
-  } else if (typeof propertyName === 'string') {
-    propertyName = Number(propertyName);
-  }
-
-  return (Number.isInteger(propertyName) && (propertyName >= 0)) ? propertyName : -1;
-}
-
 
 /*-------------------*/
 
@@ -45,28 +39,6 @@ export interface IResolvedProperty {
   observer?: IObserver<any>; // an observer observing a dynamic value
 }
 
-
-export function PatchArrayProxy(target: any[], propertyKey: PropertyKey, value: any, receiver: any[]): void {
-  if (propertyKey === 'length') {
-    if (value > target.length) {
-      for (let i = target.length; i < value; i++) {
-        receiver[i] = void 0;
-      }
-    } else if (value < target.length) {
-      for (let i = value; i < target.length; i++) {
-        delete receiver[i];
-      }
-    }
-    // for (let i = Math.min(target.length, value), l = Math.max(target.length, value); i < l; i++) {
-    //   receiver[i] = void 0;
-    // }
-  } else {
-    const index: number = IsArrayIndex(propertyKey);
-    for (let i = target.length; i < index; i++) {
-      receiver[i] = void 0;
-    }
-  }
-}
 
 // --> CURRENT BEST SOLUTION
 /**
@@ -281,4 +253,5 @@ export class ObjectObserver<TObject extends object> {
 export async function debugDataProxy() {
   // await debugObjectProxyObservable();
   await debugObjectPropertiesObservable();
+  // await debugObjectDeepPropertiesObservable();
 }

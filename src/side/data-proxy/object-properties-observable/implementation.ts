@@ -1,17 +1,19 @@
 import { Expression, IObservableContext, IObserver, Observable } from '@lifaon/observables';
 import { TObjectToObjectProperties, TObjectToObjectPropertyObservers } from './types';
-import { IObjectPropertiesObservable } from './interfaces';
+import {
+  IObjectPropertiesObservable, IObjectPropertiesObservableConstructor, IObjectPropertiesObservablePrivateConstructor
+} from './interfaces';
 import { IObjectProperty } from '../object-property/interfaces';
 import { ObjectProperty } from '../object-property/implementation';
 import { IObserverInternal, OBSERVER_PRIVATE } from '@lifaon/observables/src/core/observer/privates';
 import { IsObjectPropertyObserver, ObjectPropertyObserver } from '../object-property-observer/implementation';
 import { IObjectPropertyObserver } from '../object-property-observer/interfaces';
-import { IObserverPrivatesInternal } from '@lifaon/observables/types/core/observer/privates';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { PatchArrayProxy } from '../data-proxy';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
 import { NormalizePropertyKey, TNormalizedPropertyKey } from '../normalize-property-key';
 import { GetPropertyDescriptor } from '../../../misc/helpers/object-helpers';
+import { PatchArrayProxy } from './functions';
+import { IObservablePrivatesInternal } from '@lifaon/observables/types/core/observable/privates';
 
 
 export interface IResolvedProperty<TObject extends object> {
@@ -20,6 +22,7 @@ export interface IResolvedProperty<TObject extends object> {
   dynamicObserver?: IObserver<any>; // an observer observing a dynamic value
 }
 
+const OBJECT_TO_OBJECT_PROPERTIES_OBSERVABLE_MAP = new WeakMap<object, IObjectPropertiesObservable<any>>();
 
 /** PRIVATES **/
 
@@ -34,7 +37,7 @@ export interface IObjectPropertiesObservablePrivate<TObject extends object> {
   othersObservers: IObserver<TObjectToObjectProperties<TObject>>[]; // observers which are not of type IObjectPropertyObserver
 }
 
-export interface IObjectPropertiesObservablePrivatesInternal<TObject extends object> extends IObserverPrivatesInternal<boolean> {
+export interface IObjectPropertiesObservablePrivatesInternal<TObject extends object> extends IObservablePrivatesInternal<TObjectToObjectProperties<TObject>> {
   [OBJECT_PROPERTIES_OBSERVABLE_PRIVATE]: IObjectPropertiesObservablePrivate<TObject>;
 }
 
@@ -53,6 +56,12 @@ export function ConstructObjectPropertiesObservable<TObject extends object>(
 
   if (!IsObject(object)) {
     throw new TypeError(`Expected object as input`);
+  }
+
+  if (OBJECT_TO_OBJECT_PROPERTIES_OBSERVABLE_MAP.has(object)) {
+    throw new TypeError(`Object already bound with another ObjectPropertiesObservable`);
+  } else {
+    OBJECT_TO_OBJECT_PROPERTIES_OBSERVABLE_MAP.set(object, instance);
   }
 
   privates.context = context;
@@ -107,7 +116,9 @@ export function ObjectPropertiesObservableOnObserved<TObject extends object>(
 
       resolvedProperty = {
         observers: [],
-        dynamic: ((descriptor !== void 0) && ((typeof descriptor.get === 'function') || descriptor.hasOwnProperty('value'))), // INFO: a value descriptor may change at any time
+        dynamic: ((descriptor !== void 0) && ((typeof descriptor.get === 'function') || (descriptor.hasOwnProperty('value') && !descriptor.configurable && !descriptor.enumerable))),
+        // INFO: the array's length descriptor is pretty strange: it's a value descriptor which changes without a 'set' on the array's 'length' property.
+        // it is roughly detected by checking it is a value non configurable descriptor
       };
 
       privates.propertyObserversMap.set(key, resolvedProperty);
@@ -194,10 +205,38 @@ export function ObjectPropertiesObservableGetProxy<TObject extends object>(insta
   return (instance as IObjectPropertiesObservableInternal<TObject>)[OBJECT_PROPERTIES_OBSERVABLE_PRIVATE].proxy;
 }
 
+/* METHODS */
+
+export function ObjectPropertiesObservableObserveProperty<TObject extends object, TKey extends keyof TObject>(
+  instance: IObjectPropertiesObservable<TObject>,
+  key: TKey,
+  callback: (value: TObject[TKey]) => void
+): IObjectPropertyObserver<TKey, TObject[TKey]> {
+  return new ObjectPropertyObserver<TKey, TObject[TKey]>(key, callback).observe(instance);
+}
+
+/* STATIC */
+
+
+export function ObjectPropertiesObservableStaticOf<TObject extends object>(
+  constructor: IObjectPropertiesObservableConstructor,
+  object: TObject
+): IObjectPropertiesObservable<TObject> {
+  return OBJECT_TO_OBJECT_PROPERTIES_OBSERVABLE_MAP.has(object)
+    ? OBJECT_TO_OBJECT_PROPERTIES_OBSERVABLE_MAP.get(object) as IObjectPropertiesObservable<TObject>
+    : new (constructor as IObjectPropertiesObservablePrivateConstructor)<TObject>(object);
+
+}
+
 /** CLASS **/
 
 export class ObjectPropertiesObservable<TObject extends object> extends Observable<TObjectToObjectProperties<TObject>> implements IObjectPropertiesObservable<TObject> {
-  constructor(object: TObject) {
+
+  static of<TObject extends object>(object: TObject): IObjectPropertiesObservable<TObject> {
+    return ObjectPropertiesObservableStaticOf<TObject>(this, object);
+  }
+
+  protected constructor(object: TObject) {
     let context: IObservableContext<TObjectToObjectProperties<TObject>>;
 
     super((_context: IObservableContext<TObjectToObjectProperties<TObject>>) => {
@@ -221,11 +260,9 @@ export class ObjectPropertiesObservable<TObject extends object> extends Observab
   }
 
   observeProperty<TKey extends keyof TObject>(key: TKey, callback: (value: TObject[TKey]) => void): IObjectPropertyObserver<TKey, TObject[TKey]> {
-    // TODO extract
-    return new ObjectPropertyObserver<TKey, TObject[TKey]>(key, callback).observe(this);
+    return ObjectPropertiesObservableObserveProperty<TObject, TKey>(this, key, callback);
   }
 }
-
 
 
 /*-----------------------*/
@@ -239,7 +276,7 @@ export class ObjectPropertiesObservable<TObject extends object> extends Observab
 export async function debugObjectPropertiesObservable() {
   const array = [0, 1, 2];
 
-  const observable = new ObjectPropertiesObservable(array);
+  const observable = ObjectPropertiesObservable.of(array);
 
   observable.observeProperty(0, (value: number) => {
     console.log('0 changed =>', value);
