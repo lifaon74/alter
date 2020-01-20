@@ -1,4 +1,4 @@
-import { ITemplateBuildOptions, ITemplateBuildOptionsStrict } from '../../template/interfaces';
+import { ITemplateBuildOptions, INormalizedTemplateBuildOptions } from '../../template/interfaces';
 import { IObservable, IObserver, TPromiseOrValue } from '@lifaon/observables';
 
 /** TYPES **/
@@ -12,5 +12,5 @@ export type THostBindingOnResolve<T> = (node: HTMLElement) => THostBindingOnReso
 export interface IHostBindingOptions extends ITemplateBuildOptions {
 }
 
-export interface IHostBindingOptionsStrict extends ITemplateBuildOptionsStrict {
+export interface IHostBindingOptionsStrict extends INormalizedTemplateBuildOptions {
 }

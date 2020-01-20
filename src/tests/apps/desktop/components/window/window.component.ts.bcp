@@ -1,0 +1,429 @@
+
+import { Component } from '../../../../../core/component/component/class/decorator';
+import { Template } from '../../../../../core/template/implementation';
+import { Style } from '../../../../../core/style/implementation';
+import { IComponent } from '../../../../../core/component/component/interfaces';
+import { OnCreate, OnDestroy, OnInit } from '../../../../../core/component/component/implements';
+import { IComponentContext } from '../../../../../core/component/component/context/interfaces';
+import { Activable, CancellableContext, ICancellableContext } from '@lifaon/observables';
+import { IDragObject } from '../../../../../misc/drag-observable/types';
+import { DragObservable } from '../../../../../misc/drag-observable/implementation';
+import { DESKTOP_TEMPLATE_BUILD_OPTIONS } from '../template-build-options';
+import { translateService } from '../../../../../side/localization/translate/implementation';
+import { Input } from '../../../../../core/component/input/decorator';
+
+// function NormalizePosition(
+//   position: number,
+//   oppositePosition: number,
+//   minSpacing: number
+// ): number {
+//   return Math.min(position, 1 - oppositePosition - minSpacing);
+// }
+
+type TPositionOrigin = 'left' | 'right' | 'top' | 'bottom';
+
+function GetOppositePositionOrigin(origin: TPositionOrigin): TPositionOrigin {
+  switch (origin) {
+    case 'left':
+      return 'right';
+    case 'right':
+      return 'left';
+    case 'top':
+      return 'bottom';
+    case 'bottom':
+      return 'top';
+    default:
+      throw new TypeError(`Expected TPositionOrigin as origin`);
+  }
+}
+
+
+/*---------------------*/
+
+function QuerySelectorOrThrow<E extends Element>(target: Element, selector: string): E {
+  const element: E | null = target.querySelector<E>(selector);
+  if (element === null) {
+    throw new Error(`QuerySelector failed to retrieve: '${ selector }'`);
+  } else {
+    return element;
+  }
+}
+
+function ParentElementOrThrow<E extends Element>(target: Element): E {
+  if (target.parentElement === null) {
+    throw new Error(`Element <${ target.tagName }> should have a parent element`);
+  } else {
+    return target.parentElement as Element as E;
+  }
+}
+
+/*---------------------*/
+
+function AppWindowComponentRegisterResize(instance: AppWindowComponent, horizontalPosition: 'left' | 'center' | 'right', verticalPosition: 'top' | 'center' | 'bottom'): void {
+  (instance as any)._context.registerActivable(`${ verticalPosition }.${ horizontalPosition }-resize-listener`, () => {
+    let elementPositionX: number;
+    let elementPositionY: number;
+
+    const dragObservable = new DragObservable(QuerySelectorOrThrow<HTMLDivElement>(instance, `:scope > .resize.${ verticalPosition }.${ horizontalPosition }`))
+      .on('drag-start', () => {
+        elementPositionX = (horizontalPosition === 'left')
+          ? instance.left
+          : (
+            (horizontalPosition === 'center')
+              ? 0
+              : instance.right
+          );
+        elementPositionY = (verticalPosition === 'top')
+          ? instance.top
+          : (
+            (verticalPosition === 'center')
+              ? 0
+              : instance.bottom
+          );
+      })
+      .on('drag-move', (drag: IDragObject) => {
+        const parentElement: HTMLElement = ParentElementOrThrow(instance);
+        const ratioX: number = (drag.delta.x / parentElement.offsetWidth);
+        const ratioY: number = (drag.delta.y / parentElement.offsetHeight);
+
+        if (horizontalPosition === 'left') {
+          instance.left = ratioX + elementPositionX;
+        } else if (horizontalPosition === 'right') {
+          instance.right = -ratioX + elementPositionX;
+        }
+
+        if (verticalPosition === 'top') {
+          instance.top = ratioY + elementPositionY;
+        } else if (verticalPosition === 'bottom') {
+          instance.bottom = -ratioY + elementPositionY;
+        }
+      });
+
+    return new Activable({
+      activate(): PromiseLike<void> | void {
+      },
+      deactivate(): PromiseLike<void> | void {
+        dragObservable.clearObservers();
+      }
+    });
+  });
+}
+
+function AppWindowComponentRegisterMove(instance: AppWindowComponent): void {
+  (instance as any)._context.registerActivable(`window-move-listener`, () => {
+    let elementPositionX: number;
+    let elementPositionY: number;
+
+    const dragObservable = new DragObservable(QuerySelectorOrThrow<HTMLDivElement>(instance, ':scope > .frame > .header'))
+      .on('drag-start', () => {
+        elementPositionX = instance.left;
+        elementPositionY = instance.top;
+      })
+      .on('drag-move', (drag: IDragObject) => {
+        const parentElement: HTMLElement = ParentElementOrThrow(instance);
+        const ratioX: number = (drag.delta.x / parentElement.offsetWidth);
+        const ratioY: number = (drag.delta.y / parentElement.offsetHeight);
+
+        instance.left = ratioX + elementPositionX;
+        instance.top = ratioY + elementPositionY;
+      });
+
+    return new Activable({
+      activate(): PromiseLike<void> | void {
+      },
+      deactivate(): PromiseLike<void> | void {
+        dragObservable.clearObservers();
+      }
+    });
+  });
+}
+
+
+// function AppWindowComponentSetPosition(
+//   instance: AppWindowComponent,
+//   value: number,
+//   origin: TPositionOrigin,
+// ): void {
+//   const oppositeOrigin: TPositionOrigin = GetOppositePositionOrigin(origin);
+//   const normalizedPosition: number = NormalizePosition(value, instance[oppositeOrigin], 0.1);
+//   if (value !== instance[`_${ origin }`]) {
+//     instance[`_${ origin }`] = normalizedPosition;
+//     instance.style.setProperty(origin, `${ normalizedPosition * 100 }%`);
+//   }
+// }
+
+/*---------------------*/
+
+export interface IAppWindowComponentPosition {
+  left?: number;
+  right?: number;
+  top?: number;
+  bottom?: number;
+  leftAllowedToMoveRight?: boolean;
+  rightAllowedToMoveLeft?: boolean;
+}
+
+export type INormalizedAppWindowComponentPosition = Required<IAppWindowComponentPosition>;
+
+
+export function AppWindowComponentNormalizeOnePosition(
+  origin: TPositionOrigin,
+  position: number | undefined,
+  oppositePosition: number | undefined,
+  currentPosition: number,
+  currentOppositePosition: number,
+  minSpacing: number,
+  positionAllowedToMoveOppositePosition: boolean, // true if position should push 'oppositePosition' if not enough space. if false, oppositePosition may push on
+): [number, number] { // [position, oppositePosition]
+  let _position: number;
+  let _oppositePosition: number;
+
+  if (position === void 0) {
+    _position = currentPosition;
+  } else if (Number.isSafeInteger(position)) {
+    _position = position;
+  } else {
+    throw new TypeError(`Expected void or integer as options.${ origin }`);
+  }
+
+
+  if (oppositePosition === void 0) {
+    _oppositePosition = currentOppositePosition;
+  } else if (Number.isSafeInteger(oppositePosition)) {
+    _oppositePosition = oppositePosition;
+  } else {
+    throw new TypeError(`Expected void or integer as options.${ GetOppositePositionOrigin(origin) }`);
+  }
+
+  if (positionAllowedToMoveOppositePosition) {
+    _oppositePosition = Math.min(_oppositePosition, 1 - _position - minSpacing);
+  } else {
+    _position = Math.min(_position, 1 - _oppositePosition - minSpacing);
+  }
+  return [_position, _oppositePosition];
+}
+
+export function AppWindowComponentNormalizePosition(instance: AppWindowComponent, options: IAppWindowComponentPosition, minSpacing: number): INormalizedAppWindowComponentPosition {
+  // 'left' allowed to move 'right' only if:
+  // - 'left' is defined AND
+  //   - 'leftAllowedToMoveRight' is defined and true OR
+  //   - 'leftAllowedToMoveRight' is undefined AND 'rightAllowedToMoveLeft' is undefined or false
+  const leftAllowedToMoveRight: boolean = (options.left !== void 0) && (
+    (options.leftAllowedToMoveRight === void 0)
+      ? !options.rightAllowedToMoveLeft
+      : options.leftAllowedToMoveRight
+  );
+
+  // 'right' allowed to move 'left' only if:
+  // - 'right' is defined AND
+  // - 'leftAllowedToMoveRight' is false AND
+  //   - 'rightAllowedToMoveLeft' is defined and true OR
+  //   - 'rightAllowedToMoveLeft' is undefined
+  const rightAllowedToMoveLeft: boolean = !leftAllowedToMoveRight && (options.right !== void 0) && (
+    (options.rightAllowedToMoveLeft === void 0)
+      ? true
+      : options.rightAllowedToMoveLeft
+  );
+
+  // const rightAllowedToMoveLeft: boolean = (options.rightAllowedToMoveLeft === void 0)
+  //   ? ((options.right !== void 0) && !leftAllowedToMoveRight)
+  //   : options.rightAllowedToMoveLeft;
+
+  const [left, right]: [number, number] = AppWindowComponentNormalizeOnePosition('left', options.left, options.right, instance['_left'], instance['_right'], minSpacing, leftAllowedToMoveRight);
+  // const right: number = AppWindowComponentNormalizeOnePosition(position.right, 'right', instance['_right'], left, minSpacing);
+  // const top: number = AppWindowComponentNormalizeOnePosition(position.top, 'top', instance['_top'], instance['_bottom'], minSpacing);
+  // const bottom: number = AppWindowComponentNormalizeOnePosition(position.bottom, 'bottom', instance['_bottom'], top, minSpacing);
+
+  return {
+    left,
+    right,
+    top,
+    bottom,
+  };
+}
+
+/*---------------------*/
+
+
+export interface IData {
+  // percent: ISource<string>;
+}
+
+export interface IWindowTheme {
+  header?: {
+    backgroundColor?: string;
+  },
+  content?: {
+    backgroundColor?: string;
+  },
+}
+
+
+
+
+@Component({
+  name: 'app-desktop-window',
+  // @ts-ignore
+  template: Template.fromRelativeURL(import.meta.url, './window.component.html', DESKTOP_TEMPLATE_BUILD_OPTIONS),
+  // @ts-ignore
+  style: Style.fromRelativeURL(import.meta.url, './window.component.css')
+})
+export class AppWindowComponent extends HTMLElement implements IComponent<IData>, OnCreate<IData>, OnInit, OnDestroy {
+
+  @Input()
+  set theme(value: IWindowTheme) {
+    console.log('new theme', value);
+  }
+
+  protected _context: ICancellableContext;
+  protected _top: number;
+  protected _bottom: number;
+  protected _left: number;
+  protected _right: number;
+
+  protected context: IComponentContext<IData>;
+
+  constructor() {
+    super();
+    this._context = new CancellableContext();
+    this._top = -Number.POSITIVE_INFINITY;
+    this._bottom = -Number.POSITIVE_INFINITY;
+    this._left = -Number.POSITIVE_INFINITY;
+    this._right = -Number.POSITIVE_INFINITY;
+    this.top = 0.1;
+    this.bottom = 0.1;
+    this.left = 0.1;
+    this.right = 0.1;
+
+
+    translateService.setTranslations('en', {
+      "window-header-button-minimize": "Minimize",
+    });
+
+    translateService.setLocale('en');
+  }
+
+  // get width(): number {
+  //   return this._width;
+  // }
+  //
+  // set width(value: number) {
+  //   if (!Number.isSafeInteger(value)) {
+  //     throw new TypeError(`Expected integer value`);
+  //   } else if (value < 100) {
+  //     throw new RangeError(`Expected value greater or equal to 100`);
+  //   } else {
+  //     this._width = value;
+  //     this.style.setProperty('width', `${ this._width } px`);
+  //   }
+  // }
+  //
+  // get height(): number {
+  //   return this._height;
+  // }
+  //
+  // set height(value: number) {
+  //   if (!Number.isSafeInteger(value)) {
+  //     throw new TypeError(`Expected integer value`);
+  //   } else if (value < 100) {
+  //     throw new RangeError(`Expected value greater or equal to 100`);
+  //   } else {
+  //     this._height = value;
+  //     this.style.setProperty('height', `${ this._height } px`);
+  //   }
+  // }
+
+  get left(): number {
+    return this._left;
+  }
+
+  set left(value: number) {
+    AppWindowComponentSetPosition(this, value, 'left');
+  }
+
+
+  get right(): number {
+    return this._right;
+  }
+
+  set right(value: number) {
+    AppWindowComponentSetPosition(this, value, 'right');
+  }
+
+
+  get top(): number {
+    return this._top;
+  }
+
+  set top(value: number) {
+    AppWindowComponentSetPosition(this, value, 'top');
+  }
+
+
+  get bottom(): number {
+    return this._bottom;
+  }
+
+  set bottom(value: number) {
+    AppWindowComponentSetPosition(this, value, 'bottom');
+  }
+
+
+  get width(): number {
+    return 1 - this._left - this._right;
+  }
+
+  get height(): number {
+    return 1 - this._top - this._bottom;
+  }
+
+
+  setPosition(position: IAppWindowComponentPosition) {
+    const _position: INormalizedAppWindowComponentPosition = AppWindowComponentNormalizePosition(this, position, 0.1);
+
+    // if (value !== instance[`_${ origin }`]) {
+    //   instance[`_${ origin }`] = normalizedPosition;
+    //   instance.style.setProperty(origin, `${ normalizedPosition * 100 }%`);
+    // }
+    this._top = -Number.POSITIVE_INFINITY;
+    this._bottom = -Number.POSITIVE_INFINITY;
+    this._left = -Number.POSITIVE_INFINITY;
+    this._right = -Number.POSITIVE_INFINITY;
+  }
+
+  setWidthFromLeft(value: number): void {
+    this.right = 1 - this._left - value;
+  }
+
+  setLeftKeepingWidth(value: number): void {
+    // const width: number = this.width;
+    // this.left = value;
+  }
+
+  onCreate(context: IComponentContext<IData>): void {
+    this.context = context;
+    this.context.data = {
+      // percent: new Source<string>()
+    };
+  }
+
+  onInit(): void {
+    AppWindowComponentRegisterResize(this, 'left', 'top');
+    AppWindowComponentRegisterResize(this, 'left', 'center');
+    AppWindowComponentRegisterResize(this, 'left', 'bottom');
+
+    AppWindowComponentRegisterResize(this, 'right', 'top');
+    AppWindowComponentRegisterResize(this, 'right', 'center');
+    AppWindowComponentRegisterResize(this, 'right', 'bottom');
+
+    AppWindowComponentRegisterResize(this, 'center', 'top');
+    AppWindowComponentRegisterResize(this, 'center', 'bottom');
+
+    AppWindowComponentRegisterMove(this);
+  }
+
+  onDestroy(): void {
+    this._context.clearAll('destroyed');
+  }
+
+}

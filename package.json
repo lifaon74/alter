@@ -50,9 +50,10 @@
     "dev_browser": "npm-run-all clean_dev_browser watch_dev_browser",
     "watch_dev_browser": "npm-run-all -p tsc_watch_dev_browser serve_dev_browser",
     "tsc_watch_dev_browser": "tsc-watch -p ./tsconfig/tsconfig.dev.browser.json --onSuccess \"npm run build_dev_browser\"",
-    "build_dev_browser": "npm-run-all -p bundle_dev_browser copy_index_dev_browser",
+    "build_dev_browser": "npm-run-all -p bundle_dev_browser copy_html_dev_browser build_scss_dev_browser",
     "bundle_dev_browser": "node tools/bundle/make-umd-bundle-dev-browser.js",
-    "copy_index_dev_browser": "shx cp src/index.html dist/browser/index.html",
+    "copy_html_dev_browser": "node tools/copy-html-files.js browser",
+    "build_scss_dev_browser": "node tools/build-scss.js browser",
     "serve_dev_browser": " browser-sync start --config bs-config.js",
     "clean_dev_browser": "shx rm -rf ./dist/browser",
     "toc": "markdown-toc README.md"
@@ -65,15 +66,13 @@
   "author": "Valentin Richard",
   "license": "MIT",
   "access": "public",
-  "__devDependencies": {
-    "google-closure-compiler-js": "20170218.0.0"
-  },
   "devDependencies": {
     "@types/node": "latest",
     "browser-sync": "^2.26.7",
     "http-server": "^0.11.1",
     "markdown-toc": "^1.2.0",
     "mkdirp": "^0.5.1",
+    "node-sass": "^4.13.1",
     "npm-run-all": "^4.1.5",
     "rollup": "^1.21.1",
     "rollup-plugin-alias": "^2.0.0",

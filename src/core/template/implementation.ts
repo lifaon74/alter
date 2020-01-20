@@ -1,6 +1,6 @@
 import { AttachNode, DestroyChildNodes, DetachChildNodes } from '../custom-node/node-state-observable/mutations';
 import {
-  ITemplate, ITemplateBuildOptionsStrict, TTemplateDataType, TTemplateFunction, TTemplateRawFunction,
+  ITemplate, INormalizedTemplateBuildOptions, TTemplateDataType, TTemplateFunction, TTemplateRawFunction,
   TTemplateRequireFunction
 } from './interfaces';
 import { parseTemplate } from './generators/template-generator/parser';
@@ -90,7 +90,7 @@ export function TemplateCodeToTemplateDebuggableFunction(lines: string[]): TTemp
  */
 export function TemplateStringToTemplateInstance(
   template: string,
-  options: ITemplateBuildOptionsStrict,
+  options: INormalizedTemplateBuildOptions,
 ): ITemplate {
   return new Template((data: TTemplateDataType) => {
     return TemplateCodeToTemplateDebuggableFunction(
@@ -110,7 +110,7 @@ export function TemplateStringToTemplateInstance(
  */
 export function TemplateURLToTemplateInstance(
   url: string,
-  options: ITemplateBuildOptionsStrict,
+  options: INormalizedTemplateBuildOptions,
 ): Promise<ITemplate> {
   return fetch(url)
     .then((response: Response) => {
@@ -128,7 +128,7 @@ export function TemplateURLToTemplateInstance(
 /**
  * Parses and converts a template string fetched from an url, built from the current module's url and a relative path, into a Template instance
  */
-export function TemplateRelativeURLToTemplateInstance(moduleURL: string, path: string, options: ITemplateBuildOptionsStrict): Promise<ITemplate> {
+export function TemplateRelativeURLToTemplateInstance(moduleURL: string, path: string, options: INormalizedTemplateBuildOptions): Promise<ITemplate> {
   return TemplateURLToTemplateInstance(RelativeURLPath(moduleURL, path).href, options);
 }
 
@@ -137,14 +137,14 @@ export class Template implements ITemplate {
 
   static fromString(
     template: string,
-    options: ITemplateBuildOptionsStrict,
+    options: INormalizedTemplateBuildOptions,
   ): ITemplate {
     return TemplateStringToTemplateInstance(template, options);
   }
 
   static fromURL(
     url: string,
-    options: ITemplateBuildOptionsStrict,
+    options: INormalizedTemplateBuildOptions,
   ): Promise<ITemplate> {
     return TemplateURLToTemplateInstance(url, options);
   }
@@ -152,7 +152,7 @@ export class Template implements ITemplate {
   static fromRelativeURL(
     moduleURL: string,
     path: string,
-    options: ITemplateBuildOptionsStrict,
+    options: INormalizedTemplateBuildOptions,
   ): Promise<ITemplate> {
     return TemplateRelativeURLToTemplateInstance(moduleURL, path, options);
   }

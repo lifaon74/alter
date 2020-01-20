@@ -1,4 +1,4 @@
-import { ITemplateBuildOptions, ITemplateBuildOptionsStrict, TTemplateRequireFunction } from './interfaces';
+import { ITemplateBuildOptions, INormalizedTemplateBuildOptions, TTemplateRequireFunction } from './interfaces';
 import { DEFAULT_PARSERS } from './generators/default';
 import {
   $add, $and, $divide, $equal, $expression, $max, $min, $multiply, $not, $notEqual, $observable, $observer, $or, $scope,
@@ -119,8 +119,8 @@ const DEFAULT_REQUIRE: TTemplateRequireFunction = (name: string): Promise<any> =
   });
 };
 
-export function NormalizeTemplateBuildOptions(options: ITemplateBuildOptions = {}): ITemplateBuildOptionsStrict {
-  const _options: ITemplateBuildOptionsStrict = {} as ITemplateBuildOptionsStrict;
+export function NormalizeTemplateBuildOptions(options: ITemplateBuildOptions = {}): INormalizedTemplateBuildOptions {
+  const _options: INormalizedTemplateBuildOptions = {} as INormalizedTemplateBuildOptions;
 
   if (options.parsers === void 0) {
     _options.parsers = DEFAULT_PARSERS;
@@ -131,7 +131,7 @@ export function NormalizeTemplateBuildOptions(options: ITemplateBuildOptions = {
   }
 
   _options.dataSourceName = TemplateBuildOptionsDataSourceNameToSet(options.dataSourceName);
-  _options.constantsToImport = union<string>((options.constantsToImport === void 0) ? DEFAULT_CONSTANTS_TO_IMPORT.keys() : [], _options.dataSourceName);
+  _options.constantsToImport = union<string>((options.constantsToImport === void 0) ? DEFAULT_CONSTANTS_TO_IMPORT.keys() : options.constantsToImport, _options.dataSourceName);
 
   _options.require = (options.require === void 0)
     ? DEFAULT_REQUIRE
@@ -217,10 +217,19 @@ export function MergeTemplateBuildOptions(options1: ITemplateBuildOptions | unde
   }
 }
 
-export function TemplateBuildOptions(options1?: ITemplateBuildOptions): (options2?: ITemplateBuildOptions) => ITemplateBuildOptions | undefined {
-  return (options2?: ITemplateBuildOptions) => {
-    return MergeTemplateBuildOptions(options1, options2);
-  };
+export class TemplateBuildOptions implements INormalizedTemplateBuildOptions {
+  parsers: IParsers;
+  constantsToImport: Set<string>;
+  require: TTemplateRequireFunction;
+  dataSourceName: Set<string>;
+
+  constructor(options?: ITemplateBuildOptions) {
+    Object.assign(this, NormalizeTemplateBuildOptions(options));
+  }
+
+  merge(options: ITemplateBuildOptions): TemplateBuildOptions {
+    return new TemplateBuildOptions(MergeTemplateBuildOptions(this, options));
+  }
 }
 
-export const DEFAULT_TEMPLATE_BUILD_OPTIONS = NormalizeTemplateBuildOptions();
+export const DEFAULT_TEMPLATE_BUILD_OPTIONS = new TemplateBuildOptions();

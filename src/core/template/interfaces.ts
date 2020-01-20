@@ -10,7 +10,7 @@ export interface ITemplateBuildOptions {
   dataSourceName?: Iterable<string> | string;
 }
 
-export interface ITemplateBuildOptionsStrict extends ITemplateBuildOptions {
+export interface INormalizedTemplateBuildOptions extends ITemplateBuildOptions {
   parsers: IParsers;
   constantsToImport: Set<string>;
   require: TTemplateRequireFunction;
@@ -27,18 +27,18 @@ export type TTemplateRawFunction = (require: TTemplateRequireFunction) => Promis
 export interface ITemplateConstructor {
   fromString(
     template: string,
-    options: ITemplateBuildOptionsStrict,
+    options: INormalizedTemplateBuildOptions,
   ): ITemplate;
 
   fromURL(
     url: string,
-    options: ITemplateBuildOptionsStrict,
+    options: INormalizedTemplateBuildOptions,
   ): Promise<ITemplate>;
 
   fromRelativeURL(
     moduleURL: string,
     path: string,
-    options: ITemplateBuildOptionsStrict,
+    options: INormalizedTemplateBuildOptions,
   ): Promise<ITemplate>;
 
   new(generate: TTemplateFunction): ITemplate;

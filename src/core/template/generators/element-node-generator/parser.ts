@@ -15,6 +15,7 @@ export function parseChildNodes(node: Node, parsers: IParsers): TElementNodeGene
         childNode = childNode.nextSibling;
         while ((childNode !== null) && (childNode.nodeType === Node.TEXT_NODE)) {
           text += (childNode as Text).data;
+          childNode = childNode.nextSibling;
         }
         children.push(...parseText(text));
         continue; // implicit while continue
