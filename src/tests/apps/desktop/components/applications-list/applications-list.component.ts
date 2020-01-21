@@ -21,7 +21,7 @@ export interface IData {
   // @ts-ignore
   template: Template.fromRelativeURL(import.meta.url, './applications-list.component.html', DESKTOP_TEMPLATE_BUILD_OPTIONS),
   // @ts-ignore
-  // style: Style.fromRelativeURL(import.meta.url, './applications-list.component.css')
+  style: Style.fromRelativeURL(import.meta.url, './applications-list.component.css')
 })
 export class AppApplicationsListComponent extends HTMLElement implements IComponent<IData>, OnCreate<IData>, OnInit, OnDestroy {
 

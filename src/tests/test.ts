@@ -8,6 +8,7 @@ import { debugTranslatePipe, debugTranslateService } from '../side/localization/
 import { debugDataProxy } from '../side/data-proxy/data-proxy';
 import { debugDataProxy2 } from '../side/data-proxy/data-proxy-2';
 import { runApps } from './apps/run-apps';
+import { debugRoute } from './debug/debug-route';
 
 
 
@@ -22,5 +23,6 @@ export async function test() {
   // await debugTranslatePipe();
   // await debugDataProxy();
   // await debugDataProxy2();
-  await runApps();
+  // await runApps();
+  await debugRoute();
 }

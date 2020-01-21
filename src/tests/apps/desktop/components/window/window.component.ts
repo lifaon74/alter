@@ -11,6 +11,12 @@ import { DESKTOP_TEMPLATE_BUILD_OPTIONS } from '../template-build-options';
 import { translateService } from '../../../../../side/localization/translate/implementation';
 import { Input } from '../../../../../core/component/input/decorator';
 
+/***
+ * TODO:
+ * - think about the maximize and minimize state => is there a better pattern ?
+ * - think about the tabs mechanism
+ */
+
 // function NormalizePosition(
 //   position: number,
 //   oppositePosition: number,
