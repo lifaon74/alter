@@ -1,0 +1,151 @@
+import { IsType } from '../../../classes/types';
+
+/** TYPES **/
+
+/**
+ * Extracts property names of type 'method' keys from an object
+ */
+export type TObjectMethodKeys<T extends object> = Extract<{
+  [K in keyof T]: IsType<T[K], (...args: any) => any> extends true ? K : never;
+} extends { [key: string]: infer V } ? V : never, keyof T>;
+
+/**
+ * Extracts property names with a type different than 'method' from an object
+ */
+export type TObjectAttributeKeys<T extends object> = Extract<{
+  [K in keyof T]: IsType<T[K], (...args: any) => any> extends true ? never : K;
+} extends { [key: string]: infer V } ? V : never, keyof T>;
+
+
+export type TClassBuilderThis = {
+  hello(): void;
+};
+
+/**
+ * Generates a Prototype template for ClassBuilder
+ */
+export type TPrototypeTemplate<TPrototype extends object> = {
+  [K in TObjectMethodKeys<TPrototype>]: TPrototype[K] extends (...args: infer TArgs) => infer TReturn
+    ? (this: TClassBuilderThis, ...args: TArgs) => TReturn
+    : never;
+} & {
+  [K in TObjectAttributeKeys<TPrototype>]?: TPrototype[K];
+};
+
+export type TClassBuilderExtend = ClassBuilder<any, any[], any, any[]>;
+
+export interface IClassBuilderOptions<TStatic extends object, TConstructArgs extends any[], TPrototype extends object, TExtends extends TClassBuilderExtend[]> {
+  name: string;
+  construct?: (this: TClassBuilderThis, ...args: TConstructArgs) => void;
+  static?: TStatic;
+  prototype?: TPrototypeTemplate<TPrototype>;
+  extends?: TExtends;
+}
+
+
+export type TClassBuilderConstructor<TStatic extends object, TConstructArgs extends any[], TPrototype extends object> = TClassBuilderStatic<TStatic> & {
+  new(...args: TConstructArgs): TClassBuilderInstance<TPrototype>;
+};
+
+/*------------------------------------------------------------------------------------------------*/
+
+export class ClassBuilderThis<TStatic extends object, TConstructArgs extends any[], TPrototype extends object> {
+  constructor(options: any) {
+  }
+}
+
+/*------------------------------------------------------------------------------------------------*/
+
+/** FUNCTIONS **/
+
+export type TErrorStrategy = 'resolve' | 'warn' | 'throw';
+export function HandleError(error: () => Error, strategy: TErrorStrategy = 'throw'): boolean {
+  switch (strategy) {
+    case 'resolve':
+      return true;
+    case 'warn':
+      console.warn(error());
+      return false;
+    case 'throw':
+      throw error();
+    default:
+      throw new TypeError(`Unexpected strategy: ${ strategy }`);
+  }
+}
+
+export function CopyDescriptors<T extends object>(source: object, destination: T, conflictStrategy?: TErrorStrategy): T {
+  Object.entries(Object.getOwnPropertyDescriptors(source)).forEach(([key, descriptor]) => {
+    if (!destination.hasOwnProperty(key) || HandleError(() => new Error(`Property '${ key }' already exists`), conflictStrategy)) {
+      Object.defineProperty(destination, key, descriptor);
+    }
+  });
+  return destination;
+}
+
+export function SetConstructor<T extends object>(target: T, _constructor: Function): T {
+  Object.defineProperty(target, 'constructor', {
+    value: _constructor,
+    writable: true,
+    configurable: true,
+    enumerable: false,
+  });
+  return target;
+}
+
+export function SetFunctionName<T extends Function>(target: T, name: string): T {
+  Object.defineProperty(target, 'name', Object.assign(Object.getOwnPropertyDescriptor(target, 'name'), { value: name }));
+  return target;
+}
+
+
+
+/** CLASS **/
+
+export class ClassBuilder<TStatic extends object, TConstructArgs extends any[], TPrototype extends object, TExtends extends TClassBuilderExtend[]> {
+  public readonly options: IClassBuilderOptions<TStatic, TConstructArgs, TPrototype, TExtends>;
+
+  constructor(options: IClassBuilderOptions<TStatic, TConstructArgs, TPrototype, TExtends>) {
+    this.options = options;
+  }
+
+  buildStatic<T extends object>(target: T): T {
+    if (this.options.static !== void 0) {
+      CopyDescriptors(this.options.static, target);
+    }
+
+    if (this.options.extends !== void 0) {
+      this.options.extends.forEach((superClass: TClassBuilderExtend) => {
+        superClass.buildStatic<T>(target);
+      });
+    }
+
+    return target;
+  }
+
+  buildPrototype<T extends object>(target: T): T {
+    if (this.options.prototype !== void 0) {
+      CopyDescriptors(this.options.prototype, target);
+    }
+
+    if (this.options.extends !== void 0) {
+      this.options.extends.forEach((superClass: TClassBuilderExtend) => {
+        superClass.buildPrototype<T>(target);
+      });
+    }
+
+    return target;
+  }
+
+}
+
+
+/*------------------------------------------------------------------------------------------------*/
+
+export async function experimentClassBuilder() {
+  const builder = new ClassBuilder({
+    name: 'classA',
+    construct() {
+      console.log(this.hello());
+    }
+  });
+}
