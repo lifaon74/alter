@@ -10,6 +10,7 @@ import { debugDataProxy2 } from '../side/data-proxy/data-proxy-2';
 import { runApps } from './apps/run-apps';
 import { debugRoute } from './debug/debug-route';
 import { experimentClassBuilder } from './experimental/classes/experimental-class-builder';
+import { experimentClass } from './experimental/classes/concept';
 
 
 
@@ -26,5 +27,6 @@ export async function test() {
   // await debugDataProxy2();
   // await runApps();
   // await debugRoute();
-  await experimentClassBuilder();
+  // await experimentClassBuilder();
+  await experimentClass();
 }

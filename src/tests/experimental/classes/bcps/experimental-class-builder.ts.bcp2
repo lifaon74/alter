@@ -8,9 +8,6 @@ import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWit
 import { assert, assertFails } from '../../../classes/asserts';
 import { HandleError } from '../../../misc/helpers/error-strategies';
 
-
-
-
 /** TYPES **/
 
 /**
@@ -40,75 +37,51 @@ type Primitive =
 
 /*------------*/
 
-const TEMP_THIS_TO_FINAL_THIS = new WeakMap<object, object>();
-const FINAL_THIS_TO_TEMP_THIS = new WeakMap<object, object[]>();
-
-// function SetNewFinalThis(oldThis: object | undefined, newThis: object | undefined): void {
-//   if (TEMP_THIS_TO_FINAL_THIS.has(newThis))
-//   if (oldThis === void 0) {
-//     TEMP_THIS_TO_FINAL_THIS.set(newThis, newThis);
-//   }
-//   // if (IsDifferentReturnedThis(oldThis, newThis)) {
-//   //   MustImplement(newThis, _this, 'exists');
-//   //   _this = newThis;
-//   // }
-// }
-
-/*------------*/
-
 export interface IClassBuilderThis {
-  // readonly reference: object;
-  // readonly private: object;
+  readonly reference: object;
+  readonly private: object;
 
   get(propertyKey: PropertyKey): any;
 
   set(propertyKey: PropertyKey, value: any): void;
 
-  // call(propertyKey: PropertyKey, ...args: any[]): void;
+  call(propertyKey: PropertyKey, ...args: any[]): void;
 
-  // super(path: ClassBuilder[]): IClassBuilderThis;
+  super(path: ClassBuilder[]): IClassBuilderThis;
 }
-
-// CONST A = [];
 
 export class ClassBuilderThis implements IClassBuilderThis {
   protected _reference: () => object;
+  protected _private: object;
 
   constructor(reference: () => object) {
     this._reference = reference;
+    this._private = Object.create(null);
   }
 
   get reference(): object {
     return this._reference();
   }
 
-  // get private(): object {
-  //   throw 'TODO';
-  // }
+  get private(): object {
+    return this._private;
+  }
 
   get(propertyKey: PropertyKey): any {
-    const value: any = this._reference()[propertyKey];
-    if (typeof value === 'function') { // TODO
-      const _this = this;
-      return function (...args: any[]) {
-        value.apply(_this, args);
-      };
-    } else {
-      return value;
-    }
+    throw 'TODO';
   }
 
   set(propertyKey: PropertyKey, value: any): void {
-    this._reference()[propertyKey] = value;
+    throw 'TODO';
   }
 
-  // call(propertyKey: PropertyKey, ...args: any[]): void {
-  //   throw 'TODO';
-  // }
-  //
-  // super(path: ClassBuilder[]): IClassBuilderThis {
-  //   throw 'TODO';
-  // }
+  call(propertyKey: PropertyKey, ...args: any[]): void {
+    throw 'TODO';
+  }
+
+  super(path: ClassBuilder[]): IClassBuilderThis {
+    throw 'TODO';
+  }
 }
 
 
@@ -268,6 +241,7 @@ export function IsDifferentReturnedThis(originalThis: object, returnedThis: obje
 }
 
 
+const TEMP_THIS_TO_FINAL_THIS = new WeakMap<object, object>();
 
 /** METHODS **/
 
@@ -309,8 +283,7 @@ export function ClassBuilderBuildPrototype<TTarget extends object>(instance: ICl
 
   const wrapFunction = <TFunction extends TClassBuilderPrototypeMethod>(fnc: TFunction): ((...args: Parameters<TFunction>) => ReturnType<TFunction>) => {
     return function (this: any, ...args: Parameters<TFunction>): ReturnType<TFunction> {
-      throw 'TODO'; // TODO
-      // return fnc.call(this/*$this*/, ...args);
+      return fnc.call(this/*$this*/, ...args);
     };
   };
 
@@ -395,21 +368,19 @@ export function ClassBuilderBuild(instance: IClassBuilder): any {
 
     let _this: object = this;
 
-    const getThis = () => _this;
-
-    const setThis = (newThis: object | undefined): void => {
-      if (IsDifferentReturnedThis(_this, newThis)) {
-        MustImplement(newThis, _this, 'exists');
-        _this = newThis;
-      }
-    };
-
     ClassBuilderConstruct(
       instance,
       args,
-      getThis,
-      setThis,
+      () => _this,
+      (newThis: object | undefined): void => {
+        if (IsDifferentReturnedThis(_this, newThis)) {
+          MustImplement(newThis, _this, 'exists');
+          _this = newThis;
+        }
+      }
     );
+
+    // const $this = new ClassBuilderThis(() => _this);
 
     return _this;
   };
@@ -443,24 +414,24 @@ export function ClassBuilderBuild(instance: IClassBuilder): any {
  */
 export class ClassBuilder {
 
-  // static fromClass(_class: Function): ClassBuilder {
-  //   const superClass = Object.getPrototypeOf(_class.prototype);
-  //   return new ClassBuilder({
-  //     name: _class.name,
-  //     construct(...args: any[]): void {
-  //       // TODO: extra experimental
-  //       try {
-  //         return _class.apply(this.reference);
-  //       } catch {
-  //         return Reflect.construct(_class, args, Object.getPrototypeOf(this.reference));
-  //       }
-  //     },
-  //     prototype: _class.prototype,
-  //     extends: (superClass === null)
-  //       ? []
-  //       : [ClassBuilder.fromClass(superClass)]
-  //   });
-  // }
+  static fromClass(_class: Function): ClassBuilder {
+    const superClass = Object.getPrototypeOf(_class.prototype);
+    return new ClassBuilder({
+      name: _class.name,
+      construct(...args: any[]): void {
+        // TODO: extra experimental
+        try {
+          return _class.apply(this.reference);
+        } catch {
+          return Reflect.construct(_class, args, Object.getPrototypeOf(this.reference));
+        }
+      },
+      prototype: _class.prototype,
+      extends: (superClass === null)
+        ? []
+        : [ClassBuilder.fromClass(superClass)]
+    });
+  }
 
   constructor(options: IClassBuilderOptions) {
     ConstructClassBuilder(this, options);
@@ -512,28 +483,28 @@ async function testDifferentThisReturn() {
     await assertFails(() => new RegExpLike('a', 'g'));
   }
 
-  // async function testValidThisReturn() {
-  //   const builder = new ClassBuilder({
-  //     name: 'RegExpLike',
-  //     construct(this: IClassBuilderConstructorThis, pattern: string, flags?: string): RegExp {
-  //       return CopyDescriptors(this.reference, new RegExp(pattern, flags), 'skip');
-  //     },
-  //     prototype: {
-  //       method<T>(value: T): T {
-  //         return value;
-  //       }
-  //     }
-  //   });
-  //
-  //   const instance = new (builder.build())('a', 'g');
-  //   await assert(() => (typeof instance.flags === 'string'));
-  //   await assert(() => (instance.flags === 'g'));
-  //   await assert(() => (typeof instance.method === 'function'));
-  //   await assert(() => (instance.method('abc') === 'abc'));
-  // }
+  async function testValidThisReturn() {
+    const builder = new ClassBuilder({
+      name: 'RegExpLike',
+      construct(this: IClassBuilderConstructorThis, pattern: string, flags?: string): RegExp {
+        return CopyDescriptors(this.reference, new RegExp(pattern, flags), 'skip');
+      },
+      prototype: {
+        method<T>(value: T): T {
+          return value;
+        }
+      }
+    });
+
+    const instance = new (builder.build())('a', 'g');
+    await assert(() => (typeof instance.flags === 'string'));
+    await assert(() => (instance.flags === 'g'));
+    await assert(() => (typeof instance.method === 'function'));
+    await assert(() => (instance.method('abc') === 'abc'));
+  }
 
   await testInvalidThisReturn();
-  // await testValidThisReturn();
+  await testValidThisReturn();
 }
 
 
@@ -543,11 +514,11 @@ async function testExtends() {
     return new ClassBuilder({
       name: 'classA',
       construct(this: IClassBuilderConstructorThis, valueA: string): void {
-        this.set('valueA', valueA);
+        (this.reference as any).valueA = valueA;
       },
       prototype: {
         methodA(): string {
-          return  this.get('valueA');
+          return (this.reference as any).valueA;
         }
       }
     });
@@ -569,7 +540,7 @@ async function testExtends() {
     const classB = new ClassBuilder({
       name: 'classB',
       construct(this: IClassBuilderConstructorThis, valueB: string) {
-        this.set('valueB', valueB);
+        (this.reference as any).valueB = valueB;
         this.initSupers(['value-a']);
       },
       extends: [createBuilderA()]
@@ -595,11 +566,11 @@ async function testExtends() {
       name: 'classB',
       construct(this: IClassBuilderConstructorThis, valueB: string): void {
         this.initSupers(['value-a']);
-        this.set('valueB', valueB);
+        (this.reference as any).valueB = valueB;
       },
       prototype: {
         methodB(): string {
-          return  this.get('valueB');
+          return (this.reference as any).valueB;
         }
       },
       extends: [createBuilderA()]

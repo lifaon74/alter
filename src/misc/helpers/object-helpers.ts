@@ -197,7 +197,7 @@ export function CopyDescriptors<TDestination extends object>(source: object, des
   let result: IteratorResult<[PropertyKey, PropertyDescriptor]>;
   while (!(result = iterator.next()).done) {
     const [key, descriptor] = result.value;
-    if (!HasOwnProperty(destination, key) || HandleError(() => new Error(`Property '${ key }' already exists`), conflictStrategy)) {
+    if (!HasProperty(destination, key) || HandleError(() => new Error(`Property '${ key }' already exists`), conflictStrategy)) {
       Object.defineProperty(destination, key, descriptor);
     }
   }
