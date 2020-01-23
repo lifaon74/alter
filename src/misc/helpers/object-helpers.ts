@@ -38,7 +38,7 @@ export function ObjectPathExists(obj: object, path: PropertyKey[]): boolean {
 /**
  * Returns an iterator over the list of prototypes composing target (target included)
  */
-export function * GetPrototypeChain(target: object | null): Generator<object> {
+export function * GetPrototypeChain(target: object | null): Generator<object, any, undefined> {
   while (target !== null) {
     yield target;
     target = Object.getPrototypeOf(target);
@@ -56,7 +56,7 @@ export function GetOwnProperties(target: object): PropertyKey[] {
 /**
  * Returns an iterator over the list of all properties composing target and its prototypes
  */
-export function * GetProperties(target: object | null): Generator<PropertyKey> {
+export function * GetProperties(target: object | null): Generator<PropertyKey, any, undefined> {
   const iterator: Iterator<object> = GetPrototypeChain(target);
   let result: IteratorResult<object>;
   while (!(result = iterator.next()).done) {
@@ -71,17 +71,26 @@ export function HasOwnProperty(target: object, propertyKey: PropertyKey): boolea
   return Object.prototype.hasOwnProperty.call(target, propertyKey);
 }
 
+export function HasProperty(target: object, propertyKey: PropertyKey): boolean {
+  return (propertyKey in target);
+}
 
+/**
+ * Returns an iterator over the list of all own descriptors composing target
+ */
+export function GetOwnPropertyDescriptors(target: object): IterableIterator<[PropertyKey, PropertyDescriptor]> {
+  return Object.entries(Object.getOwnPropertyDescriptors(target))[Symbol.iterator]();
+}
 
 /**
  * Returns an iterator over the list of all descriptors composing target and its prototypes
  */
-export function * GetPropertyDescriptors(target: object | null): Generator<PropertyDescriptor> {
+export function * GetPropertyDescriptors(target: object | null): Generator<[PropertyKey, PropertyDescriptor], any, undefined> {
   const iterator: Iterator<object> = GetPrototypeChain(target);
   let result: IteratorResult<object>;
   while (!(result = iterator.next()).done) {
     yield * GetOwnProperties(result.value).map((propertyKey: PropertyKey) => {
-      return Object.getOwnPropertyDescriptor(result.value, propertyKey) as PropertyDescriptor;
+      return [propertyKey, Object.getOwnPropertyDescriptor(result.value, propertyKey)] as [PropertyKey, PropertyDescriptor];
     });
   }
 }
@@ -128,6 +137,36 @@ export function Implements(target: object | null, source: object | null, level: 
   }
 }
 
+export function MustImplement(target: object, source: object, level: 'exists' | 'type' | 'strict' = 'exists'): asserts target is typeof source {
+  let targetProperties: Set<PropertyKey> | undefined = (level === 'exists')
+    ? new Set<PropertyKey>(GetProperties(target))
+    : void 0;
+
+  const iterator: Iterator<PropertyKey> = GetProperties(source);
+  let result: IteratorResult<PropertyKey>;
+  while (!(result = iterator.next()).done) {
+    switch (level) {
+      case 'exists':
+        if (!(targetProperties as Set<PropertyKey>).has(result.value)) {
+          throw new Error(`The source property '${ result.value }' is missing in target`);
+        }
+        break;
+      case 'type':
+        if (typeof target[result.value] !== typeof source[result.value]) {
+          throw new Error(`The source property '${ result.value }' has a different type in target`);
+        }
+        break;
+      case 'strict':
+        if (target[result.value] !== source[result.value]) {
+          throw new Error(`The source property '${ result.value }' is not the same as in target`);
+        }
+        break;
+      default:
+        throw new TypeError(`Expected 'type' or 'strict' as level`);
+    }
+
+  }
+}
 
 /**
  * Returns the PropertyDescriptor of an object searching deeply into its prototype chain
@@ -150,6 +189,18 @@ export function CopyOwnDescriptors<TDestination extends object>(source: object, 
       Object.defineProperty(destination, key, descriptor);
     }
   });
+  return destination;
+}
+
+export function CopyDescriptors<TDestination extends object>(source: object, destination: TDestination, conflictStrategy?: TErrorStrategy): TDestination {
+  const iterator: Iterator<[PropertyKey, PropertyDescriptor]> = GetPropertyDescriptors(source);
+  let result: IteratorResult<[PropertyKey, PropertyDescriptor]>;
+  while (!(result = iterator.next()).done) {
+    const [key, descriptor] = result.value;
+    if (!HasOwnProperty(destination, key) || HandleError(() => new Error(`Property '${ key }' already exists`), conflictStrategy)) {
+      Object.defineProperty(destination, key, descriptor);
+    }
+  }
   return destination;
 }
 

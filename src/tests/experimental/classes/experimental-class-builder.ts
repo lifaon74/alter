@@ -1,7 +1,11 @@
 import { IsType } from '../../../classes/types';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
-import { CopyOwnDescriptors, Implements, SetConstructor, SetFunctionName } from '../../../misc/helpers/object-helpers';
-import { IReadonlyList } from '@lifaon/observables';
+import {
+  CopyDescriptors, CopyOwnDescriptors, MustImplement, SetConstructor, SetFunctionName
+} from '../../../misc/helpers/object-helpers';
+import { IReadonlyList, ReadonlyList } from '@lifaon/observables';
+import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { assert, assertFails } from '../../../classes/asserts';
 
 /** TYPES **/
 
@@ -88,33 +92,20 @@ export interface IClassBuilderConstructorThis extends IClassBuilderThis {
 
 export class ClassBuilderConstructorThis extends ClassBuilderThis implements IClassBuilderThis {
 
-  protected _supersInitialized: boolean;
-  protected _initSupers: (...args: any[][]) => void;
+  readonly initSupers: (...args: any[][]) => void;
 
   constructor(
     reference: () => object,
     initSupers: (...args: any[][]) => void,
   ) {
     super(reference);
-    this._supersInitialized = false;
-  }
-
-  get supersInitialized(): boolean {
-    return this._supersInitialized;
-  }
-
-  initSupers(...args: any[][]): void {
-    if (this._supersInitialized) {
-      throw new Error(`Supers already initialized`);
-    } else {
-      this._supersInitialized = true;
-      this._initSupers.apply(this, args);
-    }
+    this.initSupers = initSupers;
   }
 }
 
 /*------------------------------------------------------------------------------------------------*/
 
+/** TYPES **/
 
 /**
  * Generates a Prototype template for ClassBuilder
@@ -123,159 +114,240 @@ export type TPrototypeTemplate = object & {
   [key: string]: ((this: IClassBuilderThis, ...args: any) => any) | Primitive | object;
 };
 
-export type TClassBuilderOptionsConstruct = (this: IClassBuilderConstructorThis, ...args: any[]) => (void | any);
+export type TClassBuilderOptionsConstruct = (this: IClassBuilderConstructorThis, ...args: any[]) => (void | object);
 
 export interface IClassBuilderOptions {
   name: string;
   construct?: TClassBuilderOptionsConstruct;
   static?: object;
   prototype?: TPrototypeTemplate;
-  extends?: ClassBuilder[];
+  extends?: Iterable<ClassBuilder>;
 }
-
-export interface IClassBuilderNormalizedOptions extends Required<IClassBuilderOptions> {
-}
-
-export function NormalizeIClassBuilderOptionsName(name: string): string {
-  return String(name);
-}
-
-export function NormalizeIClassBuilderOptionsConstruct(construct?: TClassBuilderOptionsConstruct): TClassBuilderOptionsConstruct {
-  if (construct === void 0) {
-    return function (this: IClassBuilderConstructorThis, ...args: any[][]) {
-      this.initSupers(...args);
-    };
-  } else if (typeof construct === 'function') {
-    return construct;
-  } else {
-    throw new TypeError(`Expected void or function as options.construct`);
-  }
-}
-
-export function NormalizeIClassBuilderOptionsStatic(_static?: object): object {
-  if (_static === void 0) {
-    return Object.create(null);
-  } else if (IsObject(_static)) {
-    return _static;
-  } else {
-    throw new TypeError(`Expected void or object as options.static`);
-  }
-}
-
-export function NormalizeIClassBuilderOptionsExtends(_extends?: ClassBuilder[]): ClassBuilder[] {
-  if (_extends === void 0) {
-    return [];
-  } else if (Array.isArray(_extends)) {
-    return _extends.map((_class: ClassBuilder, index: number) => {
-      if (_class instanceof ClassBuilder) {
-        return _class;
-      } else {
-        throw new TypeError(`Expected ClassBuilder at index #${ index } or options.extends`);
-      }
-    });
-  } else {
-    throw new TypeError(`Expected void or array as options.extends`);
-  }
-}
-
-export function NormalizeIClassBuilderOptionsPrototype(prototype?: TPrototypeTemplate): TPrototypeTemplate {
-  if (prototype === void 0) {
-    return Object.create(null);
-  } else if (IsObject(prototype)) {
-    return prototype;
-  } else {
-    throw new TypeError(`Expected void or object as options.prototype`);
-  }
-}
-
-export function NormalizeIClassBuilderOptions(options: IClassBuilderOptions): IClassBuilderNormalizedOptions {
-  return {
-    name: NormalizeIClassBuilderOptionsName(options.name),
-    construct: NormalizeIClassBuilderOptionsConstruct(options.construct),
-    static: NormalizeIClassBuilderOptionsStatic(options.static),
-    prototype: NormalizeIClassBuilderOptionsPrototype(options.prototype),
-    extends: NormalizeIClassBuilderOptionsExtends(options.extends),
-  };
-}
-
 
 /*------------------------------------------------------------------------------------------------*/
 
 /** INTERFACES **/
 
-export interface IClassBuilder {
-  name: string;
-  construct: TClassBuilderOptionsConstruct;
-  static: object;
-  prototype: TPrototypeTemplate;
-  extends: IReadonlyList<ClassBuilder>;
+export interface IClassBuilder extends IClassBuilderOptions {
+  readonly name: string;
+  readonly construct: TClassBuilderOptionsConstruct;
+  readonly static: Readonly<object>;
+  readonly prototype: Readonly<TPrototypeTemplate>;
+  readonly extends: IReadonlyList<ClassBuilder>;
 
   build(): any;
 }
 
-/** FUNCTIONS **/
+/** PRIVATES **/
 
+export const CLASS_BUILDER_PRIVATE = Symbol('class-builder-private');
+
+export interface IClassBuilderPrivate {
+  name: string;
+  construct: TClassBuilderOptionsConstruct;
+  static: Readonly<object>;
+  prototype: Readonly<TPrototypeTemplate>;
+  extends: ClassBuilder[];
+  extendsReadonly: IReadonlyList<ClassBuilder>;
+}
+
+export interface IClassBuilderInternal extends IClassBuilder {
+  [CLASS_BUILDER_PRIVATE]: IClassBuilderPrivate;
+}
 
 /** CONSTRUCTOR **/
 
+export function ConstructClassBuilder(
+  instance: IClassBuilder,
+  options: IClassBuilderOptions,
+): void {
+  ConstructClassWithPrivateMembers(instance, CLASS_BUILDER_PRIVATE);
+  const privates: IClassBuilderPrivate = (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE];
+  if (IsObject(options)) {
+    if (typeof options.name === 'string') {
+      privates.name = options.name;
+    } else {
+      throw new TypeError(`Expected string as option.name`);
+    }
+
+    if (options.static === void 0) {
+      privates.static = Object.create(null);
+    } else if (IsObject(options.static)) {
+      privates.static = options.static;
+    } else {
+      throw new TypeError(`Expected void or object as options.static`);
+    }
+    Object.freeze(privates.static);
+
+
+    if (options.prototype === void 0) {
+      privates.prototype = Object.create(null);
+    } else if (IsObject(options.prototype)) {
+      privates.prototype = options.prototype;
+    } else {
+      throw new TypeError(`Expected void or object as options.prototype`);
+    }
+    Object.freeze(privates.prototype);
+
+
+    if (options.extends === void 0) {
+      privates.extends = [];
+    } else if (Symbol.iterator in options.extends) {
+      privates.extends = Array.from(options.extends).map((_class: ClassBuilder, index: number) => {
+        if (_class instanceof ClassBuilder) {
+          return _class;
+        } else {
+          throw new TypeError(`Expected ClassBuilder at index #${ index } or options.extends`);
+        }
+      });
+    } else {
+      throw new TypeError(`Expected void or array as options.extends`);
+    }
+    privates.extendsReadonly = new ReadonlyList(privates.extends);
+
+    if (options.construct === void 0) {
+      privates.construct = (privates.extends.length === 0)
+        ? () => {
+        }
+        : function (this: IClassBuilderConstructorThis, ...args: any[][]) {
+          this.initSupers(...args);
+        };
+    } else if (typeof options.construct === 'function') {
+      privates.construct = options.construct;
+    } else {
+      throw new TypeError(`Expected void or function as options.construct`);
+    }
+
+  } else {
+    throw new TypeError(`Expected object as option`);
+  }
+}
+
+
+/** FUNCTIONS **/
+
+export function IsSameReturnedThis(originalThis: object, returnedThis: object | undefined): boolean {
+  return ((returnedThis === void 0) || (returnedThis === originalThis));
+}
+
+export function IsDifferentReturnedThis(originalThis: object, returnedThis: object | undefined): returnedThis is object {
+  return ((returnedThis !== void 0) && (returnedThis !== originalThis));
+}
 
 /** METHODS **/
 
-export function ClassBuilderBuildStatic(instance: IClassBuilder, target: object): void {
-  const privates: any = instance; // TODO;
+export function ClassBuilderGetName(instance: IClassBuilder): string {
+  return (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE].name;
+}
+
+export function ClassBuilderGetConstruct(instance: IClassBuilder): TClassBuilderOptionsConstruct {
+  return (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE].construct;
+}
+
+export function ClassBuilderGetStatic(instance: IClassBuilder): Readonly<object> {
+  return (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE].static;
+}
+
+export function ClassBuilderGetPrototype(instance: IClassBuilder): Readonly<TPrototypeTemplate> {
+  return (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE].prototype;
+}
+
+export function ClassBuilderGetExtends(instance: IClassBuilder): IReadonlyList<ClassBuilder> {
+  return (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE].extendsReadonly;
+}
+
+
+export function ClassBuilderBuildStatic<TTarget extends object>(instance: IClassBuilder, target: TTarget): TTarget {
+  const privates: IClassBuilderPrivate = (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE];
 
   CopyOwnDescriptors(privates.static, target);
 
   for (let i = 0, l = privates.extends.length; i < l; i++) {
     ClassBuilderBuildStatic(privates.extends[i], target);
   }
+
+  return target;
 }
 
-
-export function ClassBuilderBuildPrototype(instance: IClassBuilder, target: object): void {
-  const privates: any = instance; // TODO;
+export function ClassBuilderBuildPrototype<TTarget extends object>(instance: IClassBuilder, target: TTarget): TTarget {
+  const privates: IClassBuilderPrivate = (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE];
 
   CopyOwnDescriptors(privates.prototype, target);
 
   for (let i = 0, l = privates.extends.length; i < l; i++) {
     ClassBuilderBuildPrototype(privates.extends[i], target);
   }
+
+  return target;
 }
 
 
+export function ClassBuilderConstruct(
+  instance: IClassBuilder,
+  args: any[],
+  getThis: () => object,
+  setThis: (newThis: object | undefined) => void
+): void {
+  const privates: IClassBuilderPrivate = (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE];
+  let supersInitialized: boolean = (privates.extends.length === 0);
+
+  const $this = new ClassBuilderConstructorThis(
+    () => {
+      if (supersInitialized) {
+        return getThis();
+      } else {
+        throw new Error(`Accessing 'this' should be done after calling 'initSuper'`);
+      }
+    },
+    (...args: any[][]) => {
+      if (supersInitialized) {
+        throw new Error(`Supers already initialized`);
+      } else {
+        supersInitialized = true;
+        if (args.length === privates.extends.length) {
+          privates.extends.forEach((superClass: ClassBuilder, index: number) => {
+            ClassBuilderConstruct(superClass, args[index], getThis, setThis);
+          });
+        } else {
+          throw new Error(`Expected ${ privates.extends.length } argument(s) for 'initSuper', received ${ args.length }`);
+        }
+      }
+    },
+  );
+
+  const newThis: object | undefined = privates.construct.apply($this, args);
+
+  if (supersInitialized) {
+    setThis(newThis);
+  } else {
+    throw new Error(`Supers must be initialized with 'initSuper'`);
+  }
+}
+
 export function ClassBuilderBuild(instance: IClassBuilder): any {
-  const privates: any = instance; // TODO;
+  const privates: IClassBuilderPrivate = (instance as IClassBuilderInternal)[CLASS_BUILDER_PRIVATE];
 
   const _class = function (this: object, ...args: any[]) {
     if (new.target === void 0) {
-      throw new SyntaxError(`Must call class '${ privates.name }' with new.`);
+      throw new SyntaxError(`The class '${ privates.name }' must be instantiated with the 'new' keyword.`);
     }
 
     let _this: object = this;
-    const $this = new ClassBuilderConstructorThis(
+
+    ClassBuilderConstruct(
+      instance,
+      args,
       () => _this,
-      (...args: any[][]) => {
-        if (args.length === privates.extends.length) {
-          privates.extends.forEach((superClass: ClassBuilder, index: number) => {
-            const constructResult: object | undefined = superClass.options.construct.apply($this, args[index]);
-            if ((constructResult !== void 0) && (constructResult !== _this)) { // returned 'this' is different
-              // the returned 'this'.constructor.prototype must contains every methods of this class' prototype
-              if (Implements(constructResult, _this, 'exists')) {
-                _this = constructResult;
-              } else {
-                throw new Error(`Returned value must implements all properties of the provided this`);
-              }
-            }
-          });
-        } else {
-          throw new Error(`Expected ${ privates.extends.length } arguments for initSuper`)
+      (newThis: object | undefined): void => {
+        if (IsDifferentReturnedThis(_this, newThis)) {
+          MustImplement(newThis, _this, 'exists');
+          _this = newThis;
         }
-      },
+      }
     );
 
-    privates.construct.apply($this, args);
+    return _this;
   };
-
 
   // set statics
   ClassBuilderBuildStatic(instance, _class);
@@ -287,7 +359,7 @@ export function ClassBuilderBuild(instance: IClassBuilder): any {
   _class.toString = () => `class ${ privates.name } extends A, B, C { [code] }`; // TODO
 
 
-  const proto: any = ClassBuilderBuildPrototype(instance, Object.create(null));
+  const proto: object = ClassBuilderBuildPrototype(instance, Object.create(null));
   SetConstructor(proto, _class);
 
   _class.prototype = proto;
@@ -298,6 +370,12 @@ export function ClassBuilderBuild(instance: IClassBuilder): any {
 
 /** CLASS **/
 
+
+/**
+ * TODO:
+ *  - create privates
+ *  - test
+ */
 export class ClassBuilder {
 
   static fromClass(_class: Function): ClassBuilder {
@@ -319,40 +397,29 @@ export class ClassBuilder {
     });
   }
 
-  public readonly options: IClassBuilderNormalizedOptions;
-
   constructor(options: IClassBuilderOptions) {
-    this.options = NormalizeIClassBuilderOptions(options);
+    ConstructClassBuilder(this, options);
   }
 
+  get name(): string {
+    return ClassBuilderGetName(this);
+  }
 
-  // construct($this: ClassBuilderConstructorThis): object {
-  //   const options = this.options;
-  //   options.construct.apply(void 0, $this);
-  //
-  //   if (options.construct !== void 0) {
-  //     const initArgs: TInitArgs = (options.construct.preInit === void 0)
-  //       ? args
-  //       : options.construct.apply(void 0, args);
-  //
-  //     if (options.extends !== void 0) {
-  //       if (options.construct.supers !== void 0) {
-  //         const superArgs: any[] = options.construct.supers.apply(void 0, initArgs);
-  //
-  //         options.extends.forEach((superClass: TClassBuilderExtend, index: number) => {
-  //           _this = RegisterThis(superClass.construct(_this, thisList, superArgs[index]), thisList);
-  //         });
-  //       }
-  //     }
-  //
-  //     if (options.construct.init !== void 0) {
-  //       _this = RegisterThis(options.construct.init.apply(_this, initArgs) || _this, thisList);
-  //     }
-  //   }
-  //
-  //   return _this;
-  // }
+  get construct(): TClassBuilderOptionsConstruct {
+    return ClassBuilderGetConstruct(this);
+  }
 
+  get static(): Readonly<object> {
+    return ClassBuilderGetStatic(this);
+  }
+
+  get prototype(): Readonly<TPrototypeTemplate> {
+    return ClassBuilderGetPrototype(this);
+  }
+
+  get extends(): IReadonlyList<ClassBuilder> {
+    return ClassBuilderGetExtends(this);
+  }
 
   build(): any {
     return ClassBuilderBuild(this);
@@ -363,7 +430,131 @@ export class ClassBuilder {
 
 /*------------------------------------------------------------------------------------------------*/
 
-export async function experimentClassBuilder() {
+async function testDifferentThisReturn() {
+
+  async function testInvalidThisReturn() {
+    const RegExpLike = new ClassBuilder({
+      name: 'RegExpLike',
+      construct(pattern: string, flags?: string): RegExp {
+        return new RegExp(pattern, flags);
+      },
+      prototype: {
+        print(message: string): void {
+          console.log(message);
+        }
+      }
+    }).build();
+
+    await assertFails(() => new RegExpLike('a', 'g'));
+  }
+
+  async function testValidThisReturn() {
+    const builder = new ClassBuilder({
+      name: 'RegExpLike',
+      construct(this: IClassBuilderConstructorThis, pattern: string, flags?: string): RegExp {
+        return CopyDescriptors(this.reference, new RegExp(pattern, flags), 'skip');
+      },
+      prototype: {
+        method<T>(value: T): T {
+          return value;
+        }
+      }
+    });
+
+    const instance = new (builder.build())('a', 'g');
+    await assert(() => (typeof instance.flags === 'string'));
+    await assert(() => (instance.flags === 'g'));
+    await assert(() => (typeof instance.method === 'function'));
+    await assert(() => (instance.method('abc') === 'abc'));
+  }
+
+  await testInvalidThisReturn();
+  await testValidThisReturn();
+}
+
+
+async function testExtends() {
+
+  const createBuilderA = (): IClassBuilder => {
+    return new ClassBuilder({
+      name: 'classA',
+      construct(this: IClassBuilderConstructorThis, valueA: string): void {
+        (this.reference as any).valueA = valueA;
+      },
+      prototype: {
+        methodA(): string {
+          return (this.reference as any).valueA;
+        }
+      }
+    });
+  };
+
+
+  async function testInvalidExtendWithMissingInitSupers() {
+    const classB = new ClassBuilder({
+      name: 'classB',
+      construct() {
+      },
+      extends: [createBuilderA()]
+    }).build();
+
+    await assertFails(() => new classB());
+  }
+
+  async function testInvalidExtendUsingThisBeforeCallingInitSupers() {
+    const classB = new ClassBuilder({
+      name: 'classB',
+      construct(this: IClassBuilderConstructorThis, valueB: string) {
+        (this.reference as any).valueB = valueB;
+        this.initSupers(['value-a']);
+      },
+      extends: [createBuilderA()]
+    }).build();
+
+    await assertFails(() => new classB('value-b'));
+  }
+
+  async function testInvalidExtendCallingInitSupersWithInvalidNumberOfArguments() {
+    const classB = new ClassBuilder({
+      name: 'classB',
+      construct(this: IClassBuilderConstructorThis) {
+        this.initSupers(['value-a'], ['invalid']);
+      },
+      extends: [createBuilderA()]
+    }).build();
+
+    await assertFails(() => new classB());
+  }
+
+  async function testValidExtendAnotherClassBuilder() {
+    const classB = new ClassBuilder({
+      name: 'classB',
+      construct(this: IClassBuilderConstructorThis, valueB: string): void {
+        this.initSupers(['value-a']);
+        (this.reference as any).valueB = valueB;
+      },
+      prototype: {
+        methodB(): string {
+          return (this.reference as any).valueB;
+        }
+      },
+      extends: [createBuilderA()]
+    }).build();
+
+    const instance = new classB('value-b');
+    await assert(() => (instance.valueA === 'value-a'));
+    await assert(() => (instance.methodA() === 'value-a'));
+    await assert(() => (instance.valueB === 'value-b'));
+    await assert(() => (instance.methodB() === 'value-b'));
+  }
+
+  await testInvalidExtendWithMissingInitSupers();
+  await testInvalidExtendUsingThisBeforeCallingInitSupers();
+  await testInvalidExtendCallingInitSupersWithInvalidNumberOfArguments();
+  await testValidExtendAnotherClassBuilder();
+}
+
+async function experiment() {
   // const builder1 = ClassBuilder.fromClass(class A extends RegExp {
   //   constructor(...args: any[]) {
   //     super('a');
@@ -377,9 +568,10 @@ export async function experimentClassBuilder() {
 
   const builder2 = new ClassBuilder({
     name: 'classA',
-    construct(...args: any[]): void {
+    construct(...args: any[]): RegExp {
       console.log('construct', args);
       // console.log(this.get('methodA'));
+      return new RegExp('a');
     },
     prototype: {
       methodA(message: string): void {
@@ -393,8 +585,13 @@ export async function experimentClassBuilder() {
   });
 
   const class2 = builder2.build();
-  const instance2 = new class2();
+  const instance2 = new class2('arg1', 'arg2');
   console.log(instance2);
 
   (window as any).instance2 = instance2;
+}
+
+export async function experimentClassBuilder() {
+  // await testDifferentThisReturn();
+  await testExtends();
 }
