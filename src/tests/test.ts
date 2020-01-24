@@ -11,6 +11,7 @@ import { runApps } from './apps/run-apps';
 import { debugRoute } from './debug/debug-route';
 import { experimentClassBuilder } from './experimental/classes/experimental-class-builder';
 import { experimentClass } from './experimental/classes/concept';
+import { testInfiniteScroller } from './apps/infinite-scroller/test';
 
 
 
@@ -28,5 +29,6 @@ export async function test() {
   // await runApps();
   // await debugRoute();
   // await experimentClassBuilder();
-  await experimentClass();
+  // await experimentClass();
+  await testInfiniteScroller();
 }
