@@ -1,6 +1,6 @@
 import { Constructor } from '../../../classes/factory';
 import {
-  CopyDescriptors, CopyOwnDescriptors, GetPropertyDescriptors, HasOwnProperty, HasProperty
+  CopyDescriptors, CopyOwnDescriptors, GetPropertyDescriptor, GetPropertyDescriptors, HasOwnProperty, HasProperty
 } from '../../../misc/helpers/object-helpers';
 import { assert } from '../../../classes/asserts';
 import { SetInstanceOf } from '../../../classes/instanceof';
@@ -58,38 +58,97 @@ export function ClassConstructorNewThis<
   newConstructorArgs: ConstructorParameters<TNewConstructor>,
   // oldThisConstructor: Constructor<TOldThis> = oldThis.constructor,
 ): TypeIntersection<InstanceType<TNewConstructor>, TOldThis> {
-  const newThis = Reflect.construct(newConstructor, newConstructorArgs, oldThis.constructor);
+  const newThis = Reflect.construct(newConstructor, newConstructorArgs/*, oldThis.constructor*/);
 
-  // CopyOwnDescriptors(oldThis, newThis, 'skip');
+  console.log('------------------------construct new this', oldThis, newThis);
+  const propertiesOfOldThis = new Map<PropertyKey, PropertyDescriptor>(GetPropertyDescriptors(oldThis));
+  const propertiesOfNewThis = new Map<PropertyKey, PropertyDescriptor>(GetPropertyDescriptors(newThis));
 
-  /**
-   * TODO:
-   *  - due to the bind mechanism, the provided this is incorrect => should probably reflect newThis on oldThis
-   *  - due to the bind mechanism, the provided this should be reflected each time and the newThis => maybe use proxy
-   */
-  Array.from(GetPropertyDescriptors(Object.getPrototypeOf(oldThis))).forEach(([propertyKey, descriptor]) => {
-    if (!HasOwnProperty(newThis, propertyKey)) {
-      let descriptorChanged: boolean = false;
-      if ('value' in descriptor) {
-        if (typeof descriptor.value === 'function') {
-          descriptor.value = descriptor.value.bind(oldThis);
-          descriptorChanged = true;
-        }
-      } else  {
-        if (typeof descriptor.get === 'function') {
-          descriptor.get = descriptor.get.bind(oldThis);
-          descriptorChanged = true;
-        }
-        if (typeof descriptor.set === 'function') {
-          descriptor.set = descriptor.set.bind(oldThis);
-          descriptorChanged = true;
-        }
+  const bindDescriptor = (propertyKey: PropertyKey, descriptor: PropertyDescriptor, source: object, destination: object): void => {
+    const newDescriptor: PropertyDescriptor = { ...descriptor };
+    if ('value' in descriptor) {
+      if (typeof descriptor.value === 'function') {
+        newDescriptor.value = descriptor.value.bind(destination);
       }
-      if (descriptorChanged) {
-        Object.defineProperty(newThis, propertyKey, descriptor);
+    } else  {
+      if (typeof descriptor.get === 'function') {
+        newDescriptor.get = descriptor.get.bind(destination);
+      }
+      if (typeof descriptor.set === 'function') {
+        newDescriptor.set = descriptor.set.bind(destination);
       }
     }
+
+    Object.defineProperty(source, propertyKey, newDescriptor);
+  };
+
+  const interceptAndReflectProperty = (propertyKey: PropertyKey, descriptor: PropertyDescriptor, source: object, destination: object) => {
+    if (descriptor.configurable) {
+      const newDescriptor: PropertyDescriptor = { ...descriptor };
+      if ('value' in descriptor) {
+        let _value: any = (typeof descriptor.value === 'function')
+          ? descriptor.value.bind(source)
+          : descriptor.value;
+        const writable: boolean = (descriptor.writable === void 0) ? false : descriptor.writable;
+        delete newDescriptor.value;
+        delete newDescriptor.writable;
+
+        newDescriptor.get = function() {
+          return _value;
+        };
+
+        if (writable) {
+          newDescriptor.set = function(value: any) {
+            // _value = value;
+            _value = ((typeof value === 'function')/* && (this === source)*/)
+              ? value.bind(source)
+              : value;
+            destination[propertyKey] = _value;
+            console.log('set', destination, propertyKey, value);
+          };
+        }
+      } else {
+        if (typeof descriptor.set === 'function') {
+          const set: (value: any) => void = descriptor.set;
+          newDescriptor.set = function(value: any) {
+            set.call(source, value);
+            destination[propertyKey] = source[propertyKey];
+          };
+        }
+      }
+
+      Object.defineProperty(source, propertyKey, newDescriptor);
+    }
+  };
+
+  // console.log('propertiesOfOldThis', Array.from(propertiesOfOldThis.keys()));
+  // 1) must listen to all changes on oldThis and reflect them on newThis
+  Array.from(propertiesOfOldThis.entries()).forEach(([propertyKey, descriptor]) => {
+    interceptAndReflectProperty(propertyKey, descriptor, oldThis, newThis);
+
+    if (!HasOwnProperty(newThis, propertyKey)) {
+      // console.log('setting', propertyKey);
+      bindDescriptor(propertyKey, descriptor, newThis, oldThis);
+    }
   });
+
+  // 3) must reflect all properties from oldThis to newThis
+  // Array.from(propertiesOfOldThis.entries()).forEach(([propertyKey, descriptor]) => {
+  //   if (!HasOwnProperty(newThis, propertyKey)) {
+  //     bindDescriptor(propertyKey, descriptor, newThis, oldThis);
+  //   }
+  // });
+
+  // console.log(Array.from(propertiesOfNewThis.keys()));
+  // 2) must listen to all changes on newThis and reflect them on oldThis
+  // Array.from(propertiesOfNewThis.entries()).forEach(([propertyKey, descriptor]) => {
+  //   interceptAndReflectProperty(propertyKey, GetPropertyDescriptor(newThis, propertyKey) as PropertyDescriptor, newThis, oldThis);
+  // });
+  Array.from(GetPropertyDescriptors(newThis)).forEach(([propertyKey, descriptor]) => {
+    interceptAndReflectProperty(propertyKey, descriptor, newThis, oldThis);
+  });
+
+  // console.log('all new properties', Array.from(propertiesOfNewThis.keys()));
 
   return newThis;
 }
@@ -154,7 +213,7 @@ export function ClassToClassFactory<TClass extends Constructor>(_class: TClass) 
     };
 
     CopyDescriptors(_class, newClass, 'skip'); // copy static
-    CopyDescriptors(_class.prototype, newClass.prototype, 'skip'); // copy methods
+    // CopyDescriptors(_class.prototype, newClass.prototype, 'skip'); // copy methods
 
     // define instanceof
     let _classPrototypeChain: Function | null = _class;
@@ -235,6 +294,7 @@ export async function testClassToClassFactoryReturningDifferentThis() {
     constructor(pattern: string, a: string) {
       super('default');
       this.a = a;
+      setInterval(() => console.log('a', this.a), 500);
       // return ClassConstructorNewThis(this, RegExp, [pattern]);
     }
   }
@@ -244,6 +304,7 @@ export async function testClassToClassFactoryReturningDifferentThis() {
     constructor(b: string) {
       super('some-text');
       this.b = b;
+      setInterval(() => console.log('b', this.b), 500);
     }
   }
 
@@ -251,6 +312,7 @@ export async function testClassToClassFactoryReturningDifferentThis() {
     c: string;
     constructor(c: string) {
       this.c = c;
+      setInterval(() => console.log('c', this.c), 500);
     }
   }
 
@@ -262,12 +324,14 @@ export async function testClassToClassFactoryReturningDifferentThis() {
 
   // const instanceABC = new classABC(['my-pattern', 'A-prop-a'], ['B-prop-b'], 'C-prop-c');
   const instanceBAC = new classBAC(['B-prop-b'], ['my-pattern', 'A-prop-a'], 'C-prop-c');
+  (window as any).instanceBAC = instanceBAC;
   // const instanceAC = new classAC(['my-pattern', 'A-prop-a'], 'C-prop-c');
   // console.log(instanceABC);
   console.log(instanceBAC);
   // console.log(instanceAC);
   instanceBAC.exec('a');
   document.body.appendChild(instanceBAC);
+  console.log(Object.getOwnPropertyDescriptor(instanceBAC, 'c'));
   debugger;
 }
 

@@ -86,12 +86,30 @@ export function GetOwnPropertyDescriptors(target: object): IterableIterator<[Pro
  * Returns an iterator over the list of all descriptors composing target and its prototypes
  */
 export function * GetPropertyDescriptors(target: object | null): Generator<[PropertyKey, PropertyDescriptor], any, undefined> {
+  const excludes = new Set<PropertyKey>([
+    'constructor',
+    '__proto__',
+    '__defineGetter__',
+    '__defineSetter__',
+    '__lookupGetter__',
+    '__lookupSetter__',
+  ]);
+  const properties: Set<PropertyKey> = new Set<PropertyKey>();
   const iterator: Iterator<object> = GetPrototypeChain(target);
   let result: IteratorResult<object>;
   while (!(result = iterator.next()).done) {
-    yield * GetOwnProperties(result.value).map((propertyKey: PropertyKey) => {
-      return [propertyKey, Object.getOwnPropertyDescriptor(result.value, propertyKey)] as [PropertyKey, PropertyDescriptor];
-    });
+    yield * GetOwnProperties(result.value)
+      .filter((propertyKey: PropertyKey) => {
+        if (excludes.has(propertyKey) || properties.has(propertyKey)) {
+          return false;
+        } else {
+          properties.add(propertyKey);
+          return true;
+        }
+      })
+      .map((propertyKey: PropertyKey) => {
+        return [propertyKey, Object.getOwnPropertyDescriptor(result.value, propertyKey)] as [PropertyKey, PropertyDescriptor];
+      });
   }
 }
 
