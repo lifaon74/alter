@@ -1,4 +1,5 @@
-import { RegExpStartEnd, RegExpWrap } from './helpers';
+
+import { RegExpStartEnd, RegExpWrap } from '../../misc/helpers/regexp-helpers';
 
 /**
  * CSS: https://www.w3.org/TR/CSS21/grammar.html#scanner

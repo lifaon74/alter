@@ -1,5 +1,6 @@
 import { IPathMatcher, IPathMatcherResult } from './interfaces';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
+import { RegExpEscape } from '../../../misc/helpers/regexp-helpers';
 
 /** FUNCTIONS **/
 /**
@@ -9,10 +10,6 @@ export function NormalizeURLPath(path: string): string {
   const url: URL = new URL('http://localhost');
   url.pathname = path;
   return url.pathname;
-}
-
-export function RegExpEscape(pattern: string): string {
-  return pattern.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 }
 
 export interface IParsedURLPath {
@@ -30,7 +27,7 @@ export function ParseURLPath(path: string): IParsedURLPath {
     .replace(/\\\*\\\*$/g, '(?:.*?)$') // wildcard
     .replace(/(^|\/):([^/]+)/g, (substring: string, ...args: any[]) => {
       if (params.includes(args[1])) {
-        throw new Error(`Found a path having identical param's names '${args[1]}'`);
+        throw new Error(`Found a path having identical param's names '${ args[1] }'`);
       } else {
         params.push(args[1]);
       }
@@ -38,7 +35,7 @@ export function ParseURLPath(path: string): IParsedURLPath {
     });
 
   return {
-    regExp: new RegExp(`^${pattern}`, ''),
+    regExp: new RegExp(`^${ pattern }`, ''),
     params
   };
 }

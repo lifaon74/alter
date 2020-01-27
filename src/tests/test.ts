@@ -8,10 +8,12 @@ import { debugTranslatePipe, debugTranslateService } from '../side/localization/
 import { debugDataProxy } from '../side/data-proxy/data-proxy';
 import { debugDataProxy2 } from '../side/data-proxy/data-proxy-2';
 import { runApps } from './apps/run-apps';
-import { debugRoute } from './debug/debug-route';
+import { debugRoute } from './debug/debug-router/debug-route';
 import { experimentClassBuilder } from './experimental/classes/experimental-class-builder';
 import { experimentClass } from './experimental/classes/concept';
 import { testInfiniteScroller } from './apps/infinite-scroller/test';
+import { debugQueryParamsChange } from './debug/debug-router/debug-query-params-observable';
+import { debugNavigation } from './debug/debug-router/debug-navigation';
 
 
 
@@ -30,5 +32,7 @@ export async function test() {
   // await debugRoute();
   // await experimentClassBuilder();
   // await experimentClass();
-  await testInfiniteScroller();
+  // await testInfiniteScroller();
+  // await debugQueryParamsChange();
+  await debugNavigation();
 }

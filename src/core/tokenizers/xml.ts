@@ -1,4 +1,5 @@
-import { RegExpStartEnd, RegExpWrap } from './helpers';
+
+import { RegExpStartEnd, RegExpWrap } from '../../misc/helpers/regexp-helpers';
 
 export const XMLNameStartChar: string = '[' +
   ':' + '_' + 'a-z' + 'A-Z' +
