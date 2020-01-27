@@ -1,36 +1,9 @@
-import { IRoutePath, IRoutePathEntry } from './interfaces';
-import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
-import { IsObject } from '../../../../misc/helpers/is/IsObject';
-import { TPathMatcherParams } from '../../path-matcher/interfaces';
+import { IRoutePath } from './interfaces';
+import { TPathMatcherParams } from '../../path-matcher/types';
+import { IRoutePathEntry } from './types';
+import { IRoutePathInternal, IRoutePathPrivate, ROUTE_PATH_PRIVATE } from './privates';
+import { ConstructRoutePath } from './constructor';
 
-
-/** PRIVATES **/
-
-export const ROUTE_PATH_PRIVATE = Symbol('route-path-private');
-
-export interface IRoutePathPrivate {
-  routePath: IRoutePathEntry[];
-}
-
-export interface IRoutePathInternal extends IRoutePath {
-  [ROUTE_PATH_PRIVATE]: IRoutePathPrivate;
-}
-
-/** CONSTRUCTOR **/
-
-export function ConstructRoutePath(
-  instance: IRoutePath,
-  routePath: Iterable<IRoutePathEntry>
-): void {
-  ConstructClassWithPrivateMembers(instance, ROUTE_PATH_PRIVATE);
-  const privates: IRoutePathPrivate = (instance as IRoutePathInternal)[ROUTE_PATH_PRIVATE];
-  privates.routePath = Array.from(routePath);
-}
-
-export function IsRoutePath(value: any): value is IRoutePath {
-  return IsObject(value)
-    && value.hasOwnProperty(ROUTE_PATH_PRIVATE as symbol);
-}
 
 /** METHODS **/
 

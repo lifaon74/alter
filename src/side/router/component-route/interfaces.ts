@@ -1,5 +1,6 @@
-import { IRoute, IRouteOptions } from '../route/interfaces';
+import { IRoute} from '../route/interfaces';
 import { HTMLElementConstructor } from '../../../core/custom-node/helpers/NodeHelpers';
+import { IRouteOptions } from '../route/types';
 
 /** TYPES */
 

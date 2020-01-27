@@ -1,7 +1,7 @@
 import { Route } from '../../../side/router/route/implementation';
-import { TPathMatcherParams } from '../../../side/router/path-matcher/interfaces';
 import { IRoutePath } from '../../../side/router/route/route-path/interfaces';
 import { assert } from '../../../classes/asserts';
+import { TPathMatcherParams } from '../../../side/router/path-matcher/types';
 
 
 export async function debugBaseRoute() {

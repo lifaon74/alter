@@ -1,16 +1,8 @@
-import { IRoute } from '../interfaces';
-import { TPathMatcherParams } from '../../path-matcher/interfaces';
-
-/** TYPES */
-
-export type IRoutePathEntry = {
-  route: IRoute;
-  params: TPathMatcherParams;
-};
+import { IRoutePathEntry } from './types';
 
 /** INTERFACES */
 
-export interface IRouteConstructor {
+export interface IRoutePathConstructor {
   new(routePath: Iterable<IRoutePathEntry>): IRoutePath;
 }
 
