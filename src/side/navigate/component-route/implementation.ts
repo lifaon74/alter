@@ -15,6 +15,13 @@ import {
 /**
  * TODO:
  *  - think about a better 'exec' pipeline
+ *  ex: exec: (options: ExecOptions) => Promise<any>
+ *    ExecOptions {
+ *      signal: AbortSignal;
+ *      strategy: AbortStrategy,
+ *      pathParams: Map;
+ *      childRoute?: Route => may be called if we want to 'exec' the child
+ *    }
  */
 
 /** CONSTRUCTOR FUNCTIONS **/
