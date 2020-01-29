@@ -6,8 +6,7 @@ import {
   ILocalizationServicePrivatesInternal, LOCALIZATION_SERVICE_PRIVATE, LocalizationService
 } from '../implementation';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { IAdvancedAbortSignal } from '@lifaon/observables/types/misc/advanced-abort-controller/advanced-abort-signal/interfaces';
-import { AdvancedAbortController, CancellablePromise, ICancellablePromise } from '@lifaon/observables';
+import { IAdvancedAbortSignal, CancellablePromise, ICancellablePromise } from '@lifaon/observables';
 import { CreateStrictTranslationLoader, CreateTranslationLoader, ParseTranslation } from './functions';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
 

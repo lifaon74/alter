@@ -1,7 +1,6 @@
-import { ISource, NotificationsObservable, Pipe, Source, TBasePipe } from '@lifaon/observables';
+import { ISource, NotificationsObservable, Pipe, Source, TBasePipe, KeyValueMapGeneric } from '@lifaon/observables';
 import { IsObject } from '../../misc/helpers/is/IsObject';
 import { DeepMap, IDeepMap } from '../../classes/DeepMap';
-import { KeyValueMapGeneric } from '@lifaon/observables/src/notifications/core/interfaces';
 
 
 /*---------------------------------------------------------------------------------------------------------------------*/

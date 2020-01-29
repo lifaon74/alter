@@ -1,14 +1,35 @@
 import { RegExpEscape } from '../../../misc/helpers/regexp-helpers';
+import { Path } from '@lifaon/path';
 
 /** FUNCTIONS **/
 
-/**
- * INFO: new Path() is not used because the /:id pattern is an invalid path
- */
+export function EncodeURLPathForPath(path: string): string {
+  return path
+    .replace(/:/g, '--colon--')
+    .replace(/\*/g, '--asterisk--');
+}
+
+export function DecodePathForURLPath(path: string): string {
+  return path
+    .replace(/--colon--/g, ':')
+    .replace(/--asterisk--/g, '*');
+}
+
 export function NormalizeURLPath(path: string): string {
-  const url: URL = new URL('http://localhost');
-  url.pathname = path;
-  return url.pathname;
+  return DecodePathForURLPath(
+    Path.of(EncodeURLPathForPath(path), Path.posix)
+      .forceAbsolute('/')
+      .toString()
+  );
+
+  // INFO: new Path() is not used because the /:id pattern is an invalid path
+  // => problem: url.pathname is not really precise
+  // const url: URL = new URL('http://localhost');
+  // url.pathname = path;
+  // if (url.pathname.endsWith('/')) {
+  //   url.pathname = url.pathname.slice(0, -1);
+  // }
+  // return url.pathname;
 }
 
 export interface IParsedURLPath {

@@ -1,4 +1,4 @@
-import { navigation } from '../../../side/router/navigation/implementation';
+import { navigation } from '../../../side/navigate/navigation/implementation';
 
 export async function debugNavigation() {
   console.log(Array.from(navigation.history));

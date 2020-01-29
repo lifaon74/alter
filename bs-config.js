@@ -11,11 +11,18 @@
  |
  |
  */
+
+const $path = require('path');
+const $fs = require('fs');
+const ROOT = $path.normalize('./');
+const DIST_BROWSER = $path.join(ROOT, './dist/browser');
+const CERTIFICATES = $path.join(ROOT, './certificates');
+
 module.exports = {
   "ui": {
     "port": 3001
   },
-  "files": ['./dist/browser/app.bundled.js'],
+  "files": [$path.join(DIST_BROWSER, './app.bundled.js')],
   "watchEvents": [
     "change"
   ],
@@ -26,7 +33,7 @@ module.exports = {
     "ignoreInitial": true
   },
   "server": {
-    baseDir: "dist/browser/",
+    baseDir: DIST_BROWSER,
     directory: false,
     index: "index.html",
     serveStaticOptions: {
@@ -36,8 +43,8 @@ module.exports = {
   "proxy": false,
   "port": 3000,
   https: {
-    key: "./certificates/key.pem",
-    cert: "./certificates/cert.pem"
+    key: $path.join(CERTIFICATES, "./key.pem"),
+    cert: $path.join(CERTIFICATES, "./cert.pem")
   },
   "middleware": false,
   "serveStatic": [],
@@ -114,5 +121,18 @@ module.exports = {
     "gif": "img",
     "js": "script"
   },
-  "injectNotification": false
+  "injectNotification": false,
+  callbacks: {
+    ready: (err, bs) => {
+      const content_404 = $fs.readFileSync($path.join(DIST_BROWSER, './index.html'));
+      bs.addMiddleware('*', (req, res) => {
+        res.write(content_404);
+        res.end();
+        // res.writeHead(302, {
+        //   location: "index.html"
+        // });
+        // res.end("Redirecting!");
+      });
+    }
+  }
 };

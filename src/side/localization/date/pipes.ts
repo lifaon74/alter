@@ -1,8 +1,6 @@
 import { dateFormatService } from './implementation';
 import { DateTimeFormatOptions } from './interfaces';
-import { TObservableOrValue } from '@lifaon/observables/types/operators/shortcuts/types';
-import { $observable, AsyncFunctionObservable, IAsyncFunctionObservable } from '@lifaon/observables';
-import { IAdvancedAbortSignal } from '@lifaon/observables/types/misc/advanced-abort-controller/advanced-abort-signal/interfaces';
+import { $observable, AsyncFunctionObservable, IAsyncFunctionObservable, TObservableOrValue, IAdvancedAbortSignal } from '@lifaon/observables';
 import { LocalizationServiceLocaleObservable } from '../functions';
 
 /**

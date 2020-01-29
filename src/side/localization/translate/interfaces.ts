@@ -1,8 +1,7 @@
 import {
-  ICancellablePromise
+  ICancellablePromise, IAdvancedAbortSignal
 } from '@lifaon/observables';
 import { ILocalizationService, ILocalizationServiceKeyValueMap } from '../interfaces';
-import { IAdvancedAbortSignal } from '@lifaon/observables/types/misc/advanced-abort-controller/advanced-abort-signal/interfaces';
 
 /** TYPES **/
 

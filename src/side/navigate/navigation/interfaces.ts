@@ -7,7 +7,12 @@ import {
 
 /** INTERFACES **/
 
-export interface INavigationConstructor {
+export interface INavigationStatic {
+  create(options?: INavigationOptions): INavigation;
+}
+
+/* PRIVATE */
+export interface INavigationConstructor extends INavigationStatic {
   new(options?: INavigationOptions): INavigation;
 }
 

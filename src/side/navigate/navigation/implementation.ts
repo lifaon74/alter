@@ -131,7 +131,11 @@ export function NavigationDebug(instance: INavigation): string {
 
 export class Navigation extends NotificationsObservable<INavigationKeyValueMap> implements INavigation {
 
-  constructor(options?: INavigationOptions) {
+  static create(options?: INavigationOptions): INavigation {
+    return new Navigation(options);
+  }
+
+  protected constructor(options?: INavigationOptions) {
     let context: INotificationsObservableContext<INavigationKeyValueMap>;
     super((_context: INotificationsObservableContext<INavigationKeyValueMap>) => {
       context = _context;
@@ -214,7 +218,7 @@ export class Navigation extends NotificationsObservable<INavigationKeyValueMap> 
 /** INSTANCE **/
 
 // instance is uniq
-export const navigation: INavigation = new Navigation({ historyLimit: 100 });
+export const navigation: INavigation = Navigation.create({ historyLimit: 100 });
 
 
 

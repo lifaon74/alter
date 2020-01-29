@@ -1,20 +1,20 @@
 import { IRoute } from './interfaces';
-import { IRouteOptions } from './types';
+import { InferChildRoute, IRouteOptions, TRouteExecGeneric } from './types';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { IRouteInternal, IRoutePrivate, ROUTE_PRIVATE } from './privates';
-import { IsObject } from '@lifaon/observables/src/helpers';
 import { PathMatcher } from '../path-matcher/implementation';
 import { ReadonlyList } from '@lifaon/observables';
+import { IsObject } from '../../../misc/helpers/is/IsObject';
 
 /** CONSTRUCTOR **/
 
-export function ConstructRoute(
-  instance: IRoute,
+export function ConstructRoute<TExec extends TRouteExecGeneric>(
+  instance: IRoute<TExec>,
   path: string,
-  options: IRouteOptions = {},
+  options: IRouteOptions<TExec> = {},
 ): void {
   ConstructClassWithPrivateMembers(instance, ROUTE_PRIVATE);
-  const privates: IRoutePrivate = (instance as IRouteInternal)[ROUTE_PRIVATE];
+  const privates: IRoutePrivate<TExec> = (instance as IRouteInternal<TExec>)[ROUTE_PRIVATE];
 
   if (IsObject(options)) {
     if (typeof path === 'string') {
@@ -24,15 +24,15 @@ export function ConstructRoute(
     }
 
     if (options.children === void 0) {
-      privates.children = new ReadonlyList<IRoute>([]);
+      privates.children = new ReadonlyList<InferChildRoute<TExec>>([]);
     } else if (Symbol.iterator in options.children) {
-      const children: IRoute[] = Array.from(options.children);
+      const children: InferChildRoute<TExec>[] = Array.from(options.children);
       for (let i = 0, l = children.length; i < l; i++) {
         if (!IsRoute(children[i])) {
           throw new TypeError(`Expected Route at index #${ i } of options.children`);
         }
       }
-      privates.children = new ReadonlyList<IRoute>(children);
+      privates.children = new ReadonlyList<InferChildRoute<TExec>>(children);
     } else {
       throw new TypeError(`Expected array as options.children`);
     }
@@ -77,7 +77,7 @@ export function ConstructRoute(
   }
 }
 
-export function IsRoute(value: any): value is IRoute {
+export function IsRoute(value: any): value is IRoute<any> {
   return IsObject(value)
     && value.hasOwnProperty(ROUTE_PRIVATE as symbol);
 }

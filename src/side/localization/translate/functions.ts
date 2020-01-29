@@ -1,5 +1,4 @@
-import { IAdvancedAbortSignal } from '@lifaon/observables/types/misc/advanced-abort-controller/advanced-abort-signal/interfaces';
-import { AdvancedAbortController, CancellablePromise, ICancellablePromise } from '@lifaon/observables';
+import { AdvancedAbortController, CancellablePromise, ICancellablePromise, IAdvancedAbortSignal } from '@lifaon/observables';
 import { ITranslateParams, TCreateTranslationsLoaderCallback, TTranslations } from './interfaces';
 
 /** FUNCTIONS **/

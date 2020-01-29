@@ -1,7 +1,6 @@
-import { EventsObservable, INotificationsObservableContext, NotificationsObservable } from '@lifaon/observables';
+import { EventsObservable, INotificationsObservableContext, NotificationsObservable, KeyValueMapKeys } from '@lifaon/observables';
 import { IDragObject, IDragObservableKeyValueMap, IPoint2D } from './types';
 import { IDragObservable } from './interfaces';
-import { KeyValueMapKeys } from '@lifaon/observables/src/notifications/core/interfaces';
 
 export class DragObservable<TElement extends Element> extends NotificationsObservable<IDragObservableKeyValueMap> implements IDragObservable<TElement> {
   readonly target: TElement;

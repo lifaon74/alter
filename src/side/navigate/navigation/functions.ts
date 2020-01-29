@@ -5,10 +5,9 @@ import { NavigationState } from './state/implementation';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
 import { NormalizeURL } from './url-helpers';
 import {
-  INotificationsObservable, IObserver, IPipe, KeyValueMapToNotifications, mapNotificationsPipe
+  INotificationsObservable, IObserver, IPipe, KeyValueMapToNotifications, mapNotificationsPipe, KeyValueMapKeys
 } from '@lifaon/observables';
 import { INavigationKeyValueMap, INavigationNavigateKeyValueMap } from './types';
-import { KeyValueMapKeys } from '@lifaon/observables/types/notifications/core/interfaces';
 
 
 /** FUNCTIONS **/

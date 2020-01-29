@@ -1,3 +1,5 @@
+
+// INFO: all of this could be merge in a misc/url-helpers.ts
 export interface URLEqualsOptions {
   strictString?: boolean;
   strictOrigin?: boolean;
@@ -22,4 +24,14 @@ export function CloneURL(url: URL): URL {
 
 export function NormalizeURL(url: string): string {
   return new URL(url, window.location.origin).href;
+}
+
+export function GetURL(url: string | URL): URL {
+  if (typeof url === 'string') {
+    return new URL(url, window.location.origin);
+  } else if (url instanceof URL) {
+    return url;
+  } else {
+    throw new TypeError(`Expected string or URL as url`);
+  }
 }

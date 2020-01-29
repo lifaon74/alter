@@ -1,8 +1,6 @@
 import { translateService } from './implementation';
-import { $observable, AsyncFunctionObservable, IAsyncFunctionObservable } from '@lifaon/observables';
+import { $observable, AsyncFunctionObservable, IAsyncFunctionObservable, IAdvancedAbortSignal, TObservableOrValue } from '@lifaon/observables';
 import { ITranslateParams } from './interfaces';
-import { IAdvancedAbortSignal } from '@lifaon/observables/types/misc/advanced-abort-controller/advanced-abort-signal/interfaces';
-import { TObservableOrValue } from '@lifaon/observables/types/operators/shortcuts/types';
 import { LocalizationServiceLocaleObservable } from '../functions';
 
 /**

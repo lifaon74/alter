@@ -1,5 +1,5 @@
-import { navigation } from '../../../side/router/navigation/implementation';
-import { QueryParamsObservable } from '../../../side/router/navigation/query-params-observable/implementation';
+import { navigation } from '../../../side/navigate/navigation/implementation';
+import { QueryParamsObservable } from '../../../side/navigate/navigation/query-params-observable/implementation';
 
 export async function debugQueryParamsChange() {
   const observable = new QueryParamsObservable({ names: ['id'] });

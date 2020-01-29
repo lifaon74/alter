@@ -218,10 +218,10 @@ export function MergeTemplateBuildOptions(options1: ITemplateBuildOptions | unde
 }
 
 export class TemplateBuildOptions implements INormalizedTemplateBuildOptions {
-  parsers: IParsers;
-  constantsToImport: Set<string>;
-  require: TTemplateRequireFunction;
-  dataSourceName: Set<string>;
+  readonly parsers: IParsers;
+  readonly constantsToImport: Set<string>;
+  readonly require: TTemplateRequireFunction;
+  readonly dataSourceName: Set<string>;
 
   constructor(options?: ITemplateBuildOptions) {
     Object.assign(this, NormalizeTemplateBuildOptions(options));
