@@ -6,7 +6,7 @@ import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/Cl
 export const LOAD_ELEMENTS_EVENT_PRIVATE = Symbol('load-elements-event-private');
 
 export interface ILoadElementsEventPrivate {
-  elementReference: Element | null;
+  referenceElement: Element | null;
   distance: number;
 }
 
@@ -20,12 +20,12 @@ export function ConstructLoadElementsEvent(instance: ILoadElementsEvent, init: I
   ConstructClassWithPrivateMembers(instance, LOAD_ELEMENTS_EVENT_PRIVATE);
   const privates: ILoadElementsEventPrivate = (instance as ILoadElementsEventInternal)[LOAD_ELEMENTS_EVENT_PRIVATE];
 
-  if ((init.elementReference === void 0) || (init.elementReference === null)) {
-    privates.elementReference = null;
-  } else if (init.elementReference instanceof Element) {
-    privates.elementReference = init.elementReference;
+  if ((init.referenceElement === void 0) || (init.referenceElement === null)) {
+    privates.referenceElement = null;
+  } else if (init.referenceElement instanceof Element) {
+    privates.referenceElement = init.referenceElement;
   } else {
-    throw new TypeError(`Expected Element as init.elementReference`);
+    throw new TypeError(`Expected Element as init.referenceElement`);
   }
 
   if (init.distance === void 0) {
@@ -51,8 +51,8 @@ export class LoadElementsEvent extends Event implements ILoadElementsEvent {
     ConstructLoadElementsEvent(this, init);
   }
 
-  get elementReference(): Element | null {
-    return ((this as unknown) as ILoadElementsEventInternal)[LOAD_ELEMENTS_EVENT_PRIVATE].elementReference;
+  get referenceElement(): Element | null {
+    return ((this as unknown) as ILoadElementsEventInternal)[LOAD_ELEMENTS_EVENT_PRIVATE].referenceElement;
   }
 
   get distance(): number {

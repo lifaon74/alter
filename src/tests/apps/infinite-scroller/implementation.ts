@@ -32,10 +32,10 @@ export function InfiniteScrollerGetDirection(instance: IInfiniteScroller): TInfi
   return (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].direction;
 }
 
-export function InfiniteScrollerSetDirection(instance: IInfiniteScroller, direction: TInfiniteScrollerDirection | null): void {
+export function InfiniteScrollerSetDirection(instance: IInfiniteScroller, direction?: TInfiniteScrollerDirection | null): void {
   const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
 
-  if ((direction === null) || (direction === void 0)) {
+  if (IsNull(direction)) {
     direction = INFINITE_SCROLLER_DEFAULT_DIRECTION;
   } else {
     switch (direction) {
@@ -113,8 +113,8 @@ export function InfiniteScrollerGetContentLimitWheelStrategy(instance: IInfinite
   return (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].contentLimitStrategies.wheel;
 }
 
-export function InfiniteScrollerSetContentLimitWheelStrategy(instance: IInfiniteScroller, value: IInfiniteScrollerContentLimitStrategy) {
-  InfiniteScrollerSetContentLimitStrategy(instance, 'wheel', value);
+export function InfiniteScrollerSetContentLimitWheelStrategy(instance: IInfiniteScroller, strategy?: IInfiniteScrollerContentLimitStrategy | null): void {
+  InfiniteScrollerSetContentLimitStrategy(instance, 'wheel', strategy);
 }
 
 // contentLimitTouchMoveStrategy
@@ -122,8 +122,8 @@ export function InfiniteScrollerGetContentLimitTouchMoveStrategy(instance: IInfi
   return (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].contentLimitStrategies.touchMove;
 }
 
-export function InfiniteScrollerSetContentLimitTouchMoveStrategy(instance: IInfiniteScroller, value: IInfiniteScrollerContentLimitStrategy) {
-  InfiniteScrollerSetContentLimitStrategy(instance, 'touchMove', value);
+export function InfiniteScrollerSetContentLimitTouchMoveStrategy(instance: IInfiniteScroller, strategy?: IInfiniteScrollerContentLimitStrategy | null): void {
+  InfiniteScrollerSetContentLimitStrategy(instance, 'touchMove', strategy);
 }
 
 // contentLimitTouchInertiaStrategy
@@ -131,8 +131,8 @@ export function InfiniteScrollerGetContentLimitTouchInertiaStrategy(instance: II
   return (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].contentLimitStrategies.touchInertia;
 }
 
-export function InfiniteScrollerSetContentLimitTouchInertiaStrategy(instance: IInfiniteScroller, value: IInfiniteScrollerContentLimitStrategy) {
-  InfiniteScrollerSetContentLimitStrategy(instance, 'touchInertia', value);
+export function InfiniteScrollerSetContentLimitTouchInertiaStrategy(instance: IInfiniteScroller, strategy?: IInfiniteScrollerContentLimitStrategy | null): void {
+  InfiniteScrollerSetContentLimitStrategy(instance, 'touchInertia', strategy);
 }
 
 // contentLimitMouseMiddleStrategy
@@ -140,8 +140,8 @@ export function InfiniteScrollerGetContentLimitMouseMiddleStrategy(instance: IIn
   return (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].contentLimitStrategies.mouseMiddle;
 }
 
-export function InfiniteScrollerSetContentLimitMouseMiddleStrategy(instance: IInfiniteScroller, value: IInfiniteScrollerContentLimitStrategy) {
-  InfiniteScrollerSetContentLimitStrategy(instance, 'mouseMiddle', value);
+export function InfiniteScrollerSetContentLimitMouseMiddleStrategy(instance: IInfiniteScroller, strategy?: IInfiniteScrollerContentLimitStrategy | null): void {
+  InfiniteScrollerSetContentLimitStrategy(instance, 'mouseMiddle', strategy);
 }
 
 
@@ -166,13 +166,21 @@ export function InfiniteScrollerElements(instance: IInfiniteScroller, reversed: 
 
 export function InfiniteScrollerAppendBefore(instance: IInfiniteScroller, elements: HTMLElement[]): Promise<void> {
   return new Promise((resolve: any, reject: any) => {
-    (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].appendBeforeList.push({ elements, resolve, reject });
+    (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].appendBeforeList.push({
+      elements,
+      resolve,
+      reject
+    });
   });
 }
 
 export function InfiniteScrollerAppendAfter(instance: IInfiniteScroller, elements: HTMLElement[]): Promise<void> {
   return new Promise((resolve: any, reject: any) => {
-    (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].appendAfterList.push({ elements, resolve, reject });
+    (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].appendAfterList.push({
+      elements,
+      resolve,
+      reject
+    });
   });
 }
 
@@ -267,9 +275,6 @@ export function InfiniteScrollerOnAttributeChanged(instance: IInfiniteScroller, 
       break;
   }
 }
-
-
-
 
 
 /** CUSTOM ELEMENT */
@@ -408,6 +413,22 @@ export class InfiniteScroller extends HTMLElement implements IInfiniteScroller {
     InfiniteScrollerSetContentLimitMouseMiddleStrategy(this, value);
   }
 
+  get contentLimitStrategy(): IInfiniteScrollerContentLimitStrategy | null {
+    return (
+      (this.contentLimitWheelStrategy === this.contentLimitTouchMoveStrategy)
+      && (this.contentLimitWheelStrategy === this.contentLimitTouchInertiaStrategy)
+      && (this.contentLimitWheelStrategy === this.contentLimitMouseMiddleStrategy)
+    )
+      ? this.contentLimitWheelStrategy
+      : null;
+  }
+
+  set contentLimitStrategy(value: IInfiniteScrollerContentLimitStrategy | null) {
+    this.contentLimitWheelStrategy = value as IInfiniteScrollerContentLimitStrategy;
+    this.contentLimitTouchMoveStrategy = value as IInfiniteScrollerContentLimitStrategy;
+    this.contentLimitTouchInertiaStrategy = value as IInfiniteScrollerContentLimitStrategy;
+    this.contentLimitMouseMiddleStrategy = value as IInfiniteScrollerContentLimitStrategy;
+  }
 
   get firstElement(): HTMLElement | null {
     return InfiniteScrollerGetFirstElement(this);

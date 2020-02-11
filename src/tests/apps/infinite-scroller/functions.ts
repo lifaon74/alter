@@ -12,6 +12,7 @@ import { DecodeCSSTransformMatrix, EncodeCSSTransformMatrix, GetWheelDeltaInPx }
 import { LoadElementsEvent } from './events/load-elements-event/implementation';
 import { AttachNode, DestroyNodeSafe } from '../../../core/custom-node/node-state-observable/mutations';
 import { UnloadElementsEvent } from './events/unload-elements-event/implementation';
+import { IsNull } from '../../../misc/helpers/is/IsNull';
 
 
 /** FUNCTIONS **/
@@ -19,10 +20,10 @@ import { UnloadElementsEvent } from './events/unload-elements-event/implementati
 export function InfiniteScrollerSetContentLimitStrategy(
   instance: IInfiniteScroller,
   key: keyof IInfiniteScrollerContentLimitStrategies,
-  strategy: IInfiniteScrollerContentLimitStrategy
+  strategy?: IInfiniteScrollerContentLimitStrategy | null
 ): void {
   const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
-  if ((strategy === null) || (strategy === void 0)) {
+  if (IsNull(strategy)) {
     privates.contentLimitStrategies[key] = INFINITE_SCROLLER_DEFAULT_CONTENT_LIMIT_STRATEGY;
   } else {
     switch (strategy) {
@@ -32,7 +33,7 @@ export function InfiniteScrollerSetContentLimitStrategy(
         privates.contentLimitStrategies[key] = strategy;
         break;
       default:
-        throw new TypeError(`Expected 'ignore', 'ignore' or 'ignore' as contentLimit${ key }Strategy`);
+        throw new TypeError(`Expected 'ignore', 'pause' or 'stop' as contentLimit${ key }Strategy`);
     }
   }
 }
@@ -399,13 +400,13 @@ export function InfiniteScrollerContainerUpdate(instance: IInfiniteScroller, tra
   if (translation <= afterLimit) {
     // console.log('load-after', afterLimit - translation);
     instance.dispatchEvent(new LoadElementsEvent('load-after', {
-      elementReference: instance.lastElement,
+      referenceElement: instance.lastElement,
       distance: afterLimit - translation
     }));
   } else if (translation >= beforeLimit) {
     // console.log('load-before', translation - beforeLimit);
     instance.dispatchEvent(new LoadElementsEvent('load-before', {
-      elementReference: instance.firstElement,
+      referenceElement: instance.firstElement,
       distance: translation - beforeLimit
     }));
   }
@@ -531,8 +532,10 @@ export function InfiniteScrollerAppendElements(instance: IInfiniteScroller, tran
     }
     privates.appendBeforeList.length = 0;
 
-    AttachNode(beforeChunk, privates.container, privates.container.firstElementChild);
-    // privates.container.insertBefore(beforeChunk, privates.container.firstElementChild);
+    if (beforeChunk.firstChild !== null) {
+      AttachNode(beforeChunk, privates.container, privates.container.firstElementChild);
+      // privates.container.insertBefore(beforeChunk, privates.container.firstElementChild);
+    }
 
     const shift: number = -beforeChunk[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
     privates.animationInitialPosition += shift;
@@ -556,8 +559,10 @@ export function InfiniteScrollerAppendElements(instance: IInfiniteScroller, tran
     }
     privates.appendAfterList.length = 0;
 
-    AttachNode(afterChunk, privates.container);
-    // privates.container.appendChild(afterChunk);
+    if (afterChunk.firstChild !== null) {
+      AttachNode(afterChunk, privates.container);
+      // privates.container.appendChild(afterChunk);
+    }
   }
 
   return translation;

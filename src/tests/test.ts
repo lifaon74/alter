@@ -11,7 +11,7 @@ import { runApps } from './apps/run-apps';
 import { debugRoute } from './debug/debug-router/debug-route';
 import { experimentClassBuilder } from './experimental/classes/experimental-class-builder';
 import { experimentClass } from './experimental/classes/concept';
-import { testInfiniteScroller } from './apps/infinite-scroller/test';
+import { debugInfiniteScroller } from './apps/infinite-scroller/test';
 import { debugQueryParamsChange } from './debug/debug-router/debug-query-params-observable';
 import { debugNavigation } from './debug/debug-router/debug-navigation';
 
@@ -32,7 +32,7 @@ export async function test() {
   // await debugRoute();
   // await experimentClassBuilder();
   // await experimentClass();
-  await testInfiniteScroller();
+  await debugInfiniteScroller();
   // await debugQueryParamsChange();
   // await debugNavigation();
 }
