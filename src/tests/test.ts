@@ -29,10 +29,10 @@ export async function test() {
   // await debugDataProxy();
   // await debugDataProxy2();
   // await runApps();
-  await debugRoute();
+  // await debugRoute();
   // await experimentClassBuilder();
   // await experimentClass();
-  // await testInfiniteScroller();
+  await testInfiniteScroller();
   // await debugQueryParamsChange();
   // await debugNavigation();
 }

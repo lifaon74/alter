@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@lifaon/observables@2.0.5":
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/@lifaon/observables/-/observables-2.0.5.tgz#d459375f869c325cec1119ff31314b3e94dad3f0"
-  integrity sha512-Ynf0Lc/evvPgPv6ijAk7Arvc65eBogJaajuDK0WYMHU0IbPBs2Xc4mriHP04YvJuSWOKyOegTHgQQrzTaMc+QQ==
+"@lifaon/observables@2.0.7":
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/@lifaon/observables/-/observables-2.0.7.tgz#f2d1d00e9cf898b451c50a289867cf42146822e8"
+  integrity sha512-gVJ5aw18orqgQ4quJqbQu8coaHiloznOuAaSId/zLVMRWYlMJg4tjfd+1iQnk1Rk9OR7V+sjZO5/cQAwFAAodg==
 
 "@lifaon/path@1.1.2":
   version "1.1.2"
@@ -17,10 +17,15 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.42.tgz#8d0c1f480339efedb3e46070e22dd63e0430dd11"
   integrity sha512-K1DPVvnBCPxzD+G51/cxVIoc2X8uUVl1zpJeE6iKcgHMj4+tbat5Xu4TjV7v2QSDbIeAfLi2hIk+u2+s0MlpUQ==
 
-"@types/node@*", "@types/node@latest":
+"@types/node@*":
   version "12.7.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.5.tgz#e19436e7f8e9b4601005d73673b6dc4784ffcc2f"
   integrity sha512-9fq4jZVhPNW8r+UYKnxF1e2HkDWOWKM5bC2/7c9wPV835I0aOrVbS/Hw/pWPk2uKrNXQqg9Z959Kz+IYDd5p3w==
+
+"@types/node@^13.7.0":
+  version "13.7.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.7.0.tgz#b417deda18cf8400f278733499ad5547ed1abec4"
+  integrity sha512-GnZbirvmqZUzMgkFn70c74OQpTTUcCzlhQliTzYjQMqg+hVKcDnxdL19Ne3UdYzdMA/+W3eb646FWn/ZaT1NfQ==
 
 "@types/resolve@0.0.8":
   version "0.0.8"
@@ -2919,10 +2924,10 @@ rollup-pluginutils@^2.8.1:
   dependencies:
     estree-walker "^0.6.1"
 
-rollup@^1.29.1:
-  version "1.29.1"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-1.29.1.tgz#8715d0a4ca439be3079f8095989ec8aa60f637bc"
-  integrity sha512-dGQ+b9d1FOX/gluiggTAVnTvzQZUEkCi/TwZcax7ujugVRHs0nkYJlV9U4hsifGEMojnO+jvEML2CJQ6qXgbHA==
+rollup@^1.31.0:
+  version "1.31.0"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-1.31.0.tgz#e2a87212e96aa7850f3eb53fdd02cf89f2d2fe9a"
+  integrity sha512-9C6ovSyNeEwvuRuUUmsTpJcXac1AwSL1a3x+O5lpmQKZqi5mmrjauLeqIjvREC+yNRR8fPdzByojDng+af3nVw==
   dependencies:
     "@types/estree" "*"
     "@types/node" "*"
@@ -3589,10 +3594,10 @@ trim-newlines@^1.0.0:
   dependencies:
     glob "^7.1.2"
 
-tsc-watch@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/tsc-watch/-/tsc-watch-4.0.0.tgz#bc50db2351babd3df1978f42b9742695cf2874d3"
-  integrity sha512-I+1cE7WN9YhDknNRAO5NRI7jzeiIZCxUZ0dFEM/Gf+3KTlHasusDEftwezJ+PSFkECSn3RQmf28RdovjTptkRA==
+tsc-watch@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/tsc-watch/-/tsc-watch-4.1.0.tgz#af155da8d0a8d25db0ffe1d7ea998877f7488688"
+  integrity sha512-/czn0zT/4PXffuUyqtTTRkZwenk5UKQR0HN0N1iFW9k7tZXoJWvJq9H0w9orulSqAmyIwhVTNkcvsVf7e3NPPg==
   dependencies:
     cross-spawn "^5.1.0"
     node-cleanup "^2.1.2"
