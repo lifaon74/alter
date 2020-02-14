@@ -58,6 +58,7 @@ export function ConstructInfiniteScroller(instance: IInfiniteScroller): void {
 
   privates.appendBeforeList = [];
   privates.appendAfterList = [];
+  privates.clearList = [];
 
   const instanceEventsObservable: IEventsObservable<HTMLElementEventMap> = new EventsObservable<HTMLElementEventMap>(instance);
   const windowEventsObservable: IEventsObservable<WindowEventMap> = new EventsObservable<WindowEventMap>(window);

@@ -6,7 +6,7 @@ import { parseCommandAttribute } from '../../core/template/generators/element-no
 import { parseTemplate } from '../../core/template/generators/template-generator/parser';
 import { Template } from '../../core/template/implementation';
 import { parseEventListenerAttribute } from '../../core/template/generators/element-node-generator/attribute/event/parser';
-import { AttachNode, DestroyNode, DestroyNodeSafe, DetachNode } from '../../core/custom-node/node-state-observable/mutations';
+import { AttachNode, DestroyNode, ForceDestroyNode, DetachNode } from '../../core/custom-node/node-state-observable/mutations';
 import { NotificationsObserver, Source } from '@lifaon/observables';
 import { DEFAULT_PARSERS } from '../../core/template/generators/default';
 import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../core/template/helpers';
@@ -232,7 +232,7 @@ function debugTemplateBuilder() {
   (window as any).AttachNode = AttachNode;
   (window as any).DetachNode = DetachNode;
   (window as any).DestroyNode = DestroyNode;
-  (window as any).DestroyNodeSafe = DestroyNodeSafe;
+  (window as any).DestroyNodeSafe = ForceDestroyNode;
   // setTimeout(() => {
   //   DestroyNodeSafe(document.body);
   // }, 10000);

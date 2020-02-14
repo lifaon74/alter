@@ -1,5 +1,5 @@
 import { ExtendableHTMLElement } from '../../core/custom-node/helpers/ExtendableHTMLElement';
-import { AttachNode, AttachNodeSafe, DestroyNodeSafe, DetachNode } from '../../core/custom-node/node-state-observable/mutations';
+import { AttachNode, ForceAttachNode, ForceDestroyNode, DetachNode } from '../../core/custom-node/node-state-observable/mutations';
 import { NodeStateObservable } from '../../core/custom-node/node-state-observable/implementation';
 import { AddCustomNodeCompleteSupportForNode } from '../../core/custom-node/node-state-observable/interceptors';
 import { ContainerNode } from '../../core/custom-node/container-node/implementation';
@@ -545,9 +545,9 @@ export function debugCustomNode() {
   // AddCustomNodeCompleteSupportForNode();
   // NodeStateObservable.useDOMObserver = true;
 
-  (window as any).AttachNode = AttachNodeSafe;
+  (window as any).AttachNode = ForceAttachNode;
   (window as any).DetachNode = DetachNode;
-  (window as any).DestroyNode = DestroyNodeSafe;
+  (window as any).DestroyNode = ForceDestroyNode;
 
 
   // debugExtendableHTMLElement();

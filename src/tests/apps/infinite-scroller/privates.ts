@@ -15,12 +15,17 @@ export interface IInfiniteScrollerContentLimitStrategies {
   mouseMiddle: IInfiniteScrollerContentLimitStrategy;
 }
 
-export interface IInfiniteScrollerDeferredAppendList {
-  elements: HTMLElement[];
-  resolve: () => void;
-  reject: () => void;
+export interface IDeferredPromise<T> {
+  resolve: (value: T) => void;
+  reject: (reason?: any) => void;
 }
 
+export interface IInfiniteScrollerDeferredAppendList extends IDeferredPromise<void> {
+  elements: HTMLElement[];
+}
+
+export interface IInfiniteScrollerDeferredClear extends IDeferredPromise<void> {
+}
 
 export interface IInfiniteScrollerOptionsPrivate {
   direction: TInfiniteScrollerDirection;
@@ -36,10 +41,11 @@ export interface IInfiniteScrollerContainerPrivate {
 
   requestAnimationFrameId: number | null;
   animationInitialPosition: number;
-  animationFunction: TAnimationFunction; // function called each animation frame with current time as argument. returns expected container position
+  animationFunction: TAnimationFunction; // function called each animation frame with current time as argument. returns expected container position,
 
   appendBeforeList: IInfiniteScrollerDeferredAppendList[];
   appendAfterList: IInfiniteScrollerDeferredAppendList[];
+  clearList: IInfiniteScrollerDeferredClear[];
 }
 
 export interface IInfiniteScrollerWheelPrivate {

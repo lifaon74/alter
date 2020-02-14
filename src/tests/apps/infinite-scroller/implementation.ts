@@ -1,20 +1,21 @@
 import {
-  IInfiniteScroller, IInfiniteScrollerContentLimitStrategy, IInfiniteScrollerEventMap, TInfiniteScrollerDirection
+  IElementsIteratorNormalizedOptions, IElementsIteratorOptions, IInfiniteScroller,
+  IInfiniteScrollerContentLimitStrategy, IInfiniteScrollerEventMap, TInfiniteScrollerDirection
 } from './interfaces';
 import { CustomElement } from '../../../core/component/custom-element/decorators/custom-element';
-import { UnloadElementsEvent } from './events/unload-elements-event/implementation';
-import { AttachNode, DestroyNodeSafe } from '../../../core/custom-node/node-state-observable/mutations';
 import { IInfiniteScrollerInternal, IInfiniteScrollerPrivate, INFINITE_SCROLLER_PRIVATE } from './privates';
 import {
-  INFINITE_SCROLLER_DEFAULT_CONTENT_LIMIT_STRATEGY, INFINITE_SCROLLER_DEFAULT_DIRECTION,
+  IDirectionDetails, INFINITE_SCROLLER_DEFAULT_CONTENT_LIMIT_STRATEGY, INFINITE_SCROLLER_DEFAULT_DIRECTION,
   INFINITE_SCROLLER_DEFAULT_LOAD_DISTANCE, INFINITE_SCROLLER_DEFAULT_LOAD_UNLOAD_DISTANCE,
-  INFINITE_SCROLLER_DEFAULT_UNLOAD_DISTANCE
+  INFINITE_SCROLLER_DEFAULT_UNLOAD_DISTANCE, INFINITE_SCROLLER_DIRECTION_CONSTANTS
 } from './default-constants';
 import { IsNull } from '../../../misc/helpers/is/IsNull';
 import { SetPropertyOrDefault } from './helpers';
 import {
-  InfiniteScrollerGetChildren, InfiniteScrollerGetChildrenReversed, InfiniteScrollerLoop,
-  InfiniteScrollerSetContentLimitStrategy
+  InfiniteScrollerElementsIterator,
+  InfiniteScrollerLoop, InfiniteScrollerRemoveAllElements, InfiniteScrollerReplaceAllElements,
+  InfiniteScrollerSetContentLimitStrategy,
+  NormalizeIElementsIteratorOptions, NormalizeIElementsIteratorOptionsReversed
 } from './functions';
 import { ConstructInfiniteScroller } from './constructor';
 
@@ -54,6 +55,7 @@ export function InfiniteScrollerSetDirection(instance: IInfiniteScroller, direct
     }
   }
 
+  // INFO should maybe reset animation (drag, wheel, etc...?)
   // InfiniteScrollerUpdateContainerDirection(instance);
 }
 
@@ -152,16 +154,47 @@ export function InfiniteScrollerGetFirstElement(instance: IInfiniteScroller): HT
 }
 
 export function InfiniteScrollerGetLastElement(instance: IInfiniteScroller): HTMLElement | null {
-  return InfiniteScrollerElements(instance, true).next().value || null;
+  return InfiniteScrollerElements(instance, { reversed: true }).next().value || null;
+}
+
+export function InfiniteScrollerGetFirstVisibleElement(instance: IInfiniteScroller, options?: IElementsIteratorOptions): HTMLElement | null {
+  const _options: IElementsIteratorNormalizedOptions = NormalizeIElementsIteratorOptions(options);
+  const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
+  const directionDetails: IDirectionDetails = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction];
+
+  const cssElementPositionKey: string = _options.reversed
+    ? directionDetails.cssPositionStartKey
+    : directionDetails.cssPositionEndKey;
+
+  const instancePosition: number = instance.getBoundingClientRect()[
+    _options.reversed
+      ? directionDetails.cssPositionEndKey
+      : directionDetails.cssPositionStartKey
+  ];
+
+  const factor: number = _options.reversed ? -1 : 1;
+
+  const iterator: Iterator<HTMLElement> = InfiniteScrollerElements(instance, options);
+  let result: IteratorResult<HTMLElement>;
+  while (!(result = iterator.next()).done) {
+    const element: HTMLElement = result.value;
+    const elementPosition: ClientRect = element.getBoundingClientRect();
+
+    if (
+      ((elementPosition[cssElementPositionKey] - instancePosition) * factor) // distance element <-> scroller
+      > 0
+    ) {
+      return element;
+    }
+  }
+  return null;
 }
 
 
 /* METHODS */
 
-export function InfiniteScrollerElements(instance: IInfiniteScroller, reversed: boolean = false): IterableIterator<HTMLElement> {
-  return reversed
-    ? InfiniteScrollerGetChildrenReversed(instance)
-    : InfiniteScrollerGetChildren(instance);
+export function InfiniteScrollerElements(instance: IInfiniteScroller, options?: IElementsIteratorOptions): IterableIterator<HTMLElement> {
+  return InfiniteScrollerElementsIterator(instance, NormalizeIElementsIteratorOptions(options));
 }
 
 export function InfiniteScrollerAppendBefore(instance: IInfiniteScroller, elements: HTMLElement[]): Promise<void> {
@@ -184,36 +217,19 @@ export function InfiniteScrollerAppendAfter(instance: IInfiniteScroller, element
   });
 }
 
-export function InfiniteScrollerClearElements(instance: IInfiniteScroller): void {
-  const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
-
-  privates.animationInitialPosition = 0;
-  privates.animationFunction = () => privates.animationInitialPosition;
-
-  privates.appendBeforeList = [];
-  privates.appendAfterList = [];
-
-  privates.wheelTarget = null;
-
-  let chunk: Element | null = privates.container.firstElementChild;
-  const removedElements: Element[] = [];
-
-  while (chunk !== null) {
-    let element: Element | null = chunk.firstElementChild;
-    while (element !== null) {
-      removedElements.push(element);
-      element = element.nextElementSibling;
-    }
-    let nextElementSibling: Element | null = chunk.nextElementSibling;
-    DestroyNodeSafe(chunk);
-    // chunk.remove();
-    chunk = nextElementSibling;
-  }
-
-  instance.dispatchEvent(new UnloadElementsEvent('clear', {
-    elements: removedElements
-  }));
+export function InfiniteScrollerReplaceElements(instance: IInfiniteScroller, elements: HTMLElement[]): void {
+  return InfiniteScrollerReplaceAllElements(instance, elements);
 }
+
+// export function InfiniteScrollerClearElements(instance: IInfiniteScroller): void {
+//   // return new Promise((resolve: any, reject: any) => {
+//   //   (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].clearList.push({
+//   //     resolve,
+//   //     reject
+//   //   });
+//   // }) as any;
+//   InfiniteScrollerRemoveAllElements(instance);
+// }
 
 
 /* HTML ELEMENT TRIGGER METHODS */
@@ -292,63 +308,6 @@ export function InfiniteScrollerOnAttributeChanged(instance: IInfiniteScroller, 
   ]
 })
 export class InfiniteScroller extends HTMLElement implements IInfiniteScroller {
-
-  static loadDefaultStyle(): HTMLStyleElement {
-    const style: HTMLStyleElement = document.createElement('style');
-    style.textContent = `
-      infinite-scroller {
-        display: block;
-        overflow: hidden;
-        width: 100%;
-        height: 100%;
-      }
-      
-      infinite-scroller[direction="vertical"] {
-      }
-      
-      infinite-scroller[direction="horizontal"] {
-      }
-      
-      infinite-scroller[direction="vertical"] > * { /* .container */
-        display: block;
-        width: 100%;
-      }
-      
-      infinite-scroller[direction="vertical"] > * > * { /* .chunk */
-        display: block;
-        width: 100%;
-      }
-      
-      infinite-scroller[direction="vertical"] > * > * > * { /* element */
-        display: block;
-        width: 100%;
-      }
-      
-      infinite-scroller[direction="horizontal"] > * { /* .container */
-        display: inline-block;
-        vertical-align: top;
-        height: 100%;
-        white-space: nowrap;
-      }
-      
-      infinite-scroller[direction="horizontal"] > * > * { /* .chunk */
-        display: inline-block;
-        vertical-align: top;
-        height: 100%;
-        white-space: nowrap;
-      }
-      
-      infinite-scroller[direction="horizontal"] > * > * > * { /* element */
-        display: inline-block;
-        vertical-align: top;
-        height: 100%;
-      }
-    `;
-
-    AttachNode(style, document.head);
-
-    return style;
-  }
 
   constructor() {
     super();
@@ -438,9 +397,12 @@ export class InfiniteScroller extends HTMLElement implements IInfiniteScroller {
     return InfiniteScrollerGetLastElement(this);
   }
 
+  getFirstVisibleElement(options?: IElementsIteratorOptions): HTMLElement | null {
+    return InfiniteScrollerGetFirstVisibleElement(this, options);
+  }
 
-  elements(reversed?: boolean): IterableIterator<HTMLElement> {
-    return InfiniteScrollerElements(this, reversed);
+  elements(options?: IElementsIteratorOptions): IterableIterator<HTMLElement> {
+    return InfiniteScrollerElements(this, options);
   }
 
   appendBefore(elements: HTMLElement[]): Promise<void> {
@@ -451,8 +413,8 @@ export class InfiniteScroller extends HTMLElement implements IInfiniteScroller {
     return InfiniteScrollerAppendAfter(this, elements);
   }
 
-  clearElements(): void {
-    InfiniteScrollerClearElements(this);
+  replaceElements(elements: HTMLElement[]): void {
+    return InfiniteScrollerReplaceElements(this, elements);
   }
 
 

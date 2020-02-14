@@ -12,7 +12,7 @@ import { IContainerNode } from './interfaces';
 import { ReferenceNodeStaticNextSibling } from '../reference-node/implementation';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import {
-  DestroyChildNodes, DestroyNodeSafe, DetachChildNodes, DetachNodeSafe
+  DestroyChildNodes, ForceDestroyNode, DetachChildNodes, ForceDetachNode
 } from '../node-state-observable/mutations';
 import { IsValidXMLName } from '../../tokenizers/xml';
 import { uuid } from '../../../misc/helpers/uuid';
@@ -204,7 +204,7 @@ export function ContainerNodeDestroyChildNodes(instance: IContainerNode): void {
   } else {
     let node: Node | null;
     while (((node = privates.startNode.nextSibling) !== null) && (node !== privates.endNode)) {
-      DestroyNodeSafe(node);
+      ForceDestroyNode(node);
     }
   }
 }
@@ -216,7 +216,7 @@ export function ContainerNodeDetachChildNodes(instance: IContainerNode): void {
   } else {
     let node: Node | null;
     while (((node = privates.startNode.nextSibling) !== null) && (node !== privates.endNode)) {
-      DetachNodeSafe(node);
+      ForceDetachNode(node);
     }
   }
 }

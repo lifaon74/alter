@@ -1,4 +1,6 @@
-import { IInfiniteScroller, IInfiniteScrollerContentLimitStrategy } from './interfaces';
+import {
+  IElementsIteratorNormalizedOptions, IElementsIteratorOptions, IInfiniteScroller, IInfiniteScrollerContentLimitStrategy
+} from './interfaces';
 import {
   IInfiniteScrollerContentLimitStrategies, IInfiniteScrollerInternal, IInfiniteScrollerPrivate,
   INFINITE_SCROLLER_PRIVATE
@@ -10,9 +12,10 @@ import {
 import { CyclicTypedVectorArray } from '../../../classes/cyclic/CyclicTypedVectorArray';
 import { DecodeCSSTransformMatrix, EncodeCSSTransformMatrix, GetWheelDeltaInPx } from './helpers';
 import { LoadElementsEvent } from './events/load-elements-event/implementation';
-import { AttachNode, DestroyNodeSafe } from '../../../core/custom-node/node-state-observable/mutations';
+import { AttachNode, DetachNode, ForceAttachNode } from '../../../core/custom-node/node-state-observable/mutations';
 import { UnloadElementsEvent } from './events/unload-elements-event/implementation';
 import { IsNull } from '../../../misc/helpers/is/IsNull';
+import { IsObject } from '../../../misc/helpers/is/IsObject';
 
 
 /** FUNCTIONS **/
@@ -65,8 +68,9 @@ export function InfiniteScrollerOnTouchStart(instance: IInfiniteScroller, event:
       if (privates.contentLimitStrategies.touchMove === 'ignore') {
         return position;
       } else {
-        const endPosition: number = instance[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey]
-          - privates.container[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
+        const offsetSizeKey: string = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].offsetSizeKey;
+        const endPosition: number = instance[offsetSizeKey]
+          - privates.container[offsetSizeKey];
         if ((position >= 0) || (endPosition >= 0)) {
           if (privates.contentLimitStrategies.touchMove === 'stop') {
             privates.animationInitialPosition = InfiniteScrollerGetContainerTranslation(instance) - privates.touchCurrentPosition;
@@ -131,10 +135,11 @@ export function InfiniteScrollerOnTouchEnd(instance: IInfiniteScroller, event: T
     if ((coords.length - i) > 3) {
       // console.log(coords.subarray(i));
       privates.animationInitialPosition = InfiniteScrollerGetContainerTranslation(instance);
+      const touchCoordIndex: number = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].touchCoordIndex;
       const lastIndex: number = coords.length - 3;
       const elapsedTime: number = coords[lastIndex] - coords[i];
-      const distance: number = coords[lastIndex + INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].touchCoordIndex]
-        - coords[i + INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].touchCoordIndex];
+      const distance: number = coords[lastIndex + touchCoordIndex]
+        - coords[i + touchCoordIndex];
 
       const initialVelocity: number = distance / elapsedTime;
 
@@ -155,8 +160,9 @@ export function InfiniteScrollerOnTouchEnd(instance: IInfiniteScroller, event: T
           if (privates.contentLimitStrategies.touchInertia === 'ignore') {
             return position;
           } else {
-            const endPosition: number = instance[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey]
-              - privates.container[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
+            const offsetSizeKey: string = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].offsetSizeKey;
+            const endPosition: number = instance[offsetSizeKey]
+              - privates.container[offsetSizeKey];
             if ((position >= 0) || (endPosition >= 0)) {
               if (privates.contentLimitStrategies.touchInertia === 'stop') {
                 privates.animationInitialPosition = 0;
@@ -217,8 +223,9 @@ export function InfiniteScrollerOnWheel(instance: IInfiniteScroller, event: Whee
     if (privates.contentLimitStrategies.wheel === 'ignore') {
       return position;
     } else {
-      const endPosition: number = instance[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey]
-        - privates.container[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
+      const offsetSizeKey: string = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].offsetSizeKey;
+      const endPosition: number = instance[offsetSizeKey]
+        - privates.container[offsetSizeKey];
       if ((position >= 0) || (endPosition >= 0)) {
         if (privates.contentLimitStrategies.wheel === 'stop') {
           privates.animationInitialPosition = 0;
@@ -264,8 +271,9 @@ export function InfiniteScrollerOnMouseDown(instance: IInfiniteScroller, event: 
         privates.animationInitialPosition = position;
         return position;
       } else {
-        const endPosition: number = instance[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey]
-          - privates.container[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
+        const offsetSizeKey: string = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].offsetSizeKey;
+        const endPosition: number = instance[offsetSizeKey]
+          - privates.container[offsetSizeKey];
         if ((position >= 0) || (endPosition >= 0)) {
           privates.animationInitialPosition = 0;
           return 0;
@@ -361,6 +369,8 @@ export function InfiniteScrollerGetContainerTranslation(instance: IInfiniteScrol
 export function InfiniteScrollerLoop(instance: IInfiniteScroller): void {
   const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
   privates.requestAnimationFrameId = window.requestAnimationFrame(() => {
+    // console.warn('loop', (window as any).inAnimationFrame);
+    // InfiniteScrollerResolveClearList(instance);
     let translation: number = privates.animationFunction(performance.now());
     translation = InfiniteScrollerContainerUpdate(instance, translation);
     InfiniteScrollerAnimationUpdate(instance, translation);
@@ -393,8 +403,9 @@ export function InfiniteScrollerContainerUpdate(instance: IInfiniteScroller, tra
   const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
 
   const beforeLimit: number = -privates.loadDistance;
-  const afterLimit: number = instance[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey] // computed infinite scroller size (width/height)
-    - privates.container[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey] // computed container size (width/height)
+  const offsetSizeKey: string = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].offsetSizeKey;
+  const afterLimit: number = instance[offsetSizeKey] // computed infinite scroller size (width/height)
+    - privates.container[offsetSizeKey] // computed container size (width/height)
     + privates.loadDistance;
 
   if (translation <= afterLimit) {
@@ -428,12 +439,13 @@ export function InfiniteScrollerRemoveInvisibleElements(instance: IInfiniteScrol
   let beforeLength: number = 0, afterLength: number = 0;
 
   let chunk: HTMLElement | null, limit: number;
+  const offsetSizeKey: string = INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].offsetSizeKey;
 
   // builds the list of chunks to remove before the unload limit
   limit = -translation - privates.unloadDistance;
   chunk = privates.container.firstElementChild as HTMLElement | null;
   while (chunk !== null) {
-    const nextLength: number = beforeLength + chunk[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
+    const nextLength: number = beforeLength + chunk[offsetSizeKey];
     if (nextLength > limit) {
       break;
     } else {
@@ -444,13 +456,13 @@ export function InfiniteScrollerRemoveInvisibleElements(instance: IInfiniteScrol
   }
 
   // builds the list of chunks to remove after the unload limit
-  limit = privates.container[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey]
+  limit = privates.container[offsetSizeKey]
     + translation
-    - instance[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey]
+    - instance[offsetSizeKey]
     - privates.unloadDistance;
   chunk = privates.container.lastElementChild as HTMLElement | null;
   while (chunk !== null) {
-    const nextLength: number = afterLength + chunk[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
+    const nextLength: number = afterLength + chunk[offsetSizeKey];
     if (nextLength > limit) {
       break;
     } else {
@@ -471,7 +483,7 @@ export function InfiniteScrollerRemoveInvisibleElements(instance: IInfiniteScrol
         beforeRemovedElements.push(element);
         element = element.nextElementSibling;
       }
-      DestroyNodeSafe(chunk);
+      DetachNode(chunk);
       // chunk.remove();
     }
 
@@ -497,7 +509,7 @@ export function InfiniteScrollerRemoveInvisibleElements(instance: IInfiniteScrol
         afterRemovedElements.push(element);
         element = element.nextElementSibling;
       }
-      DestroyNodeSafe(chunk);
+      DetachNode(chunk);
       // chunk.remove();
     }
 
@@ -537,7 +549,7 @@ export function InfiniteScrollerAppendElements(instance: IInfiniteScroller, tran
       // privates.container.insertBefore(beforeChunk, privates.container.firstElementChild);
     }
 
-    const shift: number = -beforeChunk[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].containerComputedSizeKey];
+    const shift: number = -beforeChunk[INFINITE_SCROLLER_DIRECTION_CONSTANTS[privates.direction].offsetSizeKey];
     privates.animationInitialPosition += shift;
     (privates.wheelTarget as number) += shift;
     translation += shift;
@@ -575,34 +587,189 @@ export function InfiniteScrollerCreateChunk(instance: IInfiniteScroller): HTMLEl
 }
 
 
+export function InfiniteScrollerResolveClearList(instance: IInfiniteScroller): void {
+  const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
+
+  const clearListLength: number = privates.clearList.length;
+  if (clearListLength > 0) {
+    for (let i = 0; i < clearListLength; i++) {
+      privates.clearList[i].resolve();
+    }
+    InfiniteScrollerRemoveAllElements(instance);
+  }
+}
+
+export function InfiniteScrollerRemoveAllElements(instance: IInfiniteScroller): void {
+  const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
+  privates.animationInitialPosition = 0;
+  privates.animationFunction = () => privates.animationInitialPosition;
+
+  privates.appendBeforeList = [];
+  privates.appendAfterList = [];
+  privates.clearList = [];
+
+  privates.wheelTarget = null;
+
+  let chunk: Element | null = privates.container.firstElementChild;
+  const removedElements: Element[] = [];
+
+  while (chunk !== null) {
+    let element: Element | null = chunk.firstElementChild;
+    while (element !== null) {
+      removedElements.push(element);
+      element = element.nextElementSibling;
+    }
+    let nextElementSibling: Element | null = chunk.nextElementSibling;
+    DetachNode(chunk);
+    // chunk.remove();
+    chunk = nextElementSibling;
+  }
+
+  instance.dispatchEvent(new UnloadElementsEvent('clear', {
+    elements: removedElements
+  }));
+}
+
+export function InfiniteScrollerReplaceAllElements(instance: IInfiniteScroller, elements: HTMLElement[]): void {
+  InfiniteScrollerRemoveAllElements(instance);
+
+  const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
+  const elementsLength: number = elements.length;
+
+  if (elementsLength > 0) {
+    const chunk: HTMLElement = InfiniteScrollerCreateChunk(instance);
+
+    for (let i = 0; i < elementsLength; i++) {
+      ForceAttachNode(elements[i], chunk);
+      // afterChunk.appendChild(elements[j]);
+    }
+
+    if (chunk.firstChild !== null) {
+      AttachNode(chunk, privates.container);
+      // privates.container.appendChild(afterChunk);
+    }
+  }
+}
+
 /* ITERATE OVER CHILDREN */
 
-export function * InfiniteScrollerGetChildren(instance: IInfiniteScroller): IterableIterator<HTMLElement> {
-  const container: HTMLElement = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container;
-  let chunk: HTMLElement | null = container.firstElementChild as HTMLElement | null;
-  while ((chunk !== null) && (chunk.parentElement === container)) {
-    let node: HTMLElement | null = chunk.firstElementChild as HTMLElement | null;
-    while ((node !== null) && (node.parentElement === chunk)) {
-      yield node;
-      node = node.nextElementSibling as HTMLElement | null;
-    }
+export function IsInfiniteScrollerElement(instance: IInfiniteScroller, element: Element): boolean {
+  return (element.parentElement !== null)
+    && (element.parentElement.parentElement === (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container);
+}
 
-    chunk = chunk.nextElementSibling as HTMLElement | null;
+export function * InfiniteScrollerElementsIterator(instance: IInfiniteScroller, options: IElementsIteratorNormalizedOptions): IterableIterator<HTMLElement> {
+  const firstElementChildKey: string = options.reversed
+    ? 'lastElementChild'
+    : 'firstElementChild';
+
+  const nextElementKey: string = options.reversed
+    ? 'previousElementSibling'
+    : 'nextElementSibling';
+
+  const container: HTMLElement = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container;
+
+  let chunk: Element | null;
+  let useStartNode: boolean;
+  let node: Element | null;
+
+  if (options.after === null) {
+    chunk = container[firstElementChildKey];
+    useStartNode = false;
+  } else if (IsInfiniteScrollerElement(instance, options.after)) {
+    chunk = options.after.parentElement;
+    useStartNode = true;
+  } else {
+    throw new Error(`options.startElement is not an element of this infinite scroller`);
+  }
+
+  while (chunk !== null) {
+    if (useStartNode) {
+      node = options.includeAfter
+        ? options.after
+        : (options.after as HTMLElement)[nextElementKey];
+      useStartNode = false;
+    } else {
+      node = chunk[firstElementChildKey];
+    }
+    while (node !== null) {
+      yield node as HTMLElement;
+      node = node[nextElementKey];
+    }
+    chunk = chunk[nextElementKey];
   }
 }
 
-export function * InfiniteScrollerGetChildrenReversed(instance: IInfiniteScroller): IterableIterator<HTMLElement> {
-  const container: HTMLElement = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container;
-  let chunk: HTMLElement | null = container.lastElementChild as HTMLElement | null;
-  while ((chunk !== null) && (chunk.parentElement === container)) {
-    let node: HTMLElement | null = chunk.lastElementChild as HTMLElement | null;
-    while ((node !== null) && (node.parentElement === chunk)) {
-      yield node;
-      node = node.previousElementSibling as HTMLElement | null;
-    }
+// export function * InfiniteScrollerGetChildren(instance: IInfiniteScroller): IterableIterator<HTMLElement> {
+//   const container: HTMLElement = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container;
+//   let chunk: HTMLElement | null = container.firstElementChild as HTMLElement | null;
+//   while ((chunk !== null) && (chunk.parentElement === container)) {
+//     let node: HTMLElement | null = chunk.firstElementChild as HTMLElement | null;
+//     while ((node !== null) && (node.parentElement === chunk)) {
+//       yield node;
+//       node = node.nextElementSibling as HTMLElement | null;
+//     }
+//
+//     chunk = chunk.nextElementSibling as HTMLElement | null;
+//   }
+// }
+//
+// export function * InfiniteScrollerGetChildrenReversed(instance: IInfiniteScroller): IterableIterator<HTMLElement> {
+//   const container: HTMLElement = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container;
+//   let chunk: HTMLElement | null = container.lastElementChild as HTMLElement | null;
+//   while ((chunk !== null) && (chunk.parentElement === container)) {
+//     let node: HTMLElement | null = chunk.lastElementChild as HTMLElement | null;
+//     while ((node !== null) && (node.parentElement === chunk)) {
+//       yield node;
+//       node = node.previousElementSibling as HTMLElement | null;
+//     }
+//
+//     chunk = chunk.previousElementSibling as HTMLElement | null;
+//   }
+// }
 
-    chunk = chunk.previousElementSibling as HTMLElement | null;
+/* NORMALIZE **/
+
+export function NormalizeIElementsIteratorAfterElementOptions(element?: HTMLElement | null): HTMLElement | null {
+  if (IsNull(element)) {
+    return null;
+  } else if (element instanceof HTMLElement) {
+    return element;
+  } else {
+    throw new TypeError(`Expected void, null or HTMLElement as options.after`);
   }
 }
 
+export function NormalizeIElementsIteratorOptionsReversed(reversed?: boolean): boolean {
+  if (reversed === void 0) {
+    return false;
+  } else if (typeof reversed === 'boolean') {
+    return reversed;
+  } else {
+    throw new TypeError(`Expected void or boolean as options.reversed`);
+  }
+}
+
+export function NormalizeIElementsIteratorOptionsIncludeAfter(includeAfter?: boolean): boolean {
+  if (includeAfter === void 0) {
+    return false;
+  } else if (typeof includeAfter === 'boolean') {
+    return includeAfter;
+  } else {
+    throw new TypeError(`Expected void or boolean as options.includeAfter`);
+  }
+}
+
+export function NormalizeIElementsIteratorOptions<TOptions extends IElementsIteratorOptions>(options: TOptions = {} as TOptions): TOptions & IElementsIteratorNormalizedOptions {
+  if (IsObject(options)) {
+    return {
+      ...options,
+      after: NormalizeIElementsIteratorAfterElementOptions(options.after),
+      includeAfter: NormalizeIElementsIteratorOptionsIncludeAfter(options.includeAfter),
+      reversed: NormalizeIElementsIteratorOptionsReversed(options.reversed),
+    };
+  } else {
+    throw new TypeError(`Expected void or object as options`);
+  }
+}
 

@@ -18,6 +18,15 @@ export interface IInfiniteScrollerEventMap extends HTMLElementEventMap {
   'clear': IUnloadElementsEvent;
 }
 
+export interface IElementsIteratorOptions {
+  after?: HTMLElement | null;
+  includeAfter?: boolean;
+  reversed?: boolean;
+}
+
+export interface IElementsIteratorNormalizedOptions extends Required<IElementsIteratorOptions> {
+}
+
 /** INTERFACES **/
 
 export interface IInfiniteScroller extends HTMLElement, ConnectedCallBack, DisconnectedCallBack, AttributeChangedCallback {
@@ -34,10 +43,13 @@ export interface IInfiniteScroller extends HTMLElement, ConnectedCallBack, Disco
   readonly firstElement: HTMLElement | null; // first child element in the list of elements of this infinite scroller
   readonly lastElement: HTMLElement | null; // last child element in the list of elements of this infinite scroller
 
+  getFirstVisibleElement(options?: IElementsIteratorOptions): HTMLElement | null;
+
+
   /**
    * Returns the list of child elements (as an iterable) present in this infinite scroller
    */
-  elements(reversed?: boolean): IterableIterator<HTMLElement>;
+  elements(options?: IElementsIteratorOptions): IterableIterator<HTMLElement>;
 
   /**
    * Asks to this infinite scroller to append 'elements' before all other child elements
@@ -55,9 +67,10 @@ export interface IInfiniteScroller extends HTMLElement, ConnectedCallBack, Disco
   /**
    * Removes all elements in this infinite scroller and emits a 'clear' event
    */
-  clearElements(): void;
+  replaceElements(elements: HTMLElement[]): void;
 
 
   addEventListener<K extends keyof IInfiniteScrollerEventMap>(type: K, listener: (this: HTMLElement, ev: IInfiniteScrollerEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+
   addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
 }

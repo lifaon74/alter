@@ -11,32 +11,35 @@ export const INFINITE_SCROLLER_DEFAULT_CONTENT_LIMIT_STRATEGY: IInfiniteScroller
 
 export interface IDirectionDetails {
   transformMatrixIndex: number;
-  containerComputedSizeKey: 'offsetHeight' | 'offsetWidth';
-  containerSizeKey: 'height' | 'width';
-  containerComplementarySizeKey: 'height' | 'width';
-  pointerPositionKey: 'clientX' | 'clientY';
+  offsetSizeKey: 'offsetWidth' | 'offsetHeight';
+  cssSizeKey: 'width' | 'height';
+  cssPositionStartKey: 'left' | 'top';
+  cssPositionEndKey: 'right' | 'bottom';
+  pointerPositionKey: 'clientY' | 'clientX';
   touchCoordIndex: number;
 }
 
-export type TDirectionConstant = {
+export type TDirectionConstants = {
   [key in TInfiniteScrollerDirection]: IDirectionDetails;
 }
 
-export const INFINITE_SCROLLER_DIRECTION_CONSTANTS: TDirectionConstant = {
+export const INFINITE_SCROLLER_DIRECTION_CONSTANTS: TDirectionConstants = {
+  horizontal: {
+    transformMatrixIndex: 2,
+    offsetSizeKey: 'offsetWidth',
+    cssSizeKey: 'width',
+    cssPositionStartKey: 'left',
+    cssPositionEndKey: 'right',
+    pointerPositionKey: 'clientX',
+    touchCoordIndex: 1,
+  },
   vertical: {
     transformMatrixIndex: 5,
-    containerComputedSizeKey: 'offsetHeight',
-    containerSizeKey: 'height',
-    containerComplementarySizeKey: 'width',
+    offsetSizeKey: 'offsetHeight',
+    cssSizeKey: 'height',
+    cssPositionStartKey: 'top',
+    cssPositionEndKey: 'bottom',
     pointerPositionKey: 'clientY',
     touchCoordIndex: 2,
   },
-  horizontal: {
-    transformMatrixIndex: 2,
-    containerComputedSizeKey: 'offsetWidth',
-    containerSizeKey: 'width',
-    containerComplementarySizeKey: 'height',
-    pointerPositionKey: 'clientX',
-    touchCoordIndex: 1,
-  }
 };

@@ -1,8 +1,12 @@
-import { IInfiniteScroller, IInfiniteScrollerContentLimitStrategy, TInfiniteScrollerDirection } from './interfaces';
+import { IInfiniteScroller, IInfiniteScrollerEventMap, TInfiniteScrollerDirection } from './interfaces';
 import { ILoadElementsEvent } from './events/load-elements-event/interfaces';
 import { InfiniteScroller } from './implementation';
 import { AttachNode } from '../../../core/custom-node/node-state-observable/mutations';
 import { uuid } from '../../../misc/helpers/uuid';
+import { LoadDefaultInfiniteScrollerStyle } from './default-style';
+import { EventsObservable, PromiseTry, TPromiseOrValue } from '@lifaon/observables';
+import { DOMResizeObservable } from './dom-resize/public';
+import { LoadElementsEvent } from './events/load-elements-event/implementation';
 
 function CreateHorizontalDummyElement(index: number): HTMLElement {
   const element = document.createElement('div');
@@ -44,6 +48,26 @@ function AppendInfiniteScrollerElements(scroller: IInfiniteScroller, elements: H
       }, timeout);
     });
   }
+}
+
+function createInfiniteScroller(): IInfiniteScroller {
+  const scroller = new InfiniteScroller();
+  LoadDefaultInfiniteScrollerStyle();
+
+  scroller.style.height = '700px';
+  scroller.style.width = '700px';
+  scroller.style.border = '1px solid black';
+
+  scroller.direction = 'vertical';
+
+  // scroller.loadDistance = 0;
+  // scroller.unloadDistance = 100;
+
+  AttachNode(scroller, document.body);
+
+  (window as any).scroller = scroller;
+
+  return scroller;
 }
 
 
@@ -102,33 +126,6 @@ export function InitInfiniteScrollerWithList(
 }
 
 
-function createInfiniteScroller(): IInfiniteScroller {
-  const scroller = new InfiniteScroller();
-  InfiniteScroller.loadDefaultStyle();
-
-  const contentLimitStrategy: IInfiniteScrollerContentLimitStrategy = 'ignore';
-
-  scroller.style.height = '500px';
-  scroller.style.width = '500px';
-  scroller.style.border = '1px solid black';
-
-  scroller.direction = 'vertical';
-
-  // scroller.contentLimitWheelStrategy = contentLimitStrategy;
-  // scroller.contentLimitTouchMoveStrategy = contentLimitStrategy;
-  // scroller.contentLimitTouchInertiaStrategy = contentLimitStrategy;
-  // scroller.contentLimitMouseMiddleStrategy = contentLimitStrategy;
-
-  // scroller.loadDistance = 0;
-  // scroller.unloadDistance = 100;
-
-  AttachNode(scroller, document.body);
-
-  (window as any).scroller = scroller;
-
-  return scroller;
-}
-
 export function debugInfiniteScrollerGeneric() {
   const scroller = createInfiniteScroller();
   let loading: boolean = false;
@@ -183,8 +180,186 @@ export function debugInfiniteScrollerFromList() {
   );
 }
 
+
+/*----------------------------------------------------------------------------------------*/
+
+interface IBlock {
+  name: string;
+  color: string;
+}
+
+function CreateBlockElement(block: IBlock): HTMLElement {
+  const element = document.createElement('div');
+  element.style.display = 'inline-block';
+  element.style.height = '100px';
+  element.style.width = '100px';
+  element.style.backgroundColor = block.color;
+  element.style.color = 'white';
+  element.style.fontSize = '18px';
+  element.style.margin = '5px';
+  element.style.padding = '5px';
+  element.appendChild(new Text(block.name));
+  return element;
+}
+
+
+const LOADING_SCROLLERS = new WeakSet<IInfiniteScroller>();
+
+function CreateInfiniteScrollerOnLoadElementFunction(scroller: IInfiniteScroller, position: 'before' | 'after', callback: (event: ILoadElementsEvent) => TPromiseOrValue<HTMLElement[]>) {
+  return (event: ILoadElementsEvent): void => {
+    if (!LOADING_SCROLLERS.has(scroller)) {
+      LOADING_SCROLLERS.add(scroller);
+      PromiseTry<HTMLElement[]>(() => callback(event))
+        .then((elements: HTMLElement[]) => {
+          return (position === 'after')
+            ? scroller.appendAfter(elements)
+            : scroller.appendBefore(elements);
+        })
+        .then(() => {
+          LOADING_SCROLLERS.delete(scroller);
+        });
+    }
+  };
+}
+
+function HandleInfiniteScrollerOnLoadElement(scroller: IInfiniteScroller, callback: (event: ILoadElementsEvent) => TPromiseOrValue<HTMLElement[]>) {
+  return new EventsObservable<IInfiniteScrollerEventMap>(scroller)
+    .on('load-before', CreateInfiniteScrollerOnLoadElementFunction(scroller, 'before', callback))
+    .on('load-after', CreateInfiniteScrollerOnLoadElementFunction(scroller, 'after', callback))
+    .on('clear', () => {
+      LOADING_SCROLLERS.delete(scroller);
+    });
+}
+
+function debugAnimationFrame() {
+  (window as any).inAnimationFrame = 0;
+  const requestAnimationFrame = window.requestAnimationFrame;
+  window.requestAnimationFrame = function(callback) {
+    return requestAnimationFrame(function(...args) {
+      (window as any).inAnimationFrame++;
+      callback(...args);
+      // (window as any).inAnimationFrame--;
+    });
+  };
+}
+
+export function debugBlockBasedInfiniteScroller() {
+  debugAnimationFrame();
+
+  const scroller = createInfiniteScroller();
+  scroller.style.width = '100%';
+  scroller.style.height = '100%';
+  scroller.style.border = '0';
+  scroller.contentLimitStrategy = 'pause';
+
+  // const indexAttribute: string = 'attr-' + uuid();
+
+  const blockSymbol = Symbol('block');
+
+
+  function createBlock(index: number): IBlock {
+    return {
+      name: `#${ index }`,
+      color: `hsl(${ Math.floor(Math.random() * 360) }, 100%, 25%)`,
+    };
+  }
+
+  async function * blockGenerator(): AsyncGenerator<IBlock> {
+    for (let i = 0; i < 1000; i++) {
+      yield createBlock(i);
+    }
+  }
+
+  function getRefBlockIndex(element: Element | null): number {
+    return (element === null) ? -1 : loadedBlocks.indexOf(element[blockSymbol]);
+  }
+
+  // function loadBlock(startIndex: number, endIndex: number) {
+  //
+  // }
+
+  const blocksIterator: AsyncIterableIterator<IBlock> = blockGenerator();
+  // const loadedBlocks: IBlock[] = [];
+  const loadedBlocks: IBlock[] = Array.from({ length: 1000 }, (v: any, i: number) => createBlock(i));
+
+  const scrollerObservable = HandleInfiniteScrollerOnLoadElement(scroller, (event: ILoadElementsEvent) => {
+    const loadSize: number = Math.max(1, Math.floor(scroller.offsetWidth / 110) * 10);
+    const refBlockIndex: number = getRefBlockIndex(event.referenceElement);
+
+    let startIndex: number;
+    let endIndex: number;
+
+    switch (event.type) {
+      case 'load-before':
+        endIndex = Math.max(0, refBlockIndex);
+        startIndex = Math.max(0, endIndex - loadSize);
+        console.log(startIndex, endIndex);
+        break;
+      case 'load-after': {
+
+        startIndex = refBlockIndex + 1;
+        endIndex = startIndex + loadSize;
+
+        let iterableSteps: number = endIndex - loadedBlocks.length;
+
+        let result: IteratorResult<IBlock>;
+        // while ((iterableSteps-- > 0) && !(result = await blocksIterator.next()).done) {
+        //   loadedBlocks.push(result.value);
+        // }
+
+        break;
+      }
+      default:
+        throw new Error(`Unexpected event.type`);
+    }
+
+    // console.log(loadedBlocks.slice(startIndex, endIndex));
+
+    return loadedBlocks.slice(startIndex, endIndex).map((block: IBlock) => {
+      const element: HTMLElement = CreateBlockElement(block);
+      element[blockSymbol] = block;
+      return element;
+    });
+  });
+
+  const onResize = () => {
+    scroller.replaceElements(Array.from(scroller.elements({ after: scroller.getFirstVisibleElement(), includeAfter: true })));
+
+    // // console.log('resize');
+    // // const firstElement: HTMLElement | null = scroller.firstElement;
+    // const firstVisibleElement: HTMLElement | null = scroller.getFirstVisibleElement();
+    // const firstElement: HTMLElement | null = (firstVisibleElement === null)
+    //   ? null
+    //   : scroller.elements({ after: firstVisibleElement, reversed: true }).next().value || null;
+    //
+    // console.log(firstVisibleElement);
+    // console.log(firstElement);
+    //
+    // // const refBlockIndex: number = getRefBlockIndex(scroller.firstElement);
+    // // TODO move the dispatchEvent into the clear section
+    // scroller.dispatchEvent(new LoadElementsEvent('load-after', {
+    //   referenceElement: (firstElement === null) ? null : firstElement,
+    //   distance: 0
+    // }));
+  };
+
+  const scrollerResizeObserver = new DOMResizeObservable(scroller)
+    .pipeTo(onResize).activate();
+
+  (window as any).onResize = onResize;
+
+  // (window as any).test = () =>{
+  //   const elt = scroller.getFirstVisibleElement();
+  //   debugger;
+  //   console.log(Array.from(scroller.elements({ after: elt, reversed: true })));
+  // };
+}
+
+/*----------------------------------------------------------------------------------------*/
+
 export function debugInfiniteScroller() {
   // debugInfiniteScrollerGeneric();
-  debugInfiniteScrollerFromList();
+  // debugInfiniteScrollerFromList();
+  debugBlockBasedInfiniteScroller();
 
 }

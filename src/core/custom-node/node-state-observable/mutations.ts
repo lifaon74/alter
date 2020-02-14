@@ -111,9 +111,8 @@ export function AttachNode<N extends Node>(node: N, parent: Node, refNode: Node 
 
 /**
  * Attaches a node. If the node is already in an 'attached' state, detaches it first.
- * TODO refactor: ForceAttachNode
  */
-export function AttachNodeSafe<N extends Node>(node: N, parent: Node, refNode?: Node | null): N {
+export function ForceAttachNode<N extends Node>(node: N, parent: Node, refNode?: Node | null): N {
   if (GetNodeDOMState(node) === 'attached') {
     DetachNode<N>(node);
   }
@@ -162,9 +161,8 @@ export function DetachNode<N extends Node>(node: N): N {
 /**
  * Detaches 'node' from its parent.
  * If the node is not into an 'attached' state, ignore.
- * TODO refactor: ForceDetachNode
  */
-export function DetachNodeSafe<N extends Node>(node: N): N {
+export function ForceDetachNode<N extends Node>(node: N): N {
   if (GetNodeDOMState(node) === 'attached') {
     DetachNode<N>(node);
   }
@@ -208,9 +206,8 @@ export function DestroyNode<N extends Node>(node: N): N {
 
 /**
  * Destroys a node. If the node is in an 'attached' state, detaches it first.
- * TODO refactor: ForceDestroyNode
  */
-export function DestroyNodeSafe<N extends Node>(node: N): N {
+export function ForceDestroyNode<N extends Node>(node: N): N {
   if (GetNodeDOMState(node) === 'attached') {
     DetachNode<N>(node);
   }
@@ -222,12 +219,12 @@ export function DestroyNodeSafe<N extends Node>(node: N): N {
 
 export function DetachChildNodes(node: Node): void {
   while (node.firstChild !== null) {
-    DetachNodeSafe(node.firstChild);
+    ForceDetachNode(node.firstChild);
   }
 }
 
 export function DestroyChildNodes(node: Node): void {
   while (node.firstChild !== null) {
-    DestroyNodeSafe(node.firstChild);
+    ForceDestroyNode(node.firstChild);
   }
 }
