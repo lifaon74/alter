@@ -1,3 +1,3 @@
 const makeClosure = require('./make-closure');
 
-makeClosure('dist/global/alter.core.umd.js');
+makeClosure('dist/global/{{lib-name}}.core.umd.js');

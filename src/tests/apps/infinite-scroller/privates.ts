@@ -20,6 +20,10 @@ export interface IDeferredPromise<T> {
   reject: (reason?: any) => void;
 }
 
+// export interface IDeferredAbortablePromise<T> extends IDeferredPromise<T> {
+//   abort: (reason?: any) => void;
+// }
+
 export interface IInfiniteScrollerDeferredAppendList extends IDeferredPromise<void> {
   elements: HTMLElement[];
 }

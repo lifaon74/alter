@@ -1,21 +1,45 @@
 import { test } from './tests/test';
 
 
-function removeBrowserSyncDiv(): void {
-  const element: HTMLElement | null = document.getElementById('__bs_notify__');
-  if (element === null) {
-    setTimeout(removeBrowserSyncDiv, 10);
-  } else {
-    element.remove();
+export function start(mainCallBack: () => (Promise<any> | any)) {
+  const ENVIRONMENT: 'browser' | 'nodejs' = ('window' in globalThis) ? 'browser' : 'nodejs';
+
+  const run = () => {
+    return new Promise<void>(resolve => resolve(mainCallBack()))
+      .catch((error: any) => {
+        switch (ENVIRONMENT) {
+          case 'nodejs':
+            if ('process' in globalThis) {
+              (globalThis as any).process.stdout.write('\x1b[31m');
+            }
+            console.log(
+              `[ERROR]`,
+              (typeof error.toJSON === 'function')
+                ? error.toJSON()
+                : error
+            );
+            if ('process' in globalThis) {
+              (globalThis as any).process.stdout.write('\x1b[0m');
+            }
+            break;
+          case 'browser':
+            console.error(error);
+            break;
+        }
+      });
+  };
+
+  switch (ENVIRONMENT) {
+    case 'browser':
+      window.onload = run;
+      break;
+    case 'nodejs':
+      run();
+      break;
   }
 }
 
-window.onload = () => {
-  removeBrowserSyncDiv();
-  test();
-};
-
-
+start(test);
 
 
 

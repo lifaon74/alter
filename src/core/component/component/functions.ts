@@ -1,5 +1,5 @@
 import { IComponent} from './interfaces';
-import { INotificationsObservableContext, TPromiseOrValue } from '@lifaon/observables';
+import { INotificationsObservableContext, TNativePromiseLikeOrValue } from '@lifaon/observables';
 import { ITemplate } from '../../template/interfaces';
 import { FreezeComponentContext } from './context/functions';
 import { COMPONENT_PRIVATE, IComponentInternal, IComponentPrivate } from './privates';
@@ -57,7 +57,7 @@ export function InitComponent<TData extends object>(instance: IComponent<TData>,
  * Loads and inserts 'template' into the dom
  *  - freezes the context
  */
-export function LoadComponentTemplate<TData extends object>(instance: IComponent<TData>, template?: TPromiseOrValue<ITemplate>): Promise<void> {
+export function LoadComponentTemplate<TData extends object>(instance: IComponent<TData>, template?: TNativePromiseLikeOrValue<ITemplate>): Promise<void> {
   if (template === void 0) {
     return Promise.resolve();
   } else {
@@ -73,7 +73,7 @@ export function LoadComponentTemplate<TData extends object>(instance: IComponent
 /**
  * Loads and inserts 'style' into the dom
  */
-export function LoadComponentStyle<TData extends object>(instance: IComponent<TData>, style?: TPromiseOrValue<IStyle>): Promise<any> {
+export function LoadComponentStyle<TData extends object>(instance: IComponent<TData>, style?: TNativePromiseLikeOrValue<IStyle>): Promise<any> {
   if (style === void 0) {
     return Promise.resolve();
   } else {

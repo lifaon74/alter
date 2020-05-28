@@ -1,5 +1,5 @@
 import { IParsers } from './generators/interfaces';
-import { TPromiseOrValue } from '@lifaon/observables';
+import { TNativePromiseLikeOrValue } from '@lifaon/observables';
 
 /** TYPES **/
 
@@ -19,7 +19,7 @@ export interface INormalizedTemplateBuildOptions extends ITemplateBuildOptions {
 
 export type TTemplateDataType = { [key: string]: any };
 export type TTemplateFunction = (data: TTemplateDataType) => Promise<DocumentFragment>;
-export type TTemplateRequireFunction = (name: string) => TPromiseOrValue<any>;
+export type TTemplateRequireFunction = (name: string) => TNativePromiseLikeOrValue<any>;
 export type TTemplateRawFunction = (require: TTemplateRequireFunction) => Promise<DocumentFragment>;
 
 /** INTERFACES **/

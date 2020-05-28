@@ -110,7 +110,7 @@ export function RegisterCustomElement<TFunction extends Constructor<HTMLElement>
     }
   }
 
-  globalThis.customElements.define(options.name, target as Function, (_extends === null) ? void 0 : { extends: _extends });
+  globalThis.customElements.define(options.name, target as CustomElementConstructor, (_extends === null) ? void 0 : { extends: _extends });
 
   RegisterHTMLElement(options.name, target);
 }

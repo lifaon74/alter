@@ -642,8 +642,8 @@ async function experiment() {
       methodA(message: string): void {
         console.log(message);
       },
-      get attrA(this: IClassBuilderThis): string {
-        return this.get('attrB');
+      get attrA(): string {
+        return (this as unknown as IClassBuilderThis).get('attrB');
       },
       attrB: 'static-b'
     }

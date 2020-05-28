@@ -1,22 +1,22 @@
 import { IPathMatcherResult, TPathMatcherParams } from '../path-matcher/types';
-import { ICancellablePromiseOptions, TAbortStrategy, TPromiseOrValue } from '@lifaon/observables';
+import { ICancellablePromiseOptions, TAbortStrategy, TNativePromiseLikeOrValue } from '@lifaon/observables';
 import { IRoute } from './interfaces';
 
 /** TYPES */
 
-export type TRouteExecGeneric = <TStrategy extends TAbortStrategy>(this: IRoute<TRouteExecGeneric>, params: IRouteExecParams<any, TStrategy>) => TPromiseOrValue<any>;
+export type TRouteExecGeneric = <TStrategy extends TAbortStrategy>(this: IRoute<TRouteExecGeneric>, params: IRouteExecParams<any>) => TNativePromiseLikeOrValue<any>;
 
-export type InferRouteExecValue<TExec extends TRouteExecGeneric> = TExec extends ((params: IRouteExecParams<infer TExecValue, TAbortStrategy>) => TPromiseOrValue<any>) ? TExecValue : never;
-// export type TRouteExecStrategy<TExec extends TRouteExecGeneric> = TExec extends ((params: IRouteExecParams<any, infer TExecStrategy>) => TPromiseOrValue<any>) ? TExecStrategy extends TAbortStrategy ? TExecStrategy : 'never' : never;
-export type InferRouteExecReturnValue<TExec extends TRouteExecGeneric> = TExec extends ((params: IRouteExecParams<any, TAbortStrategy>) => TPromiseOrValue<infer TExecReturn>) ? TExecReturn : never;
+export type InferRouteExecValue<TExec extends TRouteExecGeneric> = TExec extends ((params: IRouteExecParams<infer TExecValue>) => TNativePromiseLikeOrValue<any>) ? TExecValue : never;
+// export type TRouteExecStrategy<TExec extends TRouteExecGeneric> = TExec extends ((params: IRouteExecParams<any, infer TExecStrategy>) => TNativePromiseLikeOrValue<any>) ? TExecStrategy extends TAbortStrategy ? TExecStrategy : 'never' : never;
+export type InferRouteExecReturnValue<TExec extends TRouteExecGeneric> = TExec extends ((params: IRouteExecParams<any>) => TNativePromiseLikeOrValue<infer TExecReturn>) ? TExecReturn : never;
 
 // export type TRouteExecParams<TExec extends TRouteExecGeneric> = IRouteExecParams<TRouteExecValue<TExec>, TRouteExecStrategy<TExec>>;
-export type InferChildRouteExec<TExec extends TRouteExecGeneric> = <TStrategy extends TAbortStrategy>(this: IRoute<InferChildRouteExec<TExec>>, params: IRouteExecParams<InferRouteExecReturnValue<TExec>, TStrategy>) => TPromiseOrValue<any>;
+export type InferChildRouteExec<TExec extends TRouteExecGeneric> = (this: IRoute<InferChildRouteExec<TExec>>, params: IRouteExecParams<InferRouteExecReturnValue<TExec>>) => TNativePromiseLikeOrValue<any>;
 export type InferChildRoute<TExec extends TRouteExecGeneric> = IRoute<InferChildRouteExec<TExec>>;
 
-export type TRouteResolve<TExec extends TRouteExecGeneric> = (this: IRoute<TExec>, params: IPathMatcherResult) => TPromiseOrValue<boolean>;
+export type TRouteResolve<TExec extends TRouteExecGeneric> = (this: IRoute<TExec>, params: IPathMatcherResult) => TNativePromiseLikeOrValue<boolean>;
 
-export interface IRouteExecParams<TExecValue, TStrategy extends TAbortStrategy> extends ICancellablePromiseOptions<TStrategy> {
+export interface IRouteExecParams<TExecValue> extends ICancellablePromiseOptions {
   params: TPathMatcherParams;
   parentValue: TExecValue;
 }

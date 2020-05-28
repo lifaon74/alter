@@ -2,7 +2,7 @@ import { ITemplateBuildOptions, INormalizedTemplateBuildOptions, TTemplateRequir
 import { DEFAULT_PARSERS } from './generators/default';
 import {
   $add, $and, $divide, $equal, $expression, $max, $min, $multiply, $not, $notEqual, $observable, $observer, $or, $scope,
-  $string, $subtract, NotificationsObserver, TPromiseOrValue
+  $string, $subtract, NotificationsObserver, TNativePromiseLikeOrValue
 } from '@lifaon/observables';
 import { AttachNode, DestroyNode, DetachNode } from '../custom-node/node-state-observable/mutations';
 import { ContainerNode } from '../custom-node/container-node/implementation';
@@ -20,7 +20,7 @@ import { IParsers } from './generators/interfaces';
 import { union } from '../../misc/helpers/set-operations';
 import { IsObject } from '../../misc/helpers/is/IsObject';
 
-// const defaultConstantsToImport = new Map<string, () => TPromiseOrValue<any>>([
+// const defaultConstantsToImport = new Map<string, () => TNativePromiseLikeOrValue<any>>([
 //   ['NotificationsObserver', () => NotificationsObserver],
 //   ['AttachNode', () => AttachNode],
 //   ['DetachNode', () => DetachNode],
@@ -68,7 +68,7 @@ import { IsObject } from '../../misc/helpers/is/IsObject';
 // ]);
 
 
-const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TPromiseOrValue<any>>([
+const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TNativePromiseLikeOrValue<any>>([
   ['NotificationsObserver', () => NotificationsObserver],
 
   ['AttachNode', () => AttachNode],
@@ -112,7 +112,7 @@ const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TPromiseOrValue<any>>(
 const DEFAULT_REQUIRE: TTemplateRequireFunction = (name: string): Promise<any> => {
   return new Promise<any>((resolve: any, reject: any) => {
     if (DEFAULT_CONSTANTS_TO_IMPORT.has(name)) {
-      resolve((DEFAULT_CONSTANTS_TO_IMPORT.get(name) as () => TPromiseOrValue<any>)());
+      resolve((DEFAULT_CONSTANTS_TO_IMPORT.get(name) as () => TNativePromiseLikeOrValue<any>)());
     } else {
       reject(new Error(`Missing constant '${ name }'`));
     }

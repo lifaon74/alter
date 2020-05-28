@@ -1,3 +1,3 @@
 const makeUglify = require('./make-uglify');
 
-makeUglify('dist/global/alter.core.umd.js');
+makeUglify('dist/global/{{lib-name}}.core.umd.js');

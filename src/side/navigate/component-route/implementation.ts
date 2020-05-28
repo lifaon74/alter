@@ -26,28 +26,27 @@ import {
 
 /** CONSTRUCTOR FUNCTIONS **/
 
-export function ComponentRouteExec<TStrategy extends TAbortStrategy>(instance: IComponentRoute, params: IComponentRouteExecParams<TStrategy>): ICancellablePromise<IComponentRouteExecReturn, TStrategy> {
+export function ComponentRouteExec(instance: IComponentRoute, params: IComponentRouteExecParams): ICancellablePromise<IComponentRouteExecReturn> {
   const privates: IComponentRoutePrivate = (instance as IComponentRouteInternal)[COMPONENT_ROUTE_PRIVATE];
   if (privates.pendingExecAbortController !== null) {
     privates.pendingExecAbortController.abort(new AbortReason());
     privates.pendingExecAbortController = null;
   }
 
-  return CancellablePromise.try<IComponentRouteExecReturn, TStrategy>((signal: IAdvancedAbortSignal) => {
+  return CancellablePromise.try<IComponentRouteExecReturn>((signal: IAdvancedAbortSignal) => {
     const abortController: IAdvancedAbortController = AdvancedAbortController.fromAbortSignals(signal);
     privates.pendingExecAbortController = abortController;
 
-    const resolved = (): ICancellablePromise<IComponentRouteExecReturn, 'reject'> => {
+    const resolved = (): ICancellablePromise<IComponentRouteExecReturn> => {
       const rootNode: HTMLElement | null = (params.parentValue === void 0)
         ? null
         : params.parentValue.parentElement;
 
-      return InjectComponentInRouter<'reject'>({
+      return InjectComponentInRouter({
         rootNode,
         component: privates.component,
         routerId: privates.routerId,
         signal: abortController.signal,
-        strategy: 'reject'
       })
         .then((element: HTMLElement | null) => {
           return {
@@ -87,8 +86,8 @@ export class ComponentRoute extends Route<TComponentRouteExec> implements ICompo
   constructor(path: string, options: IComponentRouteOptions) {
     super(path, {
       ...options,
-      exec: <TStrategy extends TAbortStrategy>(params: IComponentRouteExecParams<TStrategy>) => {
-        return ComponentRouteExec<TStrategy>(this, params);
+      exec: (params: IComponentRouteExecParams) => {
+        return ComponentRouteExec(this, params);
       },
       execMode: 'partial'
     });

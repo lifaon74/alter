@@ -4,9 +4,12 @@ import { InfiniteScroller } from './implementation';
 import { AttachNode } from '../../../core/custom-node/node-state-observable/mutations';
 import { uuid } from '../../../misc/helpers/uuid';
 import { LoadDefaultInfiniteScrollerStyle } from './default-style';
-import { EventsObservable, PromiseTry, TPromiseOrValue } from '@lifaon/observables';
-import { DOMResizeObservable } from './dom-resize/public';
-import { LoadElementsEvent } from './events/load-elements-event/implementation';
+import {
+  CancellablePromise, DOMResizeObservable, EventsObservable, IAdvancedAbortSignal,
+  ICancellablePromiseOptions, AdvancedAbortController, ICancellablePromise, NormalizeICancellablePromiseOptions,
+  ICancellablePromiseNormalizedOptions, TNativePromiseLikeOrValue
+} from '@lifaon/observables';
+import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
 
 function CreateHorizontalDummyElement(index: number): HTMLElement {
   const element = document.createElement('div');
@@ -188,6 +191,8 @@ interface IBlock {
   color: string;
 }
 
+const blockSymbol = Symbol('block');
+
 function CreateBlockElement(block: IBlock): HTMLElement {
   const element = document.createElement('div');
   element.style.display = 'inline-block';
@@ -199,49 +204,86 @@ function CreateBlockElement(block: IBlock): HTMLElement {
   element.style.margin = '5px';
   element.style.padding = '5px';
   element.appendChild(new Text(block.name));
+  element[blockSymbol] = block;
   return element;
 }
 
 
 const LOADING_SCROLLERS = new WeakSet<IInfiniteScroller>();
 
-function CreateInfiniteScrollerOnLoadElementFunction(scroller: IInfiniteScroller, position: 'before' | 'after', callback: (event: ILoadElementsEvent) => TPromiseOrValue<HTMLElement[]>) {
+function CreateInfiniteScrollerOnLoadElementFunction(
+  scroller: IInfiniteScroller,
+  position: 'before' | 'after',
+  callback: (event: ILoadElementsEvent, signal: IAdvancedAbortSignal) => TNativePromiseLikeOrValue<HTMLElement[]>,
+) {
   return (event: ILoadElementsEvent): void => {
     if (!LOADING_SCROLLERS.has(scroller)) {
       LOADING_SCROLLERS.add(scroller);
-      PromiseTry<HTMLElement[]>(() => callback(event))
-        .then((elements: HTMLElement[]) => {
+
+      // const controller = new AdvancedAbortController();
+      // const signal = controller.signal;
+
+      // const clearListener = new EventsObservable<IInfiniteScrollerEventMap>(scroller)
+      //   .addListener('clear', () => {
+      //     controller.abort('cleared');
+      //   }).activate();
+
+      const endLoading = () => {
+        LOADING_SCROLLERS.delete(scroller);
+      };
+
+      CancellablePromise.try<HTMLElement[]>((signal: IAdvancedAbortSignal) => callback(event, signal))
+        .then((elements: HTMLElement[], signal: IAdvancedAbortSignal) => {
           return (position === 'after')
-            ? scroller.appendAfter(elements)
-            : scroller.appendBefore(elements);
+            ? scroller.appendAfter(elements, { signal })
+              .cancelled(endLoading)
+            : scroller.appendBefore(elements, { signal })
+              .cancelled(endLoading);
         })
-        .then(() => {
-          LOADING_SCROLLERS.delete(scroller);
-        });
+        .finally(endLoading);
     }
   };
 }
 
-function HandleInfiniteScrollerOnLoadElement(scroller: IInfiniteScroller, callback: (event: ILoadElementsEvent) => TPromiseOrValue<HTMLElement[]>) {
+function HandleInfiniteScrollerOnLoadElement(scroller: IInfiniteScroller, callback: (event: ILoadElementsEvent, signal: IAdvancedAbortSignal) => TNativePromiseLikeOrValue<HTMLElement[]>) {
   return new EventsObservable<IInfiniteScrollerEventMap>(scroller)
     .on('load-before', CreateInfiniteScrollerOnLoadElementFunction(scroller, 'before', callback))
-    .on('load-after', CreateInfiniteScrollerOnLoadElementFunction(scroller, 'after', callback))
-    .on('clear', () => {
-      LOADING_SCROLLERS.delete(scroller);
-    });
+    .on('load-after', CreateInfiniteScrollerOnLoadElementFunction(scroller, 'after', callback));
 }
 
 function debugAnimationFrame() {
   (window as any).inAnimationFrame = 0;
   const requestAnimationFrame = window.requestAnimationFrame;
-  window.requestAnimationFrame = function(callback) {
-    return requestAnimationFrame(function(...args) {
+  window.requestAnimationFrame = function (callback) {
+    return requestAnimationFrame(function (...args) {
       (window as any).inAnimationFrame++;
       callback(...args);
       // (window as any).inAnimationFrame--;
     });
   };
 }
+
+
+function AsyncIteratorForEachToCancellablePromise<T>(
+  iterator: AsyncIterator<T>,
+  callback: (value: T, signal: IAdvancedAbortSignal) => TNativePromiseLikeOrValue<void>,
+  options?: ICancellablePromiseOptions
+): ICancellablePromise<void> {
+  // const _options = NormalizeICancellablePromiseOptions<TStrategy>(options);
+  const next = (options?: ICancellablePromiseOptions): ICancellablePromise<void> => {
+    return CancellablePromise.of<IteratorResult<T>>(iterator.next(), options)
+      .then((result: IteratorResult<T>, signal: IAdvancedAbortSignal): (ICancellablePromise<void> | void) => {
+        if (!result.done) {
+          return CancellablePromise.try<void>((signal: IAdvancedAbortSignal) => callback(result.value, signal), {  signal  })
+            .then((result: void, signal: IAdvancedAbortSignal) => {
+              return next({ signal });
+            });
+        }
+      });
+  };
+  return next(options);
+}
+
 
 export function debugBlockBasedInfiniteScroller() {
   debugAnimationFrame();
@@ -253,8 +295,6 @@ export function debugBlockBasedInfiniteScroller() {
   scroller.contentLimitStrategy = 'pause';
 
   // const indexAttribute: string = 'attr-' + uuid();
-
-  const blockSymbol = Symbol('block');
 
 
   function createBlock(index: number): IBlock {
@@ -274,76 +314,152 @@ export function debugBlockBasedInfiniteScroller() {
     return (element === null) ? -1 : loadedBlocks.indexOf(element[blockSymbol]);
   }
 
-  // function loadBlock(startIndex: number, endIndex: number) {
-  //
-  // }
+  function getNumberOfBlocksPerRow(): number {
+    return Math.max(1, Math.floor(scroller.offsetWidth / 110));
+  }
+
+  function rearrangeChunks(firstVisibleElement: HTMLElement | null = scroller.getFirstVisibleElement()) {
+    const numberOfBlocksPerRow: number = getNumberOfBlocksPerRow();
+    const chunkSize: number = numberOfBlocksPerRow * 2;
+    const chunks: HTMLElement[][] = [];
+    let firstVisibleElementInitialPosition: number | undefined;
+
+    if (firstVisibleElement !== null) {
+      firstVisibleElementInitialPosition = firstVisibleElement.getBoundingClientRect().top;
+      const elementsBeforeFirstVisibleElement: HTMLElement[] = Array.from(scroller.elements({
+        after: firstVisibleElement,
+        includeAfter: false,
+        reversed: true
+      }));
+      for (let i = 0, l = Math.floor(elementsBeforeFirstVisibleElement.length / chunkSize); i < l; i++) {
+        chunks.unshift(elementsBeforeFirstVisibleElement.slice(i * chunkSize, (i + 1) * chunkSize).reverse());
+      }
+    }
+
+    const elementsAfterFirstVisibleElement: HTMLElement[] = Array.from(scroller.elements({
+      after: firstVisibleElement,
+      includeAfter: true
+    }));
+    for (let i = 0, l = Math.ceil(elementsAfterFirstVisibleElement.length / chunkSize); i < l; i++) {
+      chunks.push(elementsAfterFirstVisibleElement.slice(i * chunkSize, (i + 1) * chunkSize));
+    }
+
+    scroller.replaceElements(chunks);
+
+    if (firstVisibleElement !== null) {
+      const firstElementPosition: number = firstVisibleElement.getBoundingClientRect().top - (firstVisibleElementInitialPosition as number);
+      scroller.applyTranslation(firstElementPosition, true);
+    }
+  }
 
   const blocksIterator: AsyncIterableIterator<IBlock> = blockGenerator();
-  // const loadedBlocks: IBlock[] = [];
-  const loadedBlocks: IBlock[] = Array.from({ length: 1000 }, (v: any, i: number) => createBlock(i));
+  const loadedBlocks: IBlock[] = [];
 
-  const scrollerObservable = HandleInfiniteScrollerOnLoadElement(scroller, (event: ILoadElementsEvent) => {
-    const loadSize: number = Math.max(1, Math.floor(scroller.offsetWidth / 110) * 10);
+  // const loadedBlocks: IBlock[] = Array.from({ length: 1000 }, (v: any, i: number) => createBlock(i));
+
+  function loadBlocks(startIndex: number, endIndex: number, options?: ICancellablePromiseOptions): ICancellablePromise<IBlock[]> {
+    startIndex = Math.max(0, startIndex);
+    endIndex = Math.max(startIndex, endIndex);
+
+    let iterableSteps: number = endIndex - loadedBlocks.length;
+
+    async function * generator() {
+      let result: IteratorResult<IBlock>;
+      while ((iterableSteps-- > 0) && !(result = await blocksIterator.next()).done) {
+        yield result.value;
+      }
+    }
+
+    return AsyncIteratorForEachToCancellablePromise<IBlock>(generator(), (block: IBlock) => {
+      loadedBlocks.push(block);
+    }, options)
+      .then(() => {
+        return loadedBlocks.slice(startIndex, endIndex);
+      });
+  }
+
+  const scrollerObservable = HandleInfiniteScrollerOnLoadElement(scroller, async (event: ILoadElementsEvent, signal: IAdvancedAbortSignal) => {
+    // TODO
+    // throw 'TODO';
+    const loadSize: number = getNumberOfBlocksPerRow() * 2;
     const refBlockIndex: number = getRefBlockIndex(event.referenceElement);
 
-    let startIndex: number;
-    let endIndex: number;
+    let blocks: IBlock[] = [];
+    let promise: ICancellablePromise<any>;
 
     switch (event.type) {
       case 'load-before':
-        endIndex = Math.max(0, refBlockIndex);
-        startIndex = Math.max(0, endIndex - loadSize);
-        console.log(startIndex, endIndex);
+        promise = loadBlocks(
+          refBlockIndex - loadSize,
+          refBlockIndex,
+          { signal }
+        )
+          .then((block: IBlock[], signal: IAdvancedAbortSignal) => {
+            if ((blocks.length !== 0) && (blocks.length < loadSize)) {
+              return scroller.appendBefore(blocks.map(CreateBlockElement), { signal });
+              // if (signal.aborted) return [];
+              // rearrangeChunks();
+              // blocks = [];
+            } else {
+              return block;
+            }
+          });
+        if ((blocks.length !== 0) && (blocks.length < loadSize)) {
+          await scroller.appendBefore(blocks.map(CreateBlockElement)).toPromise();
+          if (signal.aborted) return [];
+          rearrangeChunks();
+          blocks = [];
+        }
         break;
       case 'load-after': {
-
-        startIndex = refBlockIndex + 1;
-        endIndex = startIndex + loadSize;
-
-        let iterableSteps: number = endIndex - loadedBlocks.length;
-
-        let result: IteratorResult<IBlock>;
-        // while ((iterableSteps-- > 0) && !(result = await blocksIterator.next()).done) {
-        //   loadedBlocks.push(result.value);
-        // }
-
+        blocks = await loadBlocks(
+          refBlockIndex + 1,
+          refBlockIndex + 1 + loadSize,
+        ).toPromise();
+        if (signal.aborted) return [];
         break;
       }
       default:
         throw new Error(`Unexpected event.type`);
     }
 
-    // console.log(loadedBlocks.slice(startIndex, endIndex));
-
-    return loadedBlocks.slice(startIndex, endIndex).map((block: IBlock) => {
-      const element: HTMLElement = CreateBlockElement(block);
-      element[blockSymbol] = block;
-      return element;
-    });
+    return blocks.map(CreateBlockElement);
   });
 
   const onResize = () => {
-    scroller.replaceElements(Array.from(scroller.elements({ after: scroller.getFirstVisibleElement(), includeAfter: true })));
+    rearrangeChunks();
 
-    // // console.log('resize');
-    // // const firstElement: HTMLElement | null = scroller.firstElement;
     // const firstVisibleElement: HTMLElement | null = scroller.getFirstVisibleElement();
-    // const firstElement: HTMLElement | null = (firstVisibleElement === null)
-    //   ? null
-    //   : scroller.elements({ after: firstVisibleElement, reversed: true }).next().value || null;
+    // const elements: HTMLElement[] = Array.from(scroller.elements({ after: firstVisibleElement, includeAfter: true }));
+    // const numberOfBlocksPerRow: number = getNumberOfBlocksPerRow();
+    // const numberOfBlocks: number = elements.length;
     //
-    // console.log(firstVisibleElement);
-    // console.log(firstElement);
+    // if (numberOfBlocks >= numberOfBlocksPerRow) {
+    //   const chunkSize: number = numberOfBlocksPerRow;
+    //   const chunks: HTMLElement[][] = [];
     //
-    // // const refBlockIndex: number = getRefBlockIndex(scroller.firstElement);
-    // // TODO move the dispatchEvent into the clear section
-    // scroller.dispatchEvent(new LoadElementsEvent('load-after', {
-    //   referenceElement: (firstElement === null) ? null : firstElement,
-    //   distance: 0
-    // }));
+    //   for (let i = 0, l = elements.length; i < l; i++) {
+    //     elements
+    //   }
+    //   scroller.replaceElements(elements.slice(0, Math.floor(numberOfBlocks / numberOfBlocksPerRow) * numberOfBlocksPerRow));
+    //
+    // } else {
+    //   const firstElement: HTMLElement | null = (firstVisibleElement === null)
+    //     ? null
+    //     : scroller.elements({ after: firstVisibleElement, reversed: true }).next().value || null;
+    //
+    //   // console.log((firstElement === null) ? null : firstElement.innerText);
+    //
+    //   scroller.replaceElements([]);
+    //
+    //   scroller.dispatchEvent(new LoadElementsEvent('load-after', {
+    //     referenceElement: (firstElement === null) ? null : firstElement,
+    //     distance: 0
+    //   }));
+    // }
   };
 
-  const scrollerResizeObserver = new DOMResizeObservable(scroller)
+  const scrollerResizeObserver = new DOMResizeObservable(scroller, { maxRefreshPeriod: 0 })
     .pipeTo(onResize).activate();
 
   (window as any).onResize = onResize;

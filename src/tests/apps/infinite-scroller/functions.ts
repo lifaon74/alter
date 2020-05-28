@@ -16,6 +16,12 @@ import { AttachNode, DetachNode, ForceAttachNode } from '../../../core/custom-no
 import { UnloadElementsEvent } from './events/unload-elements-event/implementation';
 import { IsNull } from '../../../misc/helpers/is/IsNull';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
+import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
+import {
+  AbortReason,
+  AdvancedAbortController, CancellablePromise, IAdvancedAbortController, ICancellablePromise,
+  ICancellablePromiseOptions, IReason, Reason
+} from '@lifaon/observables';
 
 
 /** FUNCTIONS **/
@@ -310,6 +316,22 @@ export function InfiniteScrollerOnMouseUp(instance: IInfiniteScroller, event: Mo
   privates.mouseUpObserver.deactivate();
 }
 
+// -- MANUAL
+export function InfiniteScrollerOnManualTranslation(instance: IInfiniteScroller, translation: number, immediate: boolean = false): void {
+  if (immediate) {
+    const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
+    privates.wheelTarget = null;
+    privates.animationInitialPosition = InfiniteScrollerGetContainerTranslation(instance) - translation;
+    privates.animationFunction = () => privates.animationInitialPosition;
+    InfiniteScrollerSetContainerTranslation(instance, privates.animationInitialPosition);
+  } else {
+    InfiniteScrollerOnWheel(instance, new WheelEvent('wheel', {
+      deltaX: translation,
+      deltaY: translation,
+      deltaMode: WheelEvent.DOM_DELTA_PIXEL
+    }));
+  }
+}
 
 /* READ/WRITE CONTAINER OFFSET */
 
@@ -390,6 +412,26 @@ export function InfiniteScrollerAnimationUpdate(
 
 
 /* LOAD/UNLOAD */
+
+export function InfiniteScrollerAppend(
+  instance: IInfiniteScroller,
+  position: 'before' | 'after',
+  elements: HTMLElement[],
+  options?: ICancellablePromiseOptions
+): ICancellablePromise<void> {
+  // const controller: IAdvancedAbortController = AdvancedAbortController.fromAbortSignals(options.signal);
+  return new CancellablePromise<void>((resolve: any, reject: any) => {
+    (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE][(position === 'before') ? 'appendBeforeList' : 'appendAfterList'].push({
+      elements,
+      resolve,
+      reject,
+      // abort: (reason: any) => controller.abort(reason),
+    });
+  }, options /*{
+    ...options,
+    signal: controller.signal
+  }*/);
+}
 
 /**
  * Updates the child elements of the container if they reach some boundaries
@@ -603,6 +645,18 @@ export function InfiniteScrollerRemoveAllElements(instance: IInfiniteScroller): 
   const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
   privates.animationInitialPosition = 0;
   privates.animationFunction = () => privates.animationInitialPosition;
+  InfiniteScrollerSetContainerTranslation(instance, privates.animationInitialPosition);
+
+  const reason: IReason<'CLEAR'> = new Reason<'CLEAR'>(`Elements cleared`, 'CLEAR');
+  for (let i = 0, l = privates.appendBeforeList.length; i < l; i++) {
+    const { reject } = privates.appendBeforeList[i];
+    reject(reason);
+  }
+
+  for (let i = 0, l = privates.appendAfterList.length; i < l; i++) {
+    const { reject } = privates.appendAfterList[i];
+    reject(reason);
+  }
 
   privates.appendBeforeList = [];
   privates.appendAfterList = [];
@@ -614,33 +668,36 @@ export function InfiniteScrollerRemoveAllElements(instance: IInfiniteScroller): 
   const removedElements: Element[] = [];
 
   while (chunk !== null) {
+    let nextChunk: Element | null = chunk.nextElementSibling;
+    DetachNode(chunk);
+
     let element: Element | null = chunk.firstElementChild;
     while (element !== null) {
+      DetachNode(element);
       removedElements.push(element);
       element = element.nextElementSibling;
     }
-    let nextElementSibling: Element | null = chunk.nextElementSibling;
-    DetachNode(chunk);
-    // chunk.remove();
-    chunk = nextElementSibling;
+
+    chunk = nextChunk;
   }
+
+  InfiniteScrollerAnimationUpdate(instance, 0);
 
   instance.dispatchEvent(new UnloadElementsEvent('clear', {
     elements: removedElements
   }));
 }
 
-export function InfiniteScrollerReplaceAllElements(instance: IInfiniteScroller, elements: HTMLElement[]): void {
+export function InfiniteScrollerReplaceAllElements(instance: IInfiniteScroller, chunks: HTMLElement[][]): void {
   InfiniteScrollerRemoveAllElements(instance);
 
   const privates: IInfiniteScrollerPrivate = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE];
-  const elementsLength: number = elements.length;
 
-  if (elementsLength > 0) {
+  for (let chunkIndex = 0, chunksLength = chunks.length; chunkIndex < chunksLength; chunkIndex++) {
+    const elements: HTMLElement[] = chunks[chunkIndex];
     const chunk: HTMLElement = InfiniteScrollerCreateChunk(instance);
-
-    for (let i = 0; i < elementsLength; i++) {
-      ForceAttachNode(elements[i], chunk);
+    for (let elementIndex = 0, elementsLength = elements.length; elementIndex < elementsLength; elementIndex++) {
+      ForceAttachNode(elements[elementIndex], chunk);
       // afterChunk.appendChild(elements[j]);
     }
 
@@ -700,33 +757,6 @@ export function * InfiniteScrollerElementsIterator(instance: IInfiniteScroller, 
   }
 }
 
-// export function * InfiniteScrollerGetChildren(instance: IInfiniteScroller): IterableIterator<HTMLElement> {
-//   const container: HTMLElement = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container;
-//   let chunk: HTMLElement | null = container.firstElementChild as HTMLElement | null;
-//   while ((chunk !== null) && (chunk.parentElement === container)) {
-//     let node: HTMLElement | null = chunk.firstElementChild as HTMLElement | null;
-//     while ((node !== null) && (node.parentElement === chunk)) {
-//       yield node;
-//       node = node.nextElementSibling as HTMLElement | null;
-//     }
-//
-//     chunk = chunk.nextElementSibling as HTMLElement | null;
-//   }
-// }
-//
-// export function * InfiniteScrollerGetChildrenReversed(instance: IInfiniteScroller): IterableIterator<HTMLElement> {
-//   const container: HTMLElement = (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].container;
-//   let chunk: HTMLElement | null = container.lastElementChild as HTMLElement | null;
-//   while ((chunk !== null) && (chunk.parentElement === container)) {
-//     let node: HTMLElement | null = chunk.lastElementChild as HTMLElement | null;
-//     while ((node !== null) && (node.parentElement === chunk)) {
-//       yield node;
-//       node = node.previousElementSibling as HTMLElement | null;
-//     }
-//
-//     chunk = chunk.previousElementSibling as HTMLElement | null;
-//   }
-// }
 
 /* NORMALIZE **/
 

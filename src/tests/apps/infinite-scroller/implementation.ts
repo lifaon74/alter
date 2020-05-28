@@ -12,12 +12,17 @@ import {
 import { IsNull } from '../../../misc/helpers/is/IsNull';
 import { SetPropertyOrDefault } from './helpers';
 import {
-  InfiniteScrollerElementsIterator,
-  InfiniteScrollerLoop, InfiniteScrollerRemoveAllElements, InfiniteScrollerReplaceAllElements,
-  InfiniteScrollerSetContentLimitStrategy,
-  NormalizeIElementsIteratorOptions, NormalizeIElementsIteratorOptionsReversed
+  InfiniteScrollerAppend,
+  InfiniteScrollerElementsIterator, InfiniteScrollerLoop, InfiniteScrollerOnManualTranslation,
+  InfiniteScrollerReplaceAllElements, InfiniteScrollerSetContentLimitStrategy, NormalizeIElementsIteratorOptions
 } from './functions';
 import { ConstructInfiniteScroller } from './constructor';
+import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
+import {
+  AdvancedAbortController,
+  CancellablePromise, IAdvancedAbortController, IAdvancedAbortSignal, ICancellablePromise, ICancellablePromiseOptions,
+  NormalizeICancellablePromiseOptions
+} from '@lifaon/observables';
 
 
 /** METHODS **/
@@ -197,28 +202,22 @@ export function InfiniteScrollerElements(instance: IInfiniteScroller, options?: 
   return InfiniteScrollerElementsIterator(instance, NormalizeIElementsIteratorOptions(options));
 }
 
-export function InfiniteScrollerAppendBefore(instance: IInfiniteScroller, elements: HTMLElement[]): Promise<void> {
-  return new Promise((resolve: any, reject: any) => {
-    (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].appendBeforeList.push({
-      elements,
-      resolve,
-      reject
-    });
-  });
+export function InfiniteScrollerAppendBefore(instance: IInfiniteScroller, elements: HTMLElement[], options?: ICancellablePromiseOptions): ICancellablePromise<void> {
+  return InfiniteScrollerAppend(instance, 'before', elements, options);
 }
 
-export function InfiniteScrollerAppendAfter(instance: IInfiniteScroller, elements: HTMLElement[]): Promise<void> {
-  return new Promise((resolve: any, reject: any) => {
-    (instance as IInfiniteScrollerInternal)[INFINITE_SCROLLER_PRIVATE].appendAfterList.push({
-      elements,
-      resolve,
-      reject
-    });
-  });
+export function InfiniteScrollerAppendAfter(instance: IInfiniteScroller, elements: HTMLElement[], options?: ICancellablePromiseOptions): ICancellablePromise<void> {
+  return InfiniteScrollerAppend(instance, 'after', elements, options);
 }
 
-export function InfiniteScrollerReplaceElements(instance: IInfiniteScroller, elements: HTMLElement[]): void {
-  return InfiniteScrollerReplaceAllElements(instance, elements);
+
+
+export function InfiniteScrollerReplaceElements(instance: IInfiniteScroller, chunks: HTMLElement[][]): void {
+  return InfiniteScrollerReplaceAllElements(instance, chunks);
+}
+
+export function InfiniteScrollerApplyTranslation(instance: IInfiniteScroller, translation: number, immediate?: boolean): void {
+  return InfiniteScrollerOnManualTranslation(instance, translation, immediate);
 }
 
 // export function InfiniteScrollerClearElements(instance: IInfiniteScroller): void {
@@ -405,18 +404,21 @@ export class InfiniteScroller extends HTMLElement implements IInfiniteScroller {
     return InfiniteScrollerElements(this, options);
   }
 
-  appendBefore(elements: HTMLElement[]): Promise<void> {
+  appendBefore(elements: HTMLElement[], options?: ICancellablePromiseOptions): ICancellablePromise<void> {
     return InfiniteScrollerAppendBefore(this, elements);
   }
 
-  appendAfter(elements: HTMLElement[]): Promise<void> {
+  appendAfter(elements: HTMLElement[], options?: ICancellablePromiseOptions): ICancellablePromise<void> {
     return InfiniteScrollerAppendAfter(this, elements);
   }
 
-  replaceElements(elements: HTMLElement[]): void {
-    return InfiniteScrollerReplaceElements(this, elements);
+  replaceElements(chunks: HTMLElement[][]): void {
+    return InfiniteScrollerReplaceElements(this, chunks);
   }
 
+  applyTranslation(translation: number, immediate?: boolean): void {
+    return InfiniteScrollerApplyTranslation(this, translation, immediate);
+  }
 
   connectedCallback(): void {
     InfiniteScrollerOnConnected(this);

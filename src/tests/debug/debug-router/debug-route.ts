@@ -4,7 +4,7 @@
 // import { TPathMatcherParams } from '../../../side/navigate/path-matcher/types';
 // import { ComponentRoute } from '../../../side/navigate/component-route/implementation';
 // import { Component } from '../../../core/component/component/class/decorator';
-// import { TAbortStrategy, TPromiseOrValue } from '@lifaon/observables';
+// import { TAbortStrategy, TNativePromiseLikeOrValue } from '@lifaon/observables';
 // import { ITemplate } from '../../../core/template/interfaces';
 // import { IStyle } from '../../../core/style/interfaces';
 // import { IHostBinding } from '../../../core/component/host-binding/interfaces';

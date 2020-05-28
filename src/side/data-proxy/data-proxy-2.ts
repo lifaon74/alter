@@ -237,7 +237,7 @@ class MutableObject<TObject extends object> extends NotificationsObservable<TMut
         : value
     ) as TMutableObjectValue<TObject, TKey>;
 
-    this._properties.set(propertyKey, _value);
+    this._properties.set(propertyKey, _value as any);
   }
 
   delete<TKey extends keyof TObject>(propertyKey: TKey): void {

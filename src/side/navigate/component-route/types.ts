@@ -6,7 +6,7 @@ import { IRoute } from '../route/interfaces';
 /** TYPES */
 
 
-export type TComponentRouteExec = <TStrategy extends TAbortStrategy>(this: IRoute<TComponentRouteExec>, params: IComponentRouteExecParams<TStrategy>) => ICancellablePromise<IComponentRouteExecReturn, TStrategy>;
+export type TComponentRouteExec = (this: IRoute<TComponentRouteExec>, params: IComponentRouteExecParams) => ICancellablePromise<IComponentRouteExecReturn>;
 
 export type TComponentRouteExecValue = IComponentRouteExecReturn | undefined;
 
@@ -14,7 +14,7 @@ export interface IComponentRouteExecReturn {
   parentElement: HTMLElement | null;
 }
 
-export interface IComponentRouteExecParams<TStrategy extends TAbortStrategy> extends IRouteExecParams<TComponentRouteExecValue, TStrategy> {
+export interface IComponentRouteExecParams extends IRouteExecParams<TComponentRouteExecValue> {
 }
 
 /*---*/

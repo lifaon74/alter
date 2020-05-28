@@ -3,6 +3,8 @@ import {
 } from '../../../core/component/custom-element/implements';
 import { ILoadElementsEvent } from './events/load-elements-event/interfaces';
 import { IUnloadElementsEvent } from './events/unload-elements-event/interfaces';
+import { ICancellablePromise, ICancellablePromiseOptions } from '@lifaon/observables';
+import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
 
 /** TYPES **/
 
@@ -55,20 +57,21 @@ export interface IInfiniteScroller extends HTMLElement, ConnectedCallBack, Disco
    * Asks to this infinite scroller to append 'elements' before all other child elements
    * Returns a promise, resolved when theses elements would be loaded in the DOM
    */
-  appendBefore(elements: HTMLElement[]): Promise<void>;
+  appendBefore(elements: HTMLElement[], options?: ICancellablePromiseOptions): ICancellablePromise<void>;
 
   /**
    * Asks to this infinite scroller to append 'elements' after all other child elements
    * Returns a promise, resolved when theses elements would be loaded in the DOM
    */
-  appendAfter(elements: HTMLElement[]): Promise<void>;
+  appendAfter(elements: HTMLElement[], options?: ICancellablePromiseOptions): ICancellablePromise<void>;
 
 
   /**
    * Removes all elements in this infinite scroller and emits a 'clear' event
    */
-  replaceElements(elements: HTMLElement[]): void;
+  replaceElements(chunks: HTMLElement[][]): void;
 
+  applyTranslation(translation: number, immediate?: boolean): void;
 
   addEventListener<K extends keyof IInfiniteScrollerEventMap>(type: K, listener: (this: HTMLElement, ev: IInfiniteScrollerEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
 

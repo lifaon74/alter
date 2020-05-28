@@ -1,6 +1,6 @@
-const makeUglify = require('./make-uglify');
+const makeTerser = require('./make-terser');
 
-makeUglify('dist/global/{{lib-name}}.esnext.core.umd.js', {
+makeTerser('dist/global/{{lib-name}}.esnext.core.umd.js', {
   compress: {
     inline: false,
     ecma: 6,

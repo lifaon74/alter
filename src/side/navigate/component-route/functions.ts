@@ -23,7 +23,7 @@ export interface NodeSelector {
 
 /* FIND ROUTER ELEMENT */
 
-export interface IFindRouterElementOptions<TStrategy extends TAbortStrategy> extends ICancellablePromiseOptions<TStrategy> {
+export interface IFindRouterElementOptions extends ICancellablePromiseOptions {
   rootNode?: NodeSelector | null;
   routerId?: string | null;
   timeout?: number; // (default: 5000)
@@ -53,8 +53,8 @@ export function NormalizeIFindRouterElementOptionsRootNode(node?: NodeSelector |
   }
 }
 
-export function FindRouterElement<TStrategy extends TAbortStrategy>(options: IFindRouterElementOptions<TStrategy> = {}): ICancellablePromise<HTMLElement, TStrategy> {
-  return CancellablePromise.try<HTMLElement, TStrategy>(async () => {
+export function FindRouterElement(options: IFindRouterElementOptions = {}): ICancellablePromise<HTMLElement> {
+  return CancellablePromise.try<HTMLElement>(async () => {
     const endDate: number = Date.now() + NormalizeIFindRouterElementOptionsTimeout(options.timeout);
     const rootNode: NodeSelector = NormalizeIFindRouterElementOptionsRootNode(options.rootNode);
 
@@ -63,7 +63,7 @@ export function FindRouterElement<TStrategy extends TAbortStrategy>(options: IFi
         ? rootNode.querySelector('router')
         : document.getElementById(options.routerId);
       if (router === null) {
-        await $delay<TStrategy>(50, options).promise;
+        await $delay(50, options).toPromise();
       } else {
         return router;
       }
@@ -74,14 +74,14 @@ export function FindRouterElement<TStrategy extends TAbortStrategy>(options: IFi
 
 /* INJECT COMPONENT IN ROUTER ELEMENT */
 
-export interface IInjectComponentInRouterOptions<TStrategy extends TAbortStrategy> extends IFindRouterElementOptions<TStrategy> {
+export interface IInjectComponentInRouterOptions extends IFindRouterElementOptions {
   component: string | null;
 }
 
-export function InjectComponentInRouter<TStrategy extends TAbortStrategy>(
-  options: IInjectComponentInRouterOptions<TStrategy>,
-): ICancellablePromise<HTMLElement | null, TStrategy> {
-  return FindRouterElement<TStrategy>(options as any)
+export function InjectComponentInRouter(
+  options: IInjectComponentInRouterOptions,
+): ICancellablePromise<HTMLElement | null> {
+  return FindRouterElement(options as any)
     .then((router: HTMLElement): (HTMLElement | null) => {
       DestroyChildNodes(router);
       if (options.component === null) {
@@ -97,6 +97,6 @@ export function InjectComponentInRouter<TStrategy extends TAbortStrategy>(
       } else {
         throw error;
       }
-    }) as ICancellablePromise<HTMLElement | null, TStrategy>;
+    }) as ICancellablePromise<HTMLElement | null>;
 }
 

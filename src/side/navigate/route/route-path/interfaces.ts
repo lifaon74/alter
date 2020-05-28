@@ -16,7 +16,7 @@ export interface IRoutePath {
 
   getParams(): TPathMatcherParams;
 
-  exec<TExecReturn, TStrategy extends TAbortStrategy>(options?: IRoutePathExecOptions<any, TStrategy>): ICancellablePromise<TExecReturn, TStrategy>;
+  exec<TExecReturn>(options?: IRoutePathExecOptions<any>): ICancellablePromise<TExecReturn>;
 
   toArray(): IRoutePathEntry[];
 

@@ -12,7 +12,7 @@ export async function debugTranslateService() {
   // console.log(await translateService.getTranslations('fr').promise);
   // console.log(await translateService.translate('a', { a: 'hello' }).promise);
   // console.log(await translateService.translateMany(['a']).promise);
-  console.log(await translateService.translateMany([['a', { a: 'hello' }]]).promise);
+  console.log(await translateService.translateMany([['a', { a: 'hello' }]]).toPromise());
 }
 
 

@@ -15,18 +15,6 @@ function mapValues(input, mapper) {
     }, {});
 }
 
-const aliasResolver = {
-  resolveId(source, importer) {
-    const match = (/^@lifaon\/observables\/([^/]+)\/(.*)$/g).exec(source);
-    if (match !== null) {
-      // console.log(match);
-      const path = $path.join(process.cwd(), 'node_modules', `@lifaon/observables/esnext/${ match[2] }.js`);
-      // console.log(path);
-      return path;
-    }
-  }
-};
-
 function getImportMeta(url) {
   return `((function() {
     var meta = { url: ${url} };
@@ -56,9 +44,9 @@ module.exports = function rollupBundle(options) {
           return ['tslib', key];
         }),
       }),
-      aliasResolver,
       {
         resolveImportMeta(prop, { moduleId }) {
+          moduleId = $path.resolve(process.cwd(), moduleId);
           const destinationFolder = $path.dirname($path.resolve(process.cwd(), dest));
           const relativePath = $path.relative(destinationFolder, moduleId);
           // console.log('------------------------------');
@@ -67,7 +55,7 @@ module.exports = function rollupBundle(options) {
           // console.log('relativePath', relativePath, relativePath.replace('\\', '/'));
 
           const path = relativePath.replace('\\', '/');
-          const url = `new URL(${ JSON.stringify(path) }, window.origin).href`;
+          const url = `new URL(${JSON.stringify(path)}, window.origin).href`;
           if (prop === 'url') {
             return url;
           }
@@ -87,9 +75,9 @@ module.exports = function rollupBundle(options) {
     .then((bundle) => {
       return bundle.generate({
         format: 'umd',
-        name: 'alter',
+        name: '{{lib-name}}',
         amd: {
-          id: 'alter'
+          id: '{{lib-name}}'
         },
         sourcemap: true,
       });

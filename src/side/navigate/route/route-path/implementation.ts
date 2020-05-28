@@ -32,8 +32,8 @@ export function RoutePathGetParams(instance: IRoutePath): TPathMatcherParams {
   return params;
 }
 
-export function RoutePathExec<TExecReturn, TStrategy extends TAbortStrategy>(instance: IRoutePath, options: IRoutePathExecOptions<any, TStrategy> = {}): ICancellablePromise<TExecReturn, TStrategy> {
-  return CancellablePromise.try<TExecReturn, TStrategy>(async () => {
+export function RoutePathExec<TExecReturn>(instance: IRoutePath, options: IRoutePathExecOptions<any> = {}): ICancellablePromise<TExecReturn> {
+  return CancellablePromise.try<TExecReturn>(async () => {
     const privates: IRoutePathPrivate = (instance as IRoutePathInternal)[ROUTE_PATH_PRIVATE];
 
     const params: Map<string, string> = new Map<string, string>(
@@ -115,8 +115,8 @@ export class RoutePath implements IRoutePath {
     return RoutePathGetParams(this);
   }
 
-  exec<TExecReturn, TStrategy extends TAbortStrategy>(options?: IRoutePathExecOptions<any, TStrategy>): ICancellablePromise<TExecReturn, TStrategy> {
-    return RoutePathExec<TExecReturn, TStrategy>(this, options);
+  exec<TExecReturn>(options?: IRoutePathExecOptions<any>): ICancellablePromise<TExecReturn> {
+    return RoutePathExec<TExecReturn>(this, options);
   }
 
 

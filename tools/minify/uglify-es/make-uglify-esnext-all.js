@@ -1,6 +1,6 @@
 const makeUglify = require('./make-uglify');
 
-makeUglify('dist/global/alter.esnext.umd.js', {
+makeUglify('dist/global/{{lib-name}}.esnext.umd.js', {
   compress: {
     inline: false
   },

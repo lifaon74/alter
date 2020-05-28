@@ -10,5 +10,5 @@ export type IRoutePathEntry = {
   params: TPathMatcherParams;
 };
 
-export interface IRoutePathExecOptions<TExecValue, TStrategy extends TAbortStrategy> extends Partial<IRouteExecParams<TExecValue, TStrategy>> {
+export interface IRoutePathExecOptions<TExecValue> extends Partial<IRouteExecParams<TExecValue>> {
 }
