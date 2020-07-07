@@ -16,7 +16,7 @@ export class EventListenerGenerator extends AttributeGenerator implements IEvent
   get observerValue(): string {
     return this.modifiers.has('expression')
       ? `new NotificationsObserver('${ this.name }', (event) => { ${ this.value } }).activate()`
-      : `$observer(${ this.value })`;
+      : `$observer(${ this.value }, 'activate-if-callback')`;
   }
 
   generate(): string[] {

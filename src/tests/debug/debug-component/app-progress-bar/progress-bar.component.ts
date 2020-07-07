@@ -6,8 +6,8 @@ import { Style } from '../../../../core/style/implementation';
 import { IComponent } from '../../../../core/component/component/interfaces';
 import { OnCreate } from '../../../../core/component/component/implements';
 import { IComponentContext } from '../../../../core/component/component/context/interfaces';
-import { Input } from '../../../../core/component/input/decorator';
 import { IAttributeChange } from '../../../../core/component/component/context/types';
+import { Input, TInput } from '../../../../core/component/input/decorator';
 
 
 export interface IData {
@@ -46,11 +46,11 @@ export class AppProgressBar extends HTMLElement implements IComponent<IData>, On
     return ['ratio'];
   }
 
-  @Input()
-  set ratio(value: number) {
-    this.setAttribute('ratio', value.toString(10));
-    this.context.data.percent.emit(`${ Math.round(value * 100) }%`);
-  }
+  @Input((value: number, instance: AppProgressBar) => {
+    instance.setAttribute('ratio', value.toString(10));
+    instance.context.data.percent.emit(`${ Math.round(value * 100) }%`);
+  })
+  ratio: TInput<number>;
 
   protected context: IComponentContext<IData>;
 

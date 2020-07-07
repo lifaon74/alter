@@ -10,6 +10,6 @@ export function IsPascalCase(input: string): boolean {
  * INFO: Assumes input is pascal case
  */
 export function PascalCaseToDashCase(input: string): string {
-  return input.replace(/([A-Z])/g, (match: string, index: number) => `${ (index === 0) ? '' : '-' }${ match[0].toLowerCase() }`);
+  return input.replace(/[A-Z]/g, (match: string, index: number) => `${ (index === 0) ? '' : '-' }${ match[0].toLowerCase() }`);
 }
 

@@ -28,11 +28,11 @@ export async function test() {
   // await debugTranslatePipe();
   // await debugDataProxy();
   // await debugDataProxy2();
-  // await runApps();
+  await runApps();
   // await debugRoute();
   // await experimentClassBuilder();
   // await experimentClass();
-  await debugInfiniteScroller();
+  // await debugInfiniteScroller();
   // await debugQueryParamsChange();
   // await debugNavigation();
 }

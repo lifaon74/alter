@@ -1,10 +1,23 @@
 import { IDynamicEventListener } from './interfaces';
-import { EventsObservable, EventsObservableKeyValueMapGeneric, INotification, IObserver, IEventLike } from '@lifaon/observables';
+import { EventsObservable, EventsObservableKeyValueMapGeneric, INotification, IObserver, IEventLike, Observable } from '@lifaon/observables';
 import { DOMState, GetNodeDOMState } from '../../../node-state-observable/mutations';
 import { NodeStateObservableStaticOf } from '../../../node-state-observable/implementation';
 import { ConstructClassWithPrivateMembers } from '../../../../../misc/helpers/ClassWithPrivateMembers';
 import { IEventsObservablePrivatesInternal } from '@lifaon/observables/types/notifications/observables/events/events-observable/privates';
-import { OBSERVABLE_PRIVATE } from '@lifaon/observables/types/core/observable/privates';
+
+/** FUNCTIONS **/
+
+// WARN extreme ugly fix
+const OBSERVABLE_PRIVATE: symbol = ((): symbol => {
+  const OBSERVABLE_PRIVATE: symbol | undefined = Object.getOwnPropertySymbols(new Observable()).find((_symbol: symbol) => {
+    return _symbol.toString().includes('observable-private');
+  });
+  if (OBSERVABLE_PRIVATE === void 0) {
+    throw new Error(`Cannot extract OBSERVABLE_PRIVATE`);
+  } else {
+    return OBSERVABLE_PRIVATE;
+  }
+})();
 
 /** PRIVATES **/
 

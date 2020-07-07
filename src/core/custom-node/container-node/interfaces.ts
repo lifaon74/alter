@@ -2,7 +2,7 @@ export interface IContainerNodeConstructor {
   new(name?: string, transparent?: boolean): IContainerNode;
 }
 
-export interface IContainerNode extends Comment, ParentNode, ChildNode {
+export interface IContainerNode extends Comment, ParentNode {
   innerHTML: string;
 
   getElementsByClassName(classNames: string): HTMLCollectionOf<Element>;

@@ -48,7 +48,7 @@ export function LocalizationServiceSetLocale<TKVMap extends LocalizationServiceK
 ): void {
   const privates: ILocalizationServicePrivate<TKVMap> = (instance as ILocalizationServiceInternal<TKVMap>)[LOCALIZATION_SERVICE_PRIVATE];
   privates.locale = locale;
-  privates.context.dispatch('locale-change' as KeyValueMapKeys<TKVMap>, locale as KeyValueMapValues<TKVMap>);
+  privates.context.dispatch('locale-change' as KeyValueMapKeys<TKVMap>, locale as unknown as KeyValueMapValues<TKVMap>);
 }
 
 

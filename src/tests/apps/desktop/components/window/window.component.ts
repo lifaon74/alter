@@ -4,12 +4,15 @@ import { Style } from '../../../../../core/style/implementation';
 import { IComponent } from '../../../../../core/component/component/interfaces';
 import { OnCreate, OnDestroy, OnInit } from '../../../../../core/component/component/implements';
 import { IComponentContext } from '../../../../../core/component/component/context/interfaces';
-import { Activable, CancellableContext, ICancellableContext } from '@lifaon/observables';
+import {
+  Activable, CancellableContext, IActivable, ICancellableContext, IObserver, ISource, Observer, Source
+} from '@lifaon/observables';
 import { IDragObject } from '../../../../../misc/drag-observable/types';
 import { DragObservable } from '../../../../../misc/drag-observable/implementation';
 import { DESKTOP_TEMPLATE_BUILD_OPTIONS } from '../template-build-options';
 import { translateService } from '../../../../../side/localization/translate/implementation';
-import { Input } from '../../../../../core/component/input/decorator';
+import { Output, TOutput } from '../../../../../core/component/ouput/decorator';
+import { Input, TInput } from '../../../../../core/component/input/decorator';
 
 /***
  * TODO:
@@ -76,81 +79,119 @@ function IsFiniteNumberOrThrow(value: number): void {
 
 /*---------------------*/
 
-function AppWindowComponentRegisterResize(instance: AppWindowComponent, horizontalPosition: 'left' | 'center' | 'right', verticalPosition: 'top' | 'center' | 'bottom'): void {
-  (instance as any)._cancellableContext.registerActivable(`${ verticalPosition }.${ horizontalPosition }-resize-listener`, () => {
-    let elementPositionX: number;
-    let elementPositionY: number;
+function AppWindowComponentCreateResizeActivable(
+  instance: AppWindowComponent,
+  horizontalPosition: 'left' | 'center' | 'right',
+  verticalPosition: 'top' | 'center' | 'bottom'
+): IActivable {
+  let elementPositionX: number;
+  let elementPositionY: number;
 
-    const dragObservable = new DragObservable(QuerySelectorOrThrow<HTMLDivElement>(instance, `:scope > .resize.${ verticalPosition }.${ horizontalPosition }`))
-      .on('drag-start', () => {
-        elementPositionX = (horizontalPosition === 'left')
-          ? instance.left
-          : (
-            (horizontalPosition === 'center')
-              ? 0
-              : instance.right
-          );
-        elementPositionY = (verticalPosition === 'top')
-          ? instance.top
-          : (
-            (verticalPosition === 'center')
-              ? 0
-              : instance.bottom
-          );
-      })
-      .on('drag-move', (drag: IDragObject) => {
-        const container: HTMLElement = instance.container;
-        const ratioX: number = (drag.delta.x / container.offsetWidth);
-        const ratioY: number = (drag.delta.y / container.offsetHeight);
+  const dragObservable = new DragObservable(QuerySelectorOrThrow<HTMLDivElement>(instance, `:scope > .resize.${ verticalPosition }.${ horizontalPosition }`));
 
-        if (horizontalPosition === 'left') {
-          instance.setLeft(ratioX + elementPositionX, false);
-        } else if (horizontalPosition === 'right') {
-          instance.setRight(-ratioX + elementPositionX, false);
-        }
+  const dragStartObserver = dragObservable
+    .addListener('drag-start', () => {
+      elementPositionX = (horizontalPosition === 'left')
+        ? instance.left
+        : (
+          (horizontalPosition === 'center')
+            ? 0
+            : instance.right
+        );
+      elementPositionY = (verticalPosition === 'top')
+        ? instance.top
+        : (
+          (verticalPosition === 'center')
+            ? 0
+            : instance.bottom
+        );
+    });
 
-        if (verticalPosition === 'top') {
-          instance.setTop(ratioY + elementPositionY, false);
-        } else if (verticalPosition === 'bottom') {
-          instance.setBottom(-ratioY + elementPositionY, false);
-        }
-      });
+  const dragMoveObserver = dragObservable
+    .addListener('drag-move', (drag: IDragObject) => {
+      const container: HTMLElement = instance.container;
+      const ratioX: number = (drag.delta.x / container.offsetWidth);
+      const ratioY: number = (drag.delta.y / container.offsetHeight);
 
-    return new Activable({
-      activate(): PromiseLike<void> | void {
-      },
-      deactivate(): PromiseLike<void> | void {
-        dragObservable.clearObservers();
+      if (horizontalPosition === 'left') {
+        instance.setLeft(ratioX + elementPositionX, false);
+      } else if (horizontalPosition === 'right') {
+        instance.setRight(-ratioX + elementPositionX, false);
+      }
+
+      if (verticalPosition === 'top') {
+        instance.setTop(ratioY + elementPositionY, false);
+      } else if (verticalPosition === 'bottom') {
+        instance.setBottom(-ratioY + elementPositionY, false);
       }
     });
+
+  return new Activable({
+    activate(): PromiseLike<void> | void {
+      dragStartObserver.activate();
+      dragMoveObserver.activate();
+    },
+    deactivate(): PromiseLike<void> | void {
+      dragStartObserver.deactivate();
+      dragMoveObserver.deactivate();
+    }
   });
 }
 
-function AppWindowComponentRegisterMove(instance: AppWindowComponent): void {
-  (instance as any)._cancellableContext.registerActivable(`window-move-listener`, () => {
-    let elementPositionX: number;
-    let elementPositionY: number;
+function AppWindowComponentCreateAllResizeActivable(instance: AppWindowComponent) {
+  const activables: IActivable [] = [
+    AppWindowComponentCreateResizeActivable(instance, 'left', 'top'),
+    AppWindowComponentCreateResizeActivable(instance, 'left', 'center'),
+    AppWindowComponentCreateResizeActivable(instance, 'left', 'bottom'),
 
-    const dragObservable = new DragObservable(QuerySelectorOrThrow<HTMLDivElement>(instance, ':scope > .frame > .header'))
-      .on('drag-start', () => {
-        elementPositionX = instance.left;
-        elementPositionY = instance.top;
-      })
-      .on('drag-move', (drag: IDragObject) => {
-        const container: HTMLElement = instance.container;
-        const ratioX: number = (drag.delta.x / container.offsetWidth);
-        const ratioY: number = (drag.delta.y / container.offsetHeight);
-        instance.setLeftKeepingWidth(ratioX + elementPositionX);
-        instance.setTopKeepingHeight(ratioY + elementPositionY);
-      });
+    AppWindowComponentCreateResizeActivable(instance, 'right', 'top'),
+    AppWindowComponentCreateResizeActivable(instance, 'right', 'center'),
+    AppWindowComponentCreateResizeActivable(instance, 'right', 'bottom'),
 
-    return new Activable({
-      activate(): PromiseLike<void> | void {
-      },
-      deactivate(): PromiseLike<void> | void {
-        dragObservable.clearObservers();
-      }
+    AppWindowComponentCreateResizeActivable(instance, 'center', 'top'),
+    AppWindowComponentCreateResizeActivable(instance, 'center', 'bottom'),
+  ];
+
+  return new Activable({
+    activate(): PromiseLike<void> | void {
+      return Promise.all(activables.map((activable: IActivable) => activable.activate())).then(() => {});
+    },
+    deactivate(): PromiseLike<void> | void {
+      return Promise.all(activables.map((activable: IActivable) => activable.deactivate())).then(() => {});
+    }
+  });
+}
+
+function AppWindowComponentCreateMoveActivable(instance: AppWindowComponent): IActivable {
+  let elementPositionX: number;
+  let elementPositionY: number;
+
+  const dragObservable = new DragObservable(QuerySelectorOrThrow<HTMLDivElement>(instance, ':scope > .frame > .header'));
+
+  const dragStartObserver = dragObservable
+    .addListener('drag-start', () => {
+      elementPositionX = instance.left;
+      elementPositionY = instance.top;
     });
+
+  const dragMoveObserver = dragObservable
+    .addListener('drag-move', (drag: IDragObject) => {
+      const container: HTMLElement = instance.container;
+      const ratioX: number = (drag.delta.x / container.offsetWidth);
+      const ratioY: number = (drag.delta.y / container.offsetHeight);
+      instance.setLeftKeepingWidth(ratioX + elementPositionX);
+      instance.setTopKeepingHeight(ratioY + elementPositionY);
+    });
+
+  return new Activable({
+    activate(): PromiseLike<void> | void {
+      dragStartObserver.activate();
+      dragMoveObserver.activate();
+    },
+    deactivate(): PromiseLike<void> | void {
+      dragStartObserver.deactivate();
+      dragMoveObserver.deactivate();
+    }
   });
 }
 
@@ -192,6 +233,11 @@ export function AppWindowComponentSetPosition(
 
 export interface IData {
   // percent: ISource<string>;
+  isMaximized: ISource<boolean>;
+  enableMaximize: ISource<boolean>;
+  onClickMaximizeButton: IObserver<MouseEvent>;
+  onClickReduceButton: IObserver<MouseEvent>;
+  onClickCloseButton: IObserver<MouseEvent>;
 }
 
 export interface IWindowTheme {
@@ -204,7 +250,6 @@ export interface IWindowTheme {
 }
 
 
-
 @Component({
   name: 'app-desktop-window',
   // @ts-ignore
@@ -214,10 +259,13 @@ export interface IWindowTheme {
 })
 export class AppWindowComponent extends HTMLElement implements IComponent<IData>, OnCreate<IData>, OnInit, OnDestroy {
 
-  @Input()
-  set theme(value: IWindowTheme) {
+  @Input((value: IWindowTheme, instance: AppWindowComponent) => {
     console.log('new theme', value);
-  }
+  })
+  theme: TInput<IWindowTheme>;
+
+  @Output()
+  emitMaximize: TOutput<void>;
 
   protected _cancellableContext: ICancellableContext;
   protected _top: number;
@@ -226,6 +274,8 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
   protected _right: number;
 
   protected context: IComponentContext<IData>;
+  protected _allResizeActivable: IActivable;
+  protected _moveActivable: IActivable;
 
   constructor() {
     super();
@@ -242,7 +292,7 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     this.setBottom(0.1, false);
 
     translateService.setTranslations('en', {
-      "window-header-button-minimize": "Minimize",
+      'window-header-button-minimize': 'Minimize',
     });
 
     translateService.setLocale('en');
@@ -294,21 +344,24 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
   }
 
 
-
   setLeft(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'left', value, force);
+    this.refreshIsMaximized();
   }
 
   setRight(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'right', value, force);
+    this.refreshIsMaximized();
   }
 
   setTop(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'top', value, force);
+    this.refreshIsMaximized();
   }
 
   setBottom(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'bottom', value, force);
+    this.refreshIsMaximized();
   }
 
 
@@ -353,41 +406,45 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     this.setHeightFromBottom(height);
   }
 
-  maximize(): void {
-    this.setLeft(0, true);
-    this.setTop(0, true);
-    this.setRight(0, false);
-    this.setBottom(0, false);
-  }
 
+  uniformResize(position: number = 0): void {
+    this.setLeft(position, true);
+    this.setTop(position, true);
+    this.setRight(position, false);
+    this.setBottom(position, false);
+  }
 
   onCreate(context: IComponentContext<IData>): void {
     this.context = context;
     this.context.data = {
+      isMaximized: new Source<boolean>().emit(this.isMaximized),
+      enableMaximize: new Source<boolean>().emit(false),
+      onClickMaximizeButton: new Observer<MouseEvent>(() => {
+        this.uniformResize(0);
+      }).activate(),
+      onClickReduceButton: new Observer<MouseEvent>(() => {
+        this.uniformResize(0.2);
+      }).activate(),
+      onClickCloseButton: new Observer<MouseEvent>(() => {
+        console.log('close');
+      }).activate(),
       // percent: new Source<string>()
     };
   }
 
   onInit(): void {
-    AppWindowComponentRegisterResize(this, 'left', 'top');
-    AppWindowComponentRegisterResize(this, 'left', 'center');
-    AppWindowComponentRegisterResize(this, 'left', 'bottom');
-
-    AppWindowComponentRegisterResize(this, 'right', 'top');
-    AppWindowComponentRegisterResize(this, 'right', 'center');
-    AppWindowComponentRegisterResize(this, 'right', 'bottom');
-
-    AppWindowComponentRegisterResize(this, 'center', 'top');
-    AppWindowComponentRegisterResize(this, 'center', 'bottom');
-
-    AppWindowComponentRegisterMove(this);
+    this._allResizeActivable = AppWindowComponentCreateAllResizeActivable(this);
+    this._moveActivable = AppWindowComponentCreateMoveActivable(this);
   }
 
   onDestroy(): void {
     this._cancellableContext.clearAll('destroyed');
   }
 
-  protected normalizePosition() {
 
+  protected refreshIsMaximized(): void {
+    if (this.context) {
+      this.context.data.isMaximized.emit(this.isMaximized);
+    }
   }
 }

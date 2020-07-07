@@ -1,65 +1,63 @@
-import { IObserver, IsObservable } from '@lifaon/observables';
+import { IObservable, IObserver, IsObservable } from '@lifaon/observables';
 import { MustExtendHTMLElement } from '../helpers/MustExtendHTMLElement';
+
+export type TInput<T> = T;
+export type TInputSet<T> = T | IObservable<T>;
 
 export interface IInputDecorationOption {
 
 }
 
+export type TInputCallback<T> = (value: T, instance: any) => void
+
 /**
- * Input()
- * set => if value is an Observable, starts observing it and getter will return last emitted value
- *  - setter will be called when Observable emits a value
- * get => if getter is defined, calls the getter, else returns last emitted value
+ * 'set' =>
+ *  - if value is an Observable, subscribes to it and emits the values into 'onEmit',
+ *  - else (value not an Observable), calls 'onEmit' with the value.
+ * 'get' => returns the last emitted value
  */
-export function Input<T>(options?: IInputDecorationOption): PropertyDecorator {
+export function Input<T>(onEmit: TInputCallback<T>, options?: IInputDecorationOption): PropertyDecorator {
   return (
     target: Object,
     propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<T> | undefined = Object.getOwnPropertyDescriptor(target, propertyKey)
-  ): void | TypedPropertyDescriptor<T> => {
+    descriptor: TypedPropertyDescriptor<TInput<T>> | undefined = Object.getOwnPropertyDescriptor(target, propertyKey)
+  ): void | TypedPropertyDescriptor<TInput<T>> => {
 
     MustExtendHTMLElement(target);
 
-    if (
-      (descriptor === void 0)
-      || (typeof descriptor.set !== 'function')
-    ) {
-      throw new TypeError(`@Input: the property '${ String(propertyKey) }' should be at least a setter.`);
-    }
+    if (descriptor === void 0) {
+      const valueObservers = new WeakMap<any, IObserver<T>>(); // [instance, observer]
+      const values = new WeakMap<any, T>(); // [instance, value]
 
-
-    const valueObservers = new WeakMap<any, IObserver<T>>();
-    const values = new WeakMap<any, T>();
-
-    return {
-      configurable: false,
-      enumerable: descriptor.enumerable,
-      get: (typeof descriptor.get === 'function')
-        ? descriptor.get
-        : function get(this: any): T {
+      return {
+        configurable: false,
+        enumerable: true,
+        get: function get(this: any): TInput<T> {
           return values.get(this) as T;
         },
-      set: function (value: T) {
-        if (valueObservers.has(this)) {
-          (valueObservers.get(this) as IObserver<T>).deactivate();
-          valueObservers.delete(this);
-        }
+        set: function (value: TInputSet<T>) {
+          if (valueObservers.has(this)) {
+            (valueObservers.get(this) as IObserver<T>).deactivate();
+            valueObservers.delete(this);
+          }
 
-        // const set: (v: any) => void = descriptor.set as (v: any) => void;
-        const set = (value: T) => {
-          values.set(this, value);
-          (descriptor.set as (v: T) => void).call(this, value);
-        };
+          const set = (value: T) => {
+            values.set(this, value);
+            onEmit.call(this, value, this);
+          };
 
-        if (IsObservable(value)) {
-          const observer = value.pipeTo(set);
-          valueObservers.set(this, observer);
-          observer.activate();
-        } else {
-          set(value);
+          if (IsObservable<T>(value)) {
+            const observer = value.pipeTo(set);
+            valueObservers.set(this, observer);
+            observer.activate();
+          } else {
+            set(value as T);
+          }
         }
-      }
-    };
+      };
+    } else {
+      throw new TypeError(`@Input: the property '${ String(propertyKey) }' should not be a getter, nor setter.`);
+    }
   };
 }
 

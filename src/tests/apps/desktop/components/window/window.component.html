@@ -13,17 +13,31 @@
 
 
 
-
 <div class="frame">
   <div class="header">
     <div class="tabs">
 
     </div>
     <div class="window-buttons">
-      <div class="minimize-button" [title]="$translate('window-header-button-minimize')"></div>
-      <div class="maximize-button"></div>
-      <div class="reduce-button"></div>
-      <div class="close-button"></div>
+      <div
+          class="minimize-button"
+          [title]="$translate('window-header-button-minimize')"
+      ></div>
+      <div
+          class="maximize-button"
+          *if="$not(data.isMaximized)"
+          (click)="data.onClickMaximizeButton"
+      ></div>
+      <div
+
+          class="reduce-button"
+          *if="data.isMaximized"
+          (click)="data.onClickReduceButton"
+      ></div>
+      <div
+          class="close-button"
+          (click)="data.onClickCloseButton"
+      ></div>
     </div>
   </div>
 

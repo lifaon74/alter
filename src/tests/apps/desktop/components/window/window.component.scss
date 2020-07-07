@@ -9,6 +9,13 @@ $window-buttons-background-color-hover: lighten($window-buttons-background-color
 $window-buttons-close-background-color-hover: red;
 $window-buttons-icon-size: 25%;
 
+@mixin has-nth-children($count, $selector: '*') {
+  & > #{$selector}:first-child:nth-last-child(#{$count}),
+  & > #{$selector}:first-child:nth-last-child(#{$count}) ~ #{$selector} {
+    @content;
+  }
+}
+
 :host {
   display: block;
   position: absolute;
@@ -130,14 +137,20 @@ $window-buttons-icon-size: 25%;
         right: 0;
         width: $window-buttons-width;
         font-size: 0;
-        white-space: nowrap;
-        text-align: right;
+        //white-space: nowrap;
+        //text-align: right;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: stretch;
+        align-content: stretch;
 
         & > * {
-          display: inline-block;
           position: relative;
+          align-self: stretch;
+          flex-grow: 1;
           height: 100%;
-          width: (100% / 3);
           background-color: $window-buttons-background-color;
           cursor: default;
           transition: background-color $window-animation-duration;
@@ -167,7 +180,60 @@ $window-buttons-icon-size: 25%;
             position: absolute;
             left: (100% - $window-buttons-icon-size) / 2;
             top: (100% - $window-buttons-icon-size) / 2;
+            //background-color: $window-buttons-color;
+            border: 1px solid $window-buttons-color;
+          }
+        }
+
+        & > .reduce-button {
+          $offset-x: 2px;
+          $offset-y: 2px;
+
+          &::before,
+          &::after {
+            content: '';
+            width: $window-buttons-icon-size;
+            height: $window-buttons-icon-size;
+            position: absolute;
+            left: (100% - $window-buttons-icon-size) / 2;
+            top: (100% - $window-buttons-icon-size) / 2;
+            //background-color: $window-buttons-color;
+            border: 1px solid $window-buttons-color;
+          }
+
+          &::before {
+            transform: translate($offset-x, -$offset-y);
+            border-bottom-color: transparent;
+            border-left-color: transparent;
+          }
+
+          &::after {
+            transform: translate(-$offset-x, $offset-y);
+          }
+        }
+
+        & > .close-button {
+          &::before,
+          &::after {
+            content: '';
+            width: $window-buttons-icon-size;
+            height: 1px;
+            position: absolute;
+            left: (100% - $window-buttons-icon-size) / 2;
+            top: 50%;
             background-color: $window-buttons-color;
+          }
+
+          &::before {
+            transform: rotate(45deg);
+          }
+
+          &::after {
+            transform: rotate(-45deg);
+          }
+
+          &:hover {
+            background-color: $window-buttons-close-background-color-hover;
           }
         }
       }

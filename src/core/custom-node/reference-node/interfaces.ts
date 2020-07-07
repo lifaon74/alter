@@ -34,7 +34,7 @@ export interface ICommentReferenceNodeConstructor extends IReferenceNodeConstruc
   new(node: Node, name?: string): ICommentReferenceNode;
 }
 
-export interface ICommentReferenceNode extends IReferenceNode, Comment {
+export interface ICommentReferenceNode extends Omit<IReferenceNode, keyof Node>, Comment {
 }
 
 
@@ -42,6 +42,6 @@ export interface ITextReferenceNodeConstructor extends IReferenceNodeConstructor
   new(node: Node): ITextReferenceNode;
 }
 
-export interface ITextReferenceNode extends IReferenceNode, Text {
+export interface ITextReferenceNode extends Omit<IReferenceNode, keyof Node>, Text {
 }
 
