@@ -1,4 +1,4 @@
-import { Constructor } from '../../../../classes/factory';
+import { Constructor } from '@lifaon/class-factory';
 import { ICustomElementOptions, RegisterCustomElement } from '../functions';
 
 /**

@@ -1,11 +1,13 @@
-import { dateFormatService} from './implementation';
 import { $source, IObservable, mapPipe, TimerObservable } from '@lifaon/observables';
 import { DateTimeFormatOptions } from './interfaces';
 import { $date } from './pipes';
 import { datePredefined } from './functions';
+import { LoadService } from '../../../core/services/services-loader';
+import { DateFormatService } from './implementation';
 
 export async function debugDateFormatPipe() {
 
+  const dateFormatService = LoadService(DateFormatService);
   dateFormatService.setLocale('fr');
 
   const date = new TimerObservable(1000)

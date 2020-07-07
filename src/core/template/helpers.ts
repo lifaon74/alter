@@ -1,4 +1,6 @@
-import { ITemplateBuildOptions, INormalizedTemplateBuildOptions, TTemplateRequireFunction } from './interfaces';
+import {
+  ITemplateBuildOptions, INormalizedTemplateBuildOptions, TTemplateRequireFunction, TTemplateRequireFunctionMap
+} from './interfaces';
 import { DEFAULT_PARSERS } from './generators/default';
 import {
   $add, $and, $divide, $equal, $expression, $max, $min, $multiply, $not, $notEqual, $observable, $observer, $or, $scope,
@@ -68,6 +70,19 @@ import { IsObject } from '../../misc/helpers/is/IsObject';
 // ]);
 
 
+export function CreateTemplateRequireFunctionFromMap(map: TTemplateRequireFunctionMap): TTemplateRequireFunction {
+  return (name: string): Promise<any> => {
+    return new Promise<any>((resolve: any, reject: any) => {
+      if (map.has(name)) {
+        resolve((map.get(name) as () => TNativePromiseLikeOrValue<any>)());
+      } else {
+        reject(new Error(`Missing constant '${ name }'`));
+      }
+    });
+  };
+}
+
+
 const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TNativePromiseLikeOrValue<any>>([
   ['NotificationsObserver', () => NotificationsObserver],
 
@@ -109,15 +124,7 @@ const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TNativePromiseLikeOrVa
   ['$string', () => $string],
 ]);
 
-const DEFAULT_REQUIRE: TTemplateRequireFunction = (name: string): Promise<any> => {
-  return new Promise<any>((resolve: any, reject: any) => {
-    if (DEFAULT_CONSTANTS_TO_IMPORT.has(name)) {
-      resolve((DEFAULT_CONSTANTS_TO_IMPORT.get(name) as () => TNativePromiseLikeOrValue<any>)());
-    } else {
-      reject(new Error(`Missing constant '${ name }'`));
-    }
-  });
-};
+const DEFAULT_REQUIRE: TTemplateRequireFunction = CreateTemplateRequireFunctionFromMap(DEFAULT_CONSTANTS_TO_IMPORT);
 
 export function NormalizeTemplateBuildOptions(options: ITemplateBuildOptions = {}): INormalizedTemplateBuildOptions {
   const _options: INormalizedTemplateBuildOptions = {} as INormalizedTemplateBuildOptions;

@@ -20,7 +20,7 @@ import { debugNavigation } from './debug/debug-router/debug-navigation';
 export async function test() {
   // await testCustomNode();
   // await debugParser();
-  // await debugDynamicCssRule();
+  await debugDynamicCssRule();
   // await debugComponents();
   // await debugDateFormatPipe();
   // await debugNumberFormatPipe();
@@ -28,7 +28,7 @@ export async function test() {
   // await debugTranslatePipe();
   // await debugDataProxy();
   // await debugDataProxy2();
-  await runApps();
+  // await runApps();
   // await debugRoute();
   // await experimentClassBuilder();
   // await experimentClass();

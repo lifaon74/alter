@@ -1,6 +1,6 @@
-import { Constructor } from '../../../../classes/factory';
 import { IComponentOptions } from '../types';
 import { ComponentFactory } from './implementation';
+import { Constructor } from '@lifaon/class-factory';
 
 
 /**

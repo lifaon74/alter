@@ -3,7 +3,6 @@ import { INotificationsObservableContext, TNativePromiseLikeOrValue } from '@lif
 import { ITemplate } from '../../template/interfaces';
 import { FreezeComponentContext } from './context/functions';
 import { COMPONENT_PRIVATE, IComponentInternal, IComponentPrivate } from './privates';
-import { Constructor } from '../../../classes/factory';
 import { IHostBinding } from '../host-binding/interfaces';
 import { DOMState, GetNodeDOMState } from '../../custom-node/node-state-observable/mutations';
 import { NodeStateObservable } from '../../custom-node/node-state-observable/implementation';
@@ -12,6 +11,7 @@ import { COMPONENT_CONTEXT_PRIVATE, IComponentContextInternal } from './context/
 import { IStyle } from '../../style/interfaces';
 import { IComponentOptions } from './types';
 import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from './class/privates';
+import { Constructor } from '@lifaon/class-factory';
 
 /** FUNCTIONS **/
 

@@ -278,6 +278,6 @@ export class TranslateService extends LocalizationService<ITranslateServiceKeyVa
 }
 
 
-export const translateService: ITranslateService = new TranslateService();
+// export const translateService: ITranslateService = new TranslateService();
 
 

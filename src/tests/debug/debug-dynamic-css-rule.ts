@@ -3,57 +3,20 @@ import {
   IDOMChangeObservable,
   IObservable, IObservableContext, IObserver, IReadonlyList, Observable, Observer, ReadonlyList
 } from '@lifaon/observables';
-import { difference, intersection, isSameSet } from '../../misc/helpers/set-operations';
+import { isSameSet } from '../../misc/helpers/set-operations';
+import { Style } from '../../core/style/implementation';
+import { ISetChange } from '../../misc/set-change/interfaces';
+import { SetChange } from '../../misc/set-change/implementation';
 
 // TODO function able ton convert a css selector with special rules into a valid css selector
 
 /** EXPERIMENTAL **/
 
-export interface ICSSRuleSelectorTargetObservableValue<TElement extends Element> {
-  readonly previous: IReadonlyList<TElement>;
-  readonly current: IReadonlyList<TElement>;
-  readonly added: IReadonlyList<TElement>;
-  readonly removed: IReadonlyList<TElement>;
-  readonly common: IReadonlyList<TElement>;
+export interface ICSSRuleSelectorTargetObservableValue<TElement extends Element> extends ISetChange<TElement> {
 }
 
 
-export class CSSRuleSelectorTargetObservableValue<TElement extends Element> implements ICSSRuleSelectorTargetObservableValue<TElement> {
-  readonly previous: IReadonlyList<TElement>;
-  readonly current: IReadonlyList<TElement>;
-
-  private _added: IReadonlyList<TElement>;
-  private _removed: IReadonlyList<TElement>;
-  private _common: IReadonlyList<TElement>;
-
-  constructor(
-    previous: Iterable<TElement>,
-    current: Iterable<TElement>,
-  ) {
-    this.previous = new ReadonlyList(previous);
-    this.current = new ReadonlyList(current);
-  }
-
-  get added(): IReadonlyList<TElement> {
-    if (this._added === void 0) {
-      this._added = new ReadonlyList(difference(this.current, this.previous));
-    }
-    return this._added;
-  }
-
-  get removed(): IReadonlyList<TElement> {
-    if (this._removed === void 0) {
-      this._removed = new ReadonlyList(difference(this.previous, this.current));
-    }
-    return this._removed;
-  }
-
-  get common(): IReadonlyList<TElement> {
-    if (this._common === void 0) {
-      this._common = new ReadonlyList(intersection(this.previous, this.current));
-    }
-    return this._common;
-  }
+export class CSSRuleSelectorTargetObservableValue<TElement extends Element> extends SetChange<TElement> implements ICSSRuleSelectorTargetObservableValue<TElement> {
 }
 
 /*---*/
@@ -186,44 +149,52 @@ export function debugDynamicCssRule(): void {
    *  => should support dynamic variables with observables and dynamic rule activation
    */
 
+  // const css: string = `
+  //   input[--element], div[--element='[{"minWidth": [2]}]'], a[--element='{"maxWidth": 300}'] {
+  //     width: 100px;
+  //     height: 100px;
+  //     border-color: limegreen;
+  //   }
+  //
+  //   body-1 {
+  //     color: '$expression(() => (node.parentElement.innerWidth + \\'px\\'))'; /* invalid */
+  //     -prop-width: '$expression(() => (node.parentElement.innerWidth + \\'px\\'))'; /* invalid */
+  //   }
+  //
+  //
+  //   body-2 {
+  //     --color-red: red; /* valid */
+  //     background-color: var(--color-red); /* valid */
+  //   }
+  //
+  //   body {
+  //     --color-red: js(123); /* valid */
+  //     background-color: var(--color-red); /* valid */
+  //   }
+  //
+  //   @media (min-width: 100px) {
+  //     div {
+  //       background-color: red;
+  //     }
+  //   }
+  // `;
+
   const css: string = `
-    input[--element], div[--element='[{"minWidth": [2]}]'], a[--element='{"maxWidth": 300}'] {
-      width: 100px;
-      height: 100px;
-      border-color: limegreen;
-    }
-    
-    body-1 {
-      color: '$expression(() => (node.parentElement.innerWidth + \\'px\\'))'; /* invalid */
-      -prop-width: '$expression(() => (node.parentElement.innerWidth + \\'px\\'))'; /* invalid */
-    }
-    
-    
-    body-2 {
-      --color-red: red; /* valid */
+    body, div {
+      // --color-red: js(123); /* valid */
+      --color-red: 'js(parentElement.innerWidth * 2)'; /* valid => problem: the variable is the same for 'body' and 'div' but its value will be different per element */ 
       background-color: var(--color-red); /* valid */
-    }
-    
-    body {
-      --color-red: js(123); /* valid */
-      background-color: var(--color-red); /* valid */
-    }
-    
-    @media (min-width: 100px) {
-      div {
-        background-color: red;
-      }
     }
   `;
 
-  // const style = Style.fromString(css);
-  // style.insert(document.body);
+  const style = Style.fromString(css);
+  style.insert(document.body);
 
-  // new CSSRuleSelectorTargetObservable<HTMLElement>('.my-class')
-  //   .pipeTo((value: ICSSRuleSelectorTargetObservableValue<HTMLElement>) => {
-  //     console.log('change', Array.from(value.added), Array.from(value.removed));
-  //   })
-  //   .activate();
+  new CSSRuleSelectorTargetObservable<HTMLElement>('.my-class')
+    .pipeTo((value: ICSSRuleSelectorTargetObservableValue<HTMLElement>) => {
+      console.log('change', Array.from(value.added), Array.from(value.removed));
+    })
+    .activate();
 
   // setInterval(() => {
   //   document.body.classList.toggle('my-class');

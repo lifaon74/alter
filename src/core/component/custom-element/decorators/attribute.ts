@@ -1,9 +1,9 @@
 import {
   GetElementAttribute, SetElementAttribute, TElementAttributeType
 } from '../../../custom-node/helpers/NodeHelpers';
-import { Constructor } from '../../../../classes/factory';
 import { GetCustomElementObservedAttributes } from '../functions';
 import { CamelCaseToDashCase, IsCamelCase } from '../../../../misc/helpers/case-converter/camel-case';
+import { Constructor } from '@lifaon/class-factory';
 
 
 export interface IAttributeOptions {

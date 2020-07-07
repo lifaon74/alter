@@ -44,3 +44,10 @@ export function CSSStyleSheetToCSSString(sheet: CSSStyleSheet): string {
   }
   return css;
 }
+
+/**
+ * Reflect a CSSStyleSheet's content into its <style> element
+ */
+export function ReflectCSSStyleSheetOnOwnStyleElement(sheet: CSSStyleSheet): void {
+  UpdateStyleElement(sheet.ownerNode as HTMLStyleElement, CSSStyleSheetToCSSString(sheet));
+}

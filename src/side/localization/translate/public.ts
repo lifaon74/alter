@@ -1,3 +1,3 @@
 export * from './interfaces';
-export { translateService } from './implementation';
+export { TranslateService } from './implementation';
 export { $translate } from './pipes';

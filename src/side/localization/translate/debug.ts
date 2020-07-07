@@ -1,9 +1,11 @@
-import { translateService } from './implementation';
 import { ITranslateParams } from './interfaces';
 import { $translate } from './pipes';
 import { $source } from '@lifaon/observables';
+import { LoadService } from '../../../core/services/services-loader';
+import { TranslateService } from './implementation';
 
 export async function debugTranslateService() {
+  const translateService = LoadService(TranslateService);
   await translateService.setTranslations('fr', {
     a: 'a {{ a }} b'
   });
@@ -17,6 +19,7 @@ export async function debugTranslateService() {
 
 
 export async function debugTranslatePipe() {
+  const translateService = LoadService(TranslateService);
   await translateService.setTranslations('en', {
     name: 'My name: {{ name }}',
     welcome: 'Welcome',

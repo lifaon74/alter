@@ -21,10 +21,11 @@ export type TTemplateDataType = { [key: string]: any };
 export type TTemplateFunction = (data: TTemplateDataType) => Promise<DocumentFragment>;
 export type TTemplateRequireFunction = (name: string) => TNativePromiseLikeOrValue<any>;
 export type TTemplateRawFunction = (require: TTemplateRequireFunction) => Promise<DocumentFragment>;
+export type TTemplateRequireFunctionMap = Map<string, () => TNativePromiseLikeOrValue<any>>;
 
 /** INTERFACES **/
 
-export interface ITemplateConstructor {
+export interface ITemplateStatic {
   fromString(
     template: string,
     options: INormalizedTemplateBuildOptions,
@@ -40,7 +41,9 @@ export interface ITemplateConstructor {
     path: string,
     options: INormalizedTemplateBuildOptions,
   ): Promise<ITemplate>;
+}
 
+export interface ITemplateConstructor extends ITemplateStatic {
   new(generate: TTemplateFunction): ITemplate;
 }
 

@@ -1,5 +1,5 @@
 import { IHostBinding } from './interfaces';
-import { Constructor } from '../../../classes/factory';
+import { Constructor } from '@lifaon/class-factory';
 import {
   DeferredPromise, Expression, IDeferredPromise, IExpression, IObserver, IsObservable, IsObserver, ISource, Observer,
   Source

@@ -1,14 +1,16 @@
-import { IStyle, TStyleFunction } from './interfaces';
+import { IStyle, IStyleBuildOptions, TStyleFunction } from './interfaces';
 import { INodeStateObservable } from '../custom-node/node-state-observable/interfaces';
 import { uuid } from '../../misc/helpers/uuid';
-import { ActivateStyleElement, CreateStyleElement, DeactivateStyleElement } from './functions';
+import {
+  ActivateStyleElement, CreateStyleElement, DeactivateStyleElement, ReflectCSSStyleSheetOnOwnStyleElement
+} from './functions';
 import { RelativeURLPath } from '../../misc/helpers/RelativeURLPath';
 import { NodeStateObservable } from '../custom-node/node-state-observable/implementation';
 
 
 /** FUNCTIONS **/
 
-export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): IStyle {
+export function StyleElementToStyleInstance(styleElement: HTMLStyleElement, options: IStyleBuildOptions = {}): IStyle {
   const key: string = uuid();
   styleElement.setAttribute('style-sheet-' + key, '');
   DeactivateStyleElement(styleElement);
@@ -20,6 +22,8 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
     const rule: CSSRule = sheet.cssRules[i];
     switch (rule.type) {
       case CSSRule.STYLE_RULE:
+        // console.log(rule);
+        // debugger;
         (rule as CSSStyleRule).selectorText = (rule as CSSStyleRule).selectorText
           .replace(/:host/g, `[${id}]`)
         ;
@@ -27,6 +31,10 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
       case CSSRule.SUPPORTS_RULE:
         break;
     }
+  }
+
+  if (options.displayRealStyle) {
+    ReflectCSSStyleSheetOnOwnStyleElement(sheet);
   }
 
   let countUsage: number = 0;
@@ -100,11 +108,11 @@ export function StyleElementToStyleInstance(styleElement: HTMLStyleElement): ISt
 
 /* STATIC */
 
-export function StyleStringToStyleInstance(css: string): IStyle {
-  return StyleElementToStyleInstance(CreateStyleElement(css, true));
+export function StyleStringToStyleInstance(css: string, options?: IStyleBuildOptions): IStyle {
+  return StyleElementToStyleInstance(CreateStyleElement(css, true), options);
 }
 
-export function StyleURLToStyleInstance(url: string): Promise<IStyle> {
+export function StyleURLToStyleInstance(url: string, options?: IStyleBuildOptions): Promise<IStyle> {
   return fetch(url)
     .then((response: Response) => {
       if (response.ok) {
@@ -113,11 +121,13 @@ export function StyleURLToStyleInstance(url: string): Promise<IStyle> {
         throw new Error(`Failed to fetch style at '${url}'`);
       }
     })
-    .then(StyleStringToStyleInstance);
+    .then((css: string) => {
+      return StyleStringToStyleInstance(css, options);
+    });
 }
 
-export function StyleRelativeURLToStyleInstance(moduleURL: string, url: string): Promise<IStyle> {
-  return StyleURLToStyleInstance(RelativeURLPath(moduleURL, url).href);
+export function StyleRelativeURLToStyleInstance(moduleURL: string, url: string, options?: IStyleBuildOptions): Promise<IStyle> {
+  return StyleURLToStyleInstance(RelativeURLPath(moduleURL, url).href, options);
 }
 
 
@@ -125,16 +135,16 @@ export function StyleRelativeURLToStyleInstance(moduleURL: string, url: string):
 
 export class Style implements IStyle {
 
-  static fromString(css: string): IStyle {
-    return StyleStringToStyleInstance(css);
+  static fromString(css: string, options?: IStyleBuildOptions): IStyle {
+    return StyleStringToStyleInstance(css, options);
   }
 
-  static fromURL(url: string): Promise<IStyle> {
-    return StyleURLToStyleInstance(url);
+  static fromURL(url: string, options?: IStyleBuildOptions): Promise<IStyle> {
+    return StyleURLToStyleInstance(url, options);
   }
 
-  static fromRelativeURL(moduleURL: string, url: string): Promise<IStyle> {
-    return StyleRelativeURLToStyleInstance(moduleURL, url);
+  static fromRelativeURL(moduleURL: string, url: string, options?: IStyleBuildOptions): Promise<IStyle> {
+    return StyleRelativeURLToStyleInstance(moduleURL, url, options);
   }
 
   public readonly insert: TStyleFunction;

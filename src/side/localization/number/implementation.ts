@@ -35,6 +35,6 @@ export class NumberFormatService extends LocalizationService<INumberFormatServic
 }
 
 
-export const numberFormatService: INumberFormatService = new NumberFormatService();
+// export const numberFormatService: INumberFormatService = new NumberFormatService();
 
 

@@ -21,21 +21,24 @@
     <div class="window-buttons">
       <div
           class="minimize-button"
-          [title]="$translate('window-header-button-minimize')"
+          [title]="$translate('window.header.button.minimize')"
       ></div>
       <div
           class="maximize-button"
           *if="$not(data.isMaximized)"
+          [title]="$translate('window.header.button.maximize')"
           (click)="data.onClickMaximizeButton"
       ></div>
       <div
 
           class="reduce-button"
           *if="data.isMaximized"
+          [title]="$translate('window.header.button.reduce')"
           (click)="data.onClickReduceButton"
       ></div>
       <div
           class="close-button"
+          [title]="$translate('window.header.button.close')"
           (click)="data.onClickCloseButton"
       ></div>
     </div>

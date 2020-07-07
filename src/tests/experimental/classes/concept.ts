@@ -1,4 +1,4 @@
-import { Constructor } from '../../../classes/factory';
+import { Constructor } from '@lifaon/class-factory';
 import {
   CopyDescriptors, CopyOwnDescriptors, GetPropertyDescriptor, GetPropertyDescriptors, HasOwnProperty, HasProperty
 } from '../../../misc/helpers/object-helpers';

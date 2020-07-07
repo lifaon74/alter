@@ -1,6 +1,6 @@
 import { EnumToString } from '../../../misc/helpers/EnumToString';
 import { uuid } from '../../../misc/helpers/uuid';
-import { Constructor } from '../../../classes/factory';
+import { Constructor } from '@lifaon/class-factory';
 import { TupleToUnion } from '../../../classes/types';
 
 export type HTMLElementConstructor = typeof HTMLElement;

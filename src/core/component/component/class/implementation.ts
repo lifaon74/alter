@@ -1,12 +1,10 @@
-import {
-  Constructor, HasFactoryWaterMark, MakeFactory, TMakeFactoryCreateSuperClass
-} from '../../../../classes/factory';
 import { IComponentOptions } from '../types';
 import { IComponent, IComponentTypedConstructor } from '../interfaces';
 import { IComponentContext } from '../context/interfaces';
 import { ConstructComponent } from '../constructor';
 import { EmitAttributeChangeForComponent, EmitConnectedForComponent, EmitDisconnectedForComponent } from '../functions';
 import { InitComponentConstructor } from './functions';
+import { Constructor, HasFactoryWaterMark, MakeFactory, TMakeFactoryCreateSuperClass } from '@lifaon/class-factory';
 
 /** CONSTRUCTOR **/
 

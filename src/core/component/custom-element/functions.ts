@@ -1,4 +1,4 @@
-import { Constructor } from '../../../classes/factory';
+import { Constructor } from '@lifaon/class-factory';
 import {
   HTML_ELEMENT_CONSTRUCTORS, HTML_ELEMENT_CONSTRUCTORS_TO_TAG_NAMES_MAP, RegisterHTMLElement
 } from '../helpers/elements-list';

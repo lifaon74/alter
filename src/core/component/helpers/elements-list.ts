@@ -1,5 +1,5 @@
-import { Constructor } from '../../../classes/factory';
 import { DestroyNode } from '../../custom-node/node-state-observable/mutations';
+import { Constructor } from '@lifaon/class-factory';
 
 
 /**

@@ -10,9 +10,11 @@ import {
 import { IDragObject } from '../../../../../misc/drag-observable/types';
 import { DragObservable } from '../../../../../misc/drag-observable/implementation';
 import { DESKTOP_TEMPLATE_BUILD_OPTIONS } from '../template-build-options';
-import { translateService } from '../../../../../side/localization/translate/implementation';
 import { Output, TOutput } from '../../../../../core/component/ouput/decorator';
 import { Input, TInput } from '../../../../../core/component/input/decorator';
+import { DESKTOP_STYLE_BUILD_OPTIONS } from '../style-build-options';
+import { LoadService } from '../../../../../core/services/services-loader';
+import { TranslateService } from '../../../../../side/localization/translate/implementation';
 
 /***
  * TODO:
@@ -255,7 +257,7 @@ export interface IWindowTheme {
   // @ts-ignore
   template: Template.fromRelativeURL(import.meta.url, './window.component.html', DESKTOP_TEMPLATE_BUILD_OPTIONS),
   // @ts-ignore
-  style: Style.fromRelativeURL(import.meta.url, './window.component.css')
+  style: Style.fromRelativeURL(import.meta.url, './window.component.css', DESKTOP_STYLE_BUILD_OPTIONS)
 })
 export class AppWindowComponent extends HTMLElement implements IComponent<IData>, OnCreate<IData>, OnInit, OnDestroy {
 
@@ -291,8 +293,13 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     this.setRight(0.1, false);
     this.setBottom(0.1, false);
 
+    const translateService = LoadService(TranslateService);
+
     translateService.setTranslations('en', {
-      'window-header-button-minimize': 'Minimize',
+      'window.header.button.minimize': 'Minimize',
+      'window.header.button.maximize': 'Maximize',
+      'window.header.button.reduce': 'Reduce',
+      'window.header.button.close': 'Close',
     });
 
     translateService.setLocale('en');

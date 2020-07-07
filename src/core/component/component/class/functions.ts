@@ -1,9 +1,9 @@
-import { Constructor } from '../../../../classes/factory';
 import { IComponentOptions } from '../types';
 import { DISABLED_COMPONENT_INIT } from '../constructor';
 import { RegisterCustomElement } from '../../custom-element/functions';
 import { AccessComponentConstructorPrivates, IComponentConstructorPrivate } from './privates';
 import { IsHostBinding } from '../../host-binding/constructor';
+import { Constructor } from '@lifaon/class-factory';
 
 /** FUNCTIONS **/
 

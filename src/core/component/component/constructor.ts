@@ -1,10 +1,10 @@
-import { Constructor } from '../../../classes/factory';
 import { IComponent} from './interfaces';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
 import { COMPONENT_PRIVATE, IComponentInternal, IComponentPrivate } from './privates';
 import { NewObservableContext } from './context/implementation';
 import { InitComponent } from './functions';
 import { IComponentOptions } from './types';
+import { Constructor } from '@lifaon/class-factory';
 
 /** CONSTRUCTOR **/
 

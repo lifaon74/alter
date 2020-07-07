@@ -1,6 +1,6 @@
 import { IHostBinding } from '../../host-binding/interfaces';
-import { Constructor } from '../../../../classes/factory';
 import { ConstructClassWithPrivateMembers } from '../../../../misc/helpers/ClassWithPrivateMembers';
+import { Constructor } from '@lifaon/class-factory';
 
 /** PRIVATES **/
 

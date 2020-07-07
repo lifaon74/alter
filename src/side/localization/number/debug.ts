@@ -1,11 +1,13 @@
 import { $source, mapPipe, TimerObservable } from '@lifaon/observables';
-import { numberFormatService } from './implementation';
 import { NumberFormatOptions } from './interfaces';
 import { $number } from './pipes';
 import { currency } from './functions';
+import { LoadService } from '../../../core/services/services-loader';
+import { NumberFormatService } from './implementation';
 
 
 export async function debugNumberFormatPipe() {
+  const numberFormatService = LoadService(NumberFormatService);
   numberFormatService.setLocale('fr');
 
   const value = new TimerObservable(1000)

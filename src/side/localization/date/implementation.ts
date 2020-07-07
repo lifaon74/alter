@@ -35,6 +35,6 @@ export class DateFormatService extends LocalizationService<IDateFormatServiceKey
 }
 
 
-export const dateFormatService: IDateFormatService = new DateFormatService();
+// export const dateFormatService: IDateFormatService = new DateFormatService();
 
 

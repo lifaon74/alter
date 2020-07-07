@@ -4,7 +4,7 @@ import {
 } from './interfaces';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
-import { Constructor, HasFactoryWaterMark, MakeFactory } from '../../../classes/factory';
+import { Constructor, HasFactoryWaterMark, MakeFactory } from '@lifaon/class-factory';
 import { CommentConstructor, IsNodeConstructor, TextConstructor } from '../helpers/NodeHelpers';
 import { ENVIRONMENT } from '../../../environment';
 
