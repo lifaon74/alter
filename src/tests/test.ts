@@ -14,6 +14,8 @@ import { experimentClass } from './experimental/classes/concept';
 import { debugInfiniteScroller } from './apps/infinite-scroller/test';
 import { debugQueryParamsChange } from './debug/debug-router/debug-query-params-observable';
 import { debugNavigation } from './debug/debug-router/debug-navigation';
+import { testAnimation } from './experimental/animations/animation';
+import { debugColor } from './experimental/animations/color/debug';
 
 
 
@@ -28,11 +30,13 @@ export async function test() {
   // await debugTranslatePipe();
   // await debugDataProxy();
   // await debugDataProxy2();
-  await runApps();
+  // await runApps();
   // await debugRoute();
   // await experimentClassBuilder();
   // await experimentClass();
   // await debugInfiniteScroller();
   // await debugQueryParamsChange();
   // await debugNavigation();
+  await testAnimation();
+  // await debugColor();
 }
