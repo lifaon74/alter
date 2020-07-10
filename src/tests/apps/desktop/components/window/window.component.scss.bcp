@@ -1,26 +1,13 @@
-$window-animation-duration: 1500ms;
+$window-animation-duration: 150ms;
 $window-resize-size: 6px;
 $window-header-height: 30px;
 $window-header-background-color: black;
-$window-buttons-width: 50px;
+$window-buttons-width: 150px;
 $window-buttons-color: white;
 $window-buttons-background-color: black;
 $window-buttons-background-color-hover: lighten($window-buttons-background-color, 20%);
 $window-buttons-close-background-color-hover: red;
-
-$window-buttons-menu-dots-size: 2px;
-$window-buttons-menu-dots-offset: $window-buttons-menu-dots-size * 3;
-$window-buttons-minimize-width: $window-buttons-width / 4;
-$window-buttons-minimize-height: 1px;
-$window-buttons-maximize-width: $window-buttons-minimize-width;
-$window-buttons-maximize-height: $window-buttons-maximize-width * (2 / 3);
-$window-buttons-reduce-width: $window-buttons-maximize-width * (2 / 3);
-$window-buttons-reduce-height: $window-buttons-maximize-height * (2 / 3);
-$window-buttons-reduce-offset-x: 2px;
-$window-buttons-reduce-offset-y: 2px;
-$window-buttons-close-thickness: 1px;
-$window-buttons-close-length: $window-buttons-width / 4;
-
+$window-buttons-icon-size: 25%;
 
 @mixin has-nth-children($count, $selector: '*') {
   & > #{$selector}:first-child:nth-last-child(#{$count}),
@@ -139,35 +126,38 @@ $window-buttons-close-length: $window-buttons-width / 4;
     }
 
     & > .header {
-      display: table;
       top: 0;
-      width: 100%;
       height: $window-header-height;
       background-color: $window-header-background-color;
 
       & > * {
-        display: table-cell;
-        height: 100%;
-        //position: absolute;
-        //top: 0;
-        //bottom: 0;
+        position: absolute;
+        top: 0;
+        bottom: 0;
       }
 
       & > .tabs {
-        //left: 0;
-        //right: $window-buttons-width;
+        left: 0;
+        right: $window-buttons-width;
       }
 
       & > .window-buttons {
-        width: 1px;
+        right: 0;
+        width: $window-buttons-width;
         font-size: 0;
-        text-align: right;
-        white-space: nowrap;
+        //white-space: nowrap;
+        //text-align: right;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: stretch;
+        align-content: stretch;
 
         & > * {
-          display: inline-block;
           position: relative;
-          width: $window-buttons-width;
+          align-self: stretch;
+          flex-grow: 1;
           height: 100%;
           background-color: $window-buttons-background-color;
           cursor: default;
@@ -178,97 +168,67 @@ $window-buttons-close-length: $window-buttons-width / 4;
           }
         }
 
-        & > .menu-button {
-          & > * {
-            display: block;
-            position: absolute;
-            width: $window-buttons-menu-dots-size;
-            height: $window-buttons-menu-dots-size;
-            border-radius: 50%;
-            left: 50%;
-            top: 50%;
-            margin-left: -($window-buttons-menu-dots-size / 2);
-            margin-top: -($window-buttons-menu-dots-size / 2);
-            background-color: $window-buttons-color;
-
-            &:first-child {
-              transform: translateX(-$window-buttons-menu-dots-offset);
-            }
-
-            &:last-child {
-              transform: translateX($window-buttons-menu-dots-offset);
-            }
-          }
-        }
-
         & > .minimize-button {
           &::before {
-            display: block;
             content: '';
-            width: $window-buttons-minimize-width;
-            height: $window-buttons-minimize-height;
+            width: $window-buttons-icon-size;
+            height: 1px;
             position: absolute;
-            left: 50%;
+            left: (100% - $window-buttons-icon-size) / 2;
             top: 50%;
-            margin-left: -($window-buttons-minimize-width / 2);
-            margin-top: -($window-buttons-minimize-height / 2);
             background-color: $window-buttons-color;
           }
         }
 
         & > .maximize-button {
           &::before {
-            display: block;
             content: '';
-            width: $window-buttons-maximize-width;
-            height: $window-buttons-maximize-height;
+            width: $window-buttons-icon-size;
+            height: $window-buttons-icon-size;
             position: absolute;
-            left: 50%;
-            top: 50%;
-            margin-left: -($window-buttons-maximize-width / 2);
-            margin-top: -($window-buttons-maximize-height / 2);
+            left: (100% - $window-buttons-icon-size) / 2;
+            top: (100% - $window-buttons-icon-size) / 2;
+            //background-color: $window-buttons-color;
             border: 1px solid $window-buttons-color;
           }
         }
 
         & > .reduce-button {
+          $offset-x: 2px;
+          $offset-y: 2px;
+
           &::before,
           &::after {
-            display: block;
             content: '';
-            width: $window-buttons-reduce-width;
-            height: $window-buttons-reduce-height;
+            width: $window-buttons-icon-size;
+            height: $window-buttons-icon-size;
             position: absolute;
-            left: 50%;
-            top: 50%;
-            margin-top: -($window-buttons-reduce-width / 2);
-            margin-left: -($window-buttons-reduce-height / 2);
+            left: (100% - $window-buttons-icon-size) / 2;
+            top: (100% - $window-buttons-icon-size) / 2;
+            //background-color: $window-buttons-color;
             border: 1px solid $window-buttons-color;
           }
 
           &::before {
-            transform: translate($window-buttons-reduce-offset-x, -$window-buttons-reduce-offset-y);
+            transform: translate($offset-x, -$offset-y);
             border-bottom-color: transparent;
             border-left-color: transparent;
           }
 
           &::after {
-            transform: translate(-$window-buttons-reduce-offset-x, $window-buttons-reduce-offset-y);
+            transform: translate(-$offset-x, $offset-y);
           }
         }
 
         & > .close-button {
           &::before,
           &::after {
-            display: block;
             content: '';
-            width: $window-buttons-close-length;
-            height: $window-buttons-close-thickness;
+            width: $window-buttons-icon-size;
+            height: 1px;
             position: absolute;
-            left: 50%;
+            left: (100% - $window-buttons-icon-size) / 2;
             top: 50%;
-            margin-left: -($window-buttons-close-length / 2);
-            margin-top: -($window-buttons-close-thickness / 2);
             background-color: $window-buttons-color;
           }
 

@@ -1,16 +1,15 @@
+<div class="resize-container">
+  <div class="resize left top"></div>
+  <div class="resize left center"></div>
+  <div class="resize left bottom"></div>
 
-<div class="resize left top"></div>
-<div class="resize left center"></div>
-<div class="resize left bottom"></div>
+  <div class="resize right top"></div>
+  <div class="resize right center"></div>
+  <div class="resize right bottom"></div>
 
-<div class="resize right top"></div>
-<div class="resize right center"></div>
-<div class="resize right bottom"></div>
-
-<div class="resize center top"></div>
-<div class="resize center bottom"></div>
-
-
+  <div class="resize center top"></div>
+  <div class="resize center bottom"></div>
+</div>
 
 
 <div class="frame">
@@ -20,19 +19,28 @@
     </div>
     <div class="window-buttons">
       <div
+          class="menu-button"
+          [title]="$translate('window.header.button.menu')"
+          (click)="data.onClickMenuButton"
+      >
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <div
           class="minimize-button"
           [title]="$translate('window.header.button.minimize')"
+          (click)="data.onClickMinimizeButton"
       ></div>
       <div
           class="maximize-button"
-          *if="$not(data.isMaximized)"
+          *if="$and($not(data.isMaximized), data.enableUserResize)"
           [title]="$translate('window.header.button.maximize')"
           (click)="data.onClickMaximizeButton"
       ></div>
       <div
-
           class="reduce-button"
-          *if="data.isMaximized"
+          *if="$and(data.isMaximized, data.enableUserResize)"
           [title]="$translate('window.header.button.reduce')"
           (click)="data.onClickReduceButton"
       ></div>

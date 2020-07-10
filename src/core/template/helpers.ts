@@ -3,7 +3,8 @@ import {
 } from './interfaces';
 import { DEFAULT_PARSERS } from './generators/default';
 import {
-  $add, $and, $divide, $equal, $expression, $max, $min, $multiply, $not, $notEqual, $observable, $observer, $or, $scope,
+  $add, $and, $divide, $equal, $eval, $expression, $max, $min, $multiply, $not, $notEqual, $observable, $observer, $or,
+  $scope,
   $string, $subtract, NotificationsObserver, TNativePromiseLikeOrValue
 } from '@lifaon/observables';
 import { AttachNode, DestroyNode, DetachNode } from '../custom-node/node-state-observable/mutations';
@@ -122,6 +123,7 @@ const DEFAULT_CONSTANTS_TO_IMPORT = new Map<string, () => TNativePromiseLikeOrVa
   ['$not', () => $not],
 
   ['$string', () => $string],
+  ['$eval', () => $eval],
 ]);
 
 const DEFAULT_REQUIRE: TTemplateRequireFunction = CreateTemplateRequireFunctionFromMap(DEFAULT_CONSTANTS_TO_IMPORT);

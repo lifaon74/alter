@@ -1,5 +1,9 @@
-import { AdvancedAbortController, CancellablePromise, ICancellablePromise, IAdvancedAbortSignal } from '@lifaon/observables';
-import { ITranslateParams, TCreateTranslationsLoaderCallback, TTranslations } from './interfaces';
+import {
+  AdvancedAbortController, CancellablePromise, ICancellablePromise, IAdvancedAbortSignal, IObservable, Pipe,
+  INotificationsObserver, IObservableContext, NotificationsObserver, Observable
+} from '@lifaon/observables';
+import { ITranslateParams, ITranslateService, TCreateTranslationsLoaderCallback, TTranslations } from './interfaces';
+import { uuid } from '../../../misc/helpers/uuid';
 
 /** FUNCTIONS **/
 
@@ -66,3 +70,22 @@ export function ParseTranslation(value: string, params?: ITranslateParams): stri
       : match;
   });
 }
+
+
+export function TranslateServiceTranslationsChangeObservable(instance: ITranslateService): IObservable<string> {
+  return instance.pipeThrough(
+    new Pipe<INotificationsObserver<'translations-change', void>,
+      IObservable<string>>(() => {
+      let context: IObservableContext<string>;
+      return {
+        observer: new NotificationsObserver<'translations-change', void>('translations-change', (value: void) => {
+          context.emit(uuid());
+        }),
+        observable: new Observable<string>((_context: IObservableContext<string>) => {
+          context = _context;
+        })
+      };
+    })
+  );
+}
+
