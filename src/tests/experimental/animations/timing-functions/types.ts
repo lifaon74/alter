@@ -1,3 +1,16 @@
-import { TProgression } from '../types';
+import { TProgressFunction, TProgression } from '../types';
 
-export type TTimingFunction = (progress: TProgression) => TProgression;
+/**
+ * INFO: a <timing function> is a function mapping a 'progression' to another
+ * @example: 'linear': progression => progression
+ */
+
+export type TTimingFunction = TProgressFunction<[], TProgression>;
+export type TTimingFunctionOrName = TTimingFunction | TTimingFunctionName;
+
+export type TTimingFunctionName =
+  'linear'
+  | 'ease'
+  | 'ease-in'
+  | 'ease-out'
+  | 'ease-in-out';

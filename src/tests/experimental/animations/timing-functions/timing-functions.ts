@@ -1,12 +1,25 @@
 import { CubicBezier } from './cubic-bezier';
-import { TTimingFunction } from './types';
-import { TProgression } from '../types';
+import { TTimingFunction, TTimingFunctionName, TTimingFunctionOrName } from './types';
+import {
+  TGenericProgressFunction, TInferProgressFunctionArguments, TInferProgressFunctionReturns, TProgression
+} from '../types';
+import { TTransitionFunction } from '../transitions/types';
 
 // https://css-tricks.com/emulating-css-timing-functions-javascript/
+
+/** CREATE **/
+
+/* LINEAR */
 
 export function CreateLinearTimingFunction(): TTimingFunction {
   return (progression: TProgression) => progression;
 }
+
+export function CreateReverseTimingFunction(): TTimingFunction {
+  return (progression: TProgression) => (1 - progression);
+}
+
+/* CUBIC BEZIER */
 
 const CACHED_CUBIC_BEZIER = new Map<string, CubicBezier>();
 
@@ -38,3 +51,39 @@ export function CreateEaseInOutTimingFunction(): TTimingFunction {
   return CreateCubicBezierTimingFunction(0.42, 0, 0.58, 1);
 }
 
+
+/** CONVERT **/
+
+export function TimingFunctionNameToTimingFunction(name: TTimingFunctionName): TTimingFunction {
+  switch (name) {
+    case 'linear':
+      return CreateLinearTimingFunction();
+    case 'ease':
+      return CreateEaseTimingFunction();
+    case 'ease-in':
+      return CreateEaseInTimingFunction();
+    case 'ease-out':
+      return CreateEaseOutTimingFunction();
+    case 'ease-in-out':
+      return CreateEaseInOutTimingFunction();
+    default:
+      throw new TypeError(`Unknown timing function's name '${ name }'`);
+  }
+}
+
+export function TimingFunctionOrNameToTimingFunction(input: TTimingFunctionOrName): TTimingFunction {
+  return (typeof input === 'function')
+    ? input
+    : TimingFunctionNameToTimingFunction(input);
+}
+
+/** APPLY **/
+
+export function ApplyTimingFunction<TCallback extends TGenericProgressFunction>(
+  timingFunction: TTimingFunction,
+  callback: TCallback,
+): TCallback {
+  return ((progression: TProgression, ...args: any[]): any => {
+    return callback(timingFunction(progression), ...args);
+  }) as TCallback;
+}

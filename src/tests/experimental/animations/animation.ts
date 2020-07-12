@@ -1,10 +1,11 @@
 import { ICSSStatic, ICSSStyleValueStatic, ICSSUnitValueConstructor } from './houdini';
-import { TProgression } from './types';
+import { CreateCSSPropertyTransition } from './transitions/transition-functions';
+import { ApplyTimingFunction, CreateEaseInOutTimingFunction } from './timing-functions/timing-functions';
 import {
-  ApplyTimingFunctionToTransition, CreateCSSPropertyTransition, CreateDynamicTransition
-} from './transitions/transition-functions';
-import { CreateEaseInOutTimingFunction } from './timing-functions/timing-functions';
-import { TTransitionFunction } from './transitions/types';
+  CreateAnimateFunction, CreateDelayAnimateFunction, CreateHTMLElementsAnimateFunctionWithKnownElements,
+  CreateParallelAnimateFunction, CreateSequentialAnimateFunction
+} from './animate/animate';
+import { CreateCSSAnimation, CreateReverseAnimation } from './animations/animations';
 
 
 declare const CSSUnitValue: ICSSUnitValueConstructor;
@@ -12,80 +13,46 @@ declare const CSSStyleValue: ICSSStyleValueStatic;
 declare const CSS: ICSSStatic;
 
 
+export type TPrimitive =
+  number
+  | string
+  | boolean
+  | bigint
+  | symbol
+  | null
+  | undefined;
+
 /** FUNCTIONS **/
 
-export function NormalizeProgression(progression: TProgression): number {
-  return Math.max(0, Math.min(1, progression));
-}
+
+/*----------------------------*/
 
 
-export type TAnimateFunction = (progress: TProgression) => void;
-
-export function CreateCSSPropertyAnimation(
-  element: HTMLElement,
-  propertyName: string,
-  transition: TTransitionFunction<string>,
-): TAnimateFunction {
-  return (progression: TProgression): void => {
-    element.style.setProperty(propertyName, transition(progression));
-  };
-}
-
-export function CreateNoopAnimation(): TAnimateFunction {
-  return () => {};
-}
-
-export type TAnimationWithWeightTuple = [TAnimateFunction, number];
-
-export function CreateSequentialAnimation(animations: TAnimationWithWeightTuple[]): TAnimateFunction {
-  if (animations.length === 0) {
-    return CreateNoopAnimation();
-  } else {
-    const totalWeight: number = animations.reduce((totalWeight: number, [animation, weight]: TAnimationWithWeightTuple, index: number) => {
-      if ((0 <= weight) && (weight < Number.MAX_SAFE_INTEGER)) {
-        return totalWeight + weight;
-      } else {
-        throw new RangeError(`Animation's weight at index ${ index } must be in the range [0, number.MAX_SAFE_INTEGER[`);
-      }
-    }, 0);
-
-    if (totalWeight < Number.MAX_SAFE_INTEGER) {
-      let startProgression: number = 0;
-      let index: number = 0;
-      return (progression: TProgression): void => {
-        const relativeProgression: number = (progression - startProgression) * (totalWeight / animations[index][1]);
-        console.log(relativeProgression);
-          // animations[index](progression)
-      };
-    } else {
-      throw new RangeError(`totalWeight must be in the range [0, number.MAX_SAFE_INTEGER[`);
-    }
-  }
-}
+// export class StyleState<TState extends TStyleState> {
+//   readonly state: Readonly<TState>;
+//
+//   constructor(state: TState) {
+//     this.state = Object.freeze(state);
+//   }
+// }
 
 
-export function Animate(animation: TAnimateFunction, duration: number): Promise<void> {
-  return new Promise<void>((resolve: any) => {
-    const startTime: number = Date.now();
-    let initialized: boolean = false;
-    const loop = () => {
-      let progress: number;
-      if (initialized) {
-        progress = NormalizeProgression((Date.now() - startTime) / duration);
-      } else {
-        initialized = true;
-        progress = 0;
-      }
-      animation(progress);
-      if (progress < 1) {
-        requestAnimationFrame(loop);
-      } else {
-        resolve();
-      }
-    };
-    requestAnimationFrame(loop);
-  });
-}
+// export class Animation<TVariables extends string[]> {
+//   readonly variables: IReadonlyTuple<TVariables>;
+//
+//   constructor(variables: TVariables) {
+//     this.variables = new ReadonlyTuple(variables);
+//   }
+// }
+
+// export class Animation {
+//   readonly startState: TStyleState;
+//   readonly endState: TStyleState;
+//
+//   constructor(variables: TVariables) {
+//     this.variables = new ReadonlyTuple(variables);
+//   }
+// }
 
 /*----------------------------*/
 
@@ -107,51 +74,129 @@ async function testTransitions1() {
   // const transition = CreateFixedCSSNumericValueTransition(CSS.px(0), CSS.px(5000));
   const transition = CreateCSSPropertyTransition('background-color', 'red', 'blue');
 
-  const _transition = ApplyTimingFunctionToTransition(transition, timingFunction);
+  const _transition = ApplyTimingFunction(timingFunction, transition);
 
   for (let i = 0, l = 10; i <= l; i++) {
     console.log(_transition(i / l));
   }
 }
 
-async function testAnimation1() {
+// async function testAnimation1() {
+//   const element = createDummyElement();
+//   document.body.appendChild(element);
+//
+//
+//   const timingFunction = CreateEaseInOutTimingFunction();
+//
+//   let propertyName: string;
+//   let transition: TTransitionFunction<string>;
+//
+//   // propertyName = 'background-color';
+//   // transition = CreateCSSPropertyTransition(propertyName, 'red', 'blue');
+//
+//   propertyName = 'width';
+//   transition = CreateCSSPropertyTransition(propertyName, '0', '500px');
+//
+//   transition = ApplyTimingFunctionToTransition(transition, timingFunction);
+//   const animation = CreateCSSPropertyAnimation(element, propertyName, transition);
+//
+//
+//   // const animation2 = CreateSequentialAnimation([
+//   //   [animation, 1000],
+//   //   [animation, 2000],
+//   // ] as Iterable<TAnimationWithWeight>);
+//
+//   // for (let i = 0, l = 10; i <= l; i++) {
+//   //   animation2(i / l);
+//   // }
+//
+//   const animate = CreateAnimateFunction(animation, 2000);
+//
+//   await animate();
+// }
+
+// async function testAnimation2() {
+//   const element = createDummyElement();
+//   element.innerText = 'hello world';
+//   element.style.setProperty('display', 'inline-block');
+//   element.style.setProperty('overflow', 'auto');
+//   document.body.appendChild(element);
+//
+//
+//   const animation = CreateCSSAnimation(
+//     {
+//       width: '400px',
+//       'background-color': 'red'
+//     },
+//     {
+//       width: 'auto',
+//       'background-color': 'blue'
+//     },
+//     'ease-in-out'
+//   );
+//
+//   const animate = CreateAnimateFunction(animation, 2000);
+//
+//   console.time('animate');
+//   await animate(void 0, [element]).toPromise();
+//   console.timeEnd('animate');
+// }
+
+
+async function testAnimation3() {
   const element = createDummyElement();
+  element.innerText = 'hello world';
+  element.style.setProperty('display', 'inline-block');
+  element.style.setProperty('overflow', 'auto');
   document.body.appendChild(element);
 
 
-  const timingFunction = CreateEaseInOutTimingFunction();
+  const animation1 = CreateCSSAnimation(
+    {
+      width: '400px',
+    },
+    {
+      width: 'auto',
+    },
+    'ease-in-out'
+  );
 
-  let propertyName: string;
-  let transition: TTransitionFunction<string>;
+  const animation2 = CreateCSSAnimation(
+    {},
+    {
+      height: '400px',
+    },
+    'ease-in-out'
+  );
 
-  // propertyName = 'background-color';
-  // transition = CreateCSSPropertyTransition(propertyName, 'red', 'blue');
+  const animation3 = CreateCSSAnimation(
+    {
+      'background-color': 'white',
+    },
+    {
+      'background-color': 'blue',
+    },
+    'ease-in-out'
+  );
 
-  propertyName = 'width';
-  transition = CreateCSSPropertyTransition(propertyName, '0', '500px');
-
-  transition = ApplyTimingFunctionToTransition(transition, timingFunction);
-  const animation = CreateCSSPropertyAnimation(element, propertyName, transition);
-
-  const animation2 = CreateSequentialAnimation([
-    [animation, 1000],
-    [animation, 2000],
+  const animate = CreateSequentialAnimateFunction([
+    CreateAnimateFunction(animation1, 2000),
+    CreateDelayAnimateFunction(1000),
+    CreateParallelAnimateFunction([
+      CreateAnimateFunction(animation2, 2000),
+      CreateHTMLElementsAnimateFunctionWithKnownElements(CreateReverseAnimation(animation3), 2000, [document.body]),
+    ]),
   ]);
 
-  Animate(animation2, 2000);
-  // for (let i = 0, l = 100; i <= l; i++) {
-  //   animation(i / l);
-  // }
+  console.time('animate');
+  await animate(void 0, [element]).toPromise();
+  console.timeEnd('animate');
 }
 
 
-/*
-const animation = seq([
-  [animation1, duration1],
-])
-*/
-
 export async function testAnimation() {
   // await testTransitions1();
-  await testAnimation1();
+  // await testAnimation1();
+  // await testAnimation2();
+  await testAnimation3();
 }

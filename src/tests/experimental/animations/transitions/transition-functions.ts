@@ -1,7 +1,7 @@
-import { ICSSNumericValue, ICSSStatic, ICSSStyleValueStatic, ICSSUnitValueConstructor } from '../houdini';
+import { ICSSNumericValue, ICSSStyleValueStatic, ICSSUnitValueConstructor } from '../houdini';
 import { TTimingFunction } from '../timing-functions/types';
 import { IColor } from '../color/interfaces';
-import { TDynamicTransitionValue, TInferTransitionFunctionType, TTransitionFunction } from './types';
+import { TTransitionFunction } from './types';
 import { TProgression } from '../types';
 import { Color } from '../color/implementation';
 
@@ -9,31 +9,11 @@ declare const CSSUnitValue: ICSSUnitValueConstructor;
 declare const CSSNumericValue: ICSSStyleValueStatic;
 declare const CSSStyleValue: ICSSStyleValueStatic;
 
+/** CREATE **/
 
-export function ResolveDynamicTransitionValue<T>(value: TDynamicTransitionValue<T>): T {
-  return (typeof value === 'function')
-    ? (value as (() => T))()
-    : value;
-}
-
-
-export function CreateDynamicTransition<TCreateTransition extends () => TTransitionFunction<any>>(
-  createTransition: TCreateTransition,
-): TTransitionFunction<TInferTransitionFunctionType<ReturnType<TCreateTransition>>> {
-  type T = TInferTransitionFunctionType<ReturnType<TCreateTransition>>;
-  let transition: TTransitionFunction<T>;
-
-  return (progression: TProgression): T => {
-    if (progression === 0) {
-      transition = createTransition();
-    }
-    return transition(progression);
-  };
-}
-
-
-
-
+/**
+ * Creates a transition from a CSSNumericValue to another
+ */
 export function CreateCSSNumericValueTransition(
   origin: ICSSNumericValue,
   target: ICSSNumericValue,
@@ -43,6 +23,9 @@ export function CreateCSSNumericValueTransition(
   };
 }
 
+/**
+ * Creates a transition from a color to another
+ */
 export function CreateColorTransition(
   origin: IColor,
   target: IColor,
@@ -52,6 +35,9 @@ export function CreateColorTransition(
   };
 }
 
+/**
+ * Creates a transition from a css property's value to another
+ */
 export function CreateCSSPropertyTransition(
   propertyName: string,
   origin: string,
@@ -90,12 +76,32 @@ export function CreateCSSPropertyTransition(
 }
 
 
-export function ApplyTimingFunctionToTransition<T>(
-  transition: TTransitionFunction<T>,
-  timingFunction: TTimingFunction,
-): TTransitionFunction<T> {
-  return (progression: TProgression) => {
-    return transition(timingFunction(progression));
-  };
-}
+/** APPLY TIMING FUNCTION **/
+
+
+
+/** EXPERIMENTAL* */
+
+// export function ResolveDynamicTransitionValue<T>(value: TDynamicTransitionValue<T>): T {
+//   return (typeof value === 'function')
+//     ? (value as (() => T))()
+//     : value;
+// }
+//
+//
+// export function CreateDynamicTransition<TCreateTransition extends () => TTransitionFunction<any>>(
+//   createTransition: TCreateTransition,
+// ): TTransitionFunction<TInferTransitionFunctionType<ReturnType<TCreateTransition>>> {
+//   type T = TInferTransitionFunctionType<ReturnType<TCreateTransition>>;
+//   let transition: TTransitionFunction<T>;
+//
+//   return (progression: TProgression): T => {
+//     if (progression === 0) {
+//       transition = createTransition();
+//     }
+//     return transition(progression);
+//   };
+// }
+//
+
 
