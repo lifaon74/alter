@@ -5,11 +5,9 @@ import { AttachNode } from '../../../core/custom-node/node-state-observable/muta
 import { uuid } from '../../../misc/helpers/uuid';
 import { LoadDefaultInfiniteScrollerStyle } from './default-style';
 import {
-  CancellablePromise, DOMResizeObservable, EventsObservable, IAdvancedAbortSignal,
-  ICancellablePromiseOptions, AdvancedAbortController, ICancellablePromise, NormalizeICancellablePromiseOptions,
-  ICancellablePromiseNormalizedOptions, TNativePromiseLikeOrValue
+  CancellablePromise, DOMResizeObservable, EventsObservable, IAdvancedAbortSignal, ICancellablePromise,
+  ICancellablePromiseOptions, TNativePromiseLikeOrValue
 } from '@lifaon/observables';
-import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
 
 function CreateHorizontalDummyElement(index: number): HTMLElement {
   const element = document.createElement('div');
@@ -274,7 +272,7 @@ function AsyncIteratorForEachToCancellablePromise<T>(
     return CancellablePromise.of<IteratorResult<T>>(iterator.next(), options)
       .then((result: IteratorResult<T>, signal: IAdvancedAbortSignal): (ICancellablePromise<void> | void) => {
         if (!result.done) {
-          return CancellablePromise.try<void>((signal: IAdvancedAbortSignal) => callback(result.value, signal), {  signal  })
+          return CancellablePromise.try<void>((signal: IAdvancedAbortSignal) => callback(result.value, signal), { signal })
             .then((result: void, signal: IAdvancedAbortSignal) => {
               return next({ signal });
             });

@@ -5,7 +5,6 @@ import {
 } from './interfaces';
 import { IObjectProperty } from '../object-property/interfaces';
 import { ObjectProperty } from '../object-property/implementation';
-import { IObserverInternal, OBSERVER_PRIVATE } from '@lifaon/observables/src/core/observer/privates';
 import { IsObjectPropertyObserver, ObjectPropertyObserver } from '../object-property-observer/implementation';
 import { IObjectPropertyObserver } from '../object-property-observer/interfaces';
 import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWithPrivateMembers';
@@ -14,6 +13,7 @@ import { NormalizePropertyKey, TNormalizedPropertyKey } from '../normalize-prope
 import { GetPropertyDescriptor } from '../../../misc/helpers/object-helpers';
 import { PatchArrayProxy } from './functions';
 import { IObservablePrivatesInternal } from '@lifaon/observables/types/core/observable/privates';
+import { GetObserverPrivates } from '../../../misc/helpers/observables-helpers';
 
 
 export interface IResolvedProperty<TObject extends object> {
@@ -192,7 +192,7 @@ export function ObjectPropertiesObservableDispatch<TObject extends object, TKey 
       objectProperty = new ObjectProperty<TKey, TObject[TKey]>(key, value);
     }
     for (let i = 0; i < length; i++) {
-      ((privates.othersObservers[i] as unknown) as IObserverInternal<IObjectProperty<TKey, TObject[TKey]>>)[OBSERVER_PRIVATE].onEmit(objectProperty, instance as any); // instance as unknown as IObservable<IObjectProperty<TKey, TObject[TKey]>>
+      GetObserverPrivates(privates.othersObservers[i]).onEmit(objectProperty, instance as any); // instance as unknown as IObservable<IObjectProperty<TKey, TObject[TKey]>>;
     }
   }
 }

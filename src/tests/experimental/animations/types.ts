@@ -1,5 +1,6 @@
 export type TProgression = number; // progression ∈[0, 1]
-export type TAnimationProgression = TProgression | 'start' | 'end';
+export type TAnimationProgressionState = 'start' | 'end';
+export type TAnimationProgression = TProgression | TAnimationProgressionState;
 
 export type TProgressFunction<TArgs extends any[], TReturn> = (progression: TProgression, ...args: TArgs) => TReturn;
 export type TAnimationProgressFunction<TArgs extends any[], TReturn> = (progression: TAnimationProgression, ...args: TArgs) => TReturn;

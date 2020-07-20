@@ -1,9 +1,6 @@
 import { CubicBezier } from './cubic-bezier';
 import { TTimingFunction, TTimingFunctionName, TTimingFunctionOrName } from './types';
-import {
-  TGenericProgressFunction, TInferProgressFunctionArguments, TInferProgressFunctionReturns, TProgression
-} from '../types';
-import { TTransitionFunction } from '../transitions/types';
+import { TGenericProgressFunction, TProgression } from '../types';
 
 // https://css-tricks.com/emulating-css-timing-functions-javascript/
 

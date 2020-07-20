@@ -12,17 +12,11 @@ import {
 import { IsNull } from '../../../misc/helpers/is/IsNull';
 import { SetPropertyOrDefault } from './helpers';
 import {
-  InfiniteScrollerAppend,
-  InfiniteScrollerElementsIterator, InfiniteScrollerLoop, InfiniteScrollerOnManualTranslation,
+  InfiniteScrollerAppend, InfiniteScrollerElementsIterator, InfiniteScrollerLoop, InfiniteScrollerOnManualTranslation,
   InfiniteScrollerReplaceAllElements, InfiniteScrollerSetContentLimitStrategy, NormalizeIElementsIteratorOptions
 } from './functions';
 import { ConstructInfiniteScroller } from './constructor';
-import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
-import {
-  AdvancedAbortController,
-  CancellablePromise, IAdvancedAbortController, IAdvancedAbortSignal, ICancellablePromise, ICancellablePromiseOptions,
-  NormalizeICancellablePromiseOptions
-} from '@lifaon/observables';
+import { ICancellablePromise, ICancellablePromiseOptions } from '@lifaon/observables';
 
 
 /** METHODS **/
@@ -175,7 +169,7 @@ export function InfiniteScrollerGetFirstVisibleElement(instance: IInfiniteScroll
     _options.reversed
       ? directionDetails.cssPositionEndKey
       : directionDetails.cssPositionStartKey
-  ];
+    ];
 
   const factor: number = _options.reversed ? -1 : 1;
 
@@ -209,7 +203,6 @@ export function InfiniteScrollerAppendBefore(instance: IInfiniteScroller, elemen
 export function InfiniteScrollerAppendAfter(instance: IInfiniteScroller, elements: HTMLElement[], options?: ICancellablePromiseOptions): ICancellablePromise<void> {
   return InfiniteScrollerAppend(instance, 'after', elements, options);
 }
-
 
 
 export function InfiniteScrollerReplaceElements(instance: IInfiniteScroller, chunks: HTMLElement[][]): void {

@@ -18,7 +18,7 @@ export class CubicBezier {
   public p2_x: number;
   public p2_y: number;
 
-  private sampleValues: Float32Array;
+  private readonly sampleValues: Float32Array;
 
   constructor(
     p1_x: number,

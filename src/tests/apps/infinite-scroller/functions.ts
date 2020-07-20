@@ -16,11 +16,8 @@ import { AttachNode, DetachNode, ForceAttachNode } from '../../../core/custom-no
 import { UnloadElementsEvent } from './events/unload-elements-event/implementation';
 import { IsNull } from '../../../misc/helpers/is/IsNull';
 import { IsObject } from '../../../misc/helpers/is/IsObject';
-import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
 import {
-  AbortReason,
-  AdvancedAbortController, CancellablePromise, IAdvancedAbortController, ICancellablePromise,
-  ICancellablePromiseOptions, IReason, Reason
+  CancellablePromise, ICancellablePromise, ICancellablePromiseOptions, IReason, Reason
 } from '@lifaon/observables';
 
 

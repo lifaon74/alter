@@ -1,4 +1,4 @@
-import { TAnimationProgressFunction, TProgressFunction, TProgression } from '../types';
+import { TAnimationProgressFunction } from '../types';
 
 /**
  * INFO: an <animation> is a function executing some action(s) depending on a 'progression'
@@ -32,17 +32,3 @@ export type TStyleState = TStyleStateObject | TStyleStateTuples;
 
 export type TStylePropertyChangeMap = Map<TStylePropertyName, [TStylePropertyValue, TStylePropertyValue]>; // [name, [origin, target]]
 
-
-// export type TAnimationWithWeightTuple = [TAnimationFunction, number];
-//
-// export interface TAnimationWithWeightObject {
-//   animation: TAnimationFunction;
-//   weight: number;
-// }
-//
-// export type TAnimationWithWeight = TAnimationWithWeightTuple | TAnimationWithWeightObject;
-//
-// export interface TAnimationWithProgressRange extends TAnimationWithWeightObject {
-//   startProgress: number;
-//   endProgress: number;
-// }

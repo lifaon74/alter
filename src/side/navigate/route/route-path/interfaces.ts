@@ -1,7 +1,6 @@
 import { IRoutePathEntry, IRoutePathExecOptions } from './types';
 import { TPathMatcherParams } from '../../path-matcher/types';
 import { ICancellablePromise } from '@lifaon/observables';
-import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
 
 /** INTERFACES */
 

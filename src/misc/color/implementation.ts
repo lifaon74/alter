@@ -1,4 +1,4 @@
-import { IColor, IColorConstructor, IHSLAObject } from './interfaces';
+import { IColor, IColorConstructor, IHSLAObject, TGrayScaleMode } from './interfaces';
 import { ConstructClassWithPrivateMembers } from '@lifaon/class-factory';
 
 /** PRIVATES **/
@@ -65,10 +65,10 @@ function ParseNumber(input: string, min: number, max: number): number {
       number *= max / 100;
     }
 
-    if((min <= number) && (number <= max)) {
+    if ((min <= number) && (number <= max)) {
       return number;
     } else {
-      throw new RangeError(`Invalid range [${ min }-${ max}] for number ${ number }`);
+      throw new RangeError(`Invalid range [${ min }-${ max }] for number ${ number }`);
     }
   }
 }
@@ -78,23 +78,31 @@ function NumberToHex(value: number, digits: number = 2): string {
 }
 
 
-export function ColorFromRGBString(input: string): IColor {
+export function ColorFromRGBString(ctor: IColorConstructor, input: string): IColor {
   RGBA_REGEXP.lastIndex = 0;
   const match: RegExpExecArray | null = RGBA_REGEXP.exec(input);
   if ((match !== null) && (typeof match[1] === typeof match[5])) { // check if 3 params for rgb and 4 for rgba
-      return new Color(
-        ParseNumber(match[2], 0, 255) / 255,
-        ParseNumber(match[3], 0, 255) / 255,
-        ParseNumber(match[4], 0, 255) / 255,
-        (match[5] === void 0)
-          ? 1
-          : ParseNumber(match[5], 0, 1)
-      );
+    return new ctor(
+      ParseNumber(match[2], 0, 255) / 255,
+      ParseNumber(match[3], 0, 255) / 255,
+      ParseNumber(match[4], 0, 255) / 255,
+      (match[5] === void 0)
+        ? 1
+        : ParseNumber(match[5], 0, 1)
+    );
   } else {
     throw new Error(`Invalid rgb(a) color: ${ input }`);
   }
 }
 
+export function HueToRGB(p: number, q: number, t: number): number {
+  if (t < 0) t += 1;
+  if (t > 1) t -= 1;
+  if (t < 1 / 6) return p + (q - p) * 6 * t;
+  if (t < 1 / 2) return q;
+  if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+  return p;
+}
 
 /** METHODS **/
 
@@ -138,10 +146,17 @@ export function ColorSetA(instance: IColor, value: number): void {
 
 /* METHODS */
 
+export function ColorEquals(instance: IColor, color: IColor): boolean {
+  return (instance.r === color.r)
+    && (instance.g === color.g)
+    && (instance.b === color.b)
+    && (instance.a === color.a);
+}
+
 export function ColorMix(instance: IColor, color: IColor, proportion: number): IColor {
   if ((0 <= proportion) && (proportion <= 1)) {
     const _proportion: number = 1 - proportion;
-    return new Color(
+    return new (instance.constructor as IColorConstructor)(
       ((instance.r * _proportion) + (color.r * proportion)),
       ((instance.g * _proportion) + (color.g * proportion)),
       ((instance.b * _proportion) + (color.b * proportion)),
@@ -152,10 +167,51 @@ export function ColorMix(instance: IColor, color: IColor, proportion: number): I
   }
 }
 
+export function ColorGrayscale(instance: IColor, mode: TGrayScaleMode = 'luminosity'): IColor {
+  let c: number;
+  switch (mode) {
+    case 'average':
+      c = (instance.r + instance.g + instance.b) / 3;
+      break;
+    case 'lightness':
+      c = (Math.max(instance.r, instance.g, instance.b) + Math.min(instance.r, instance.g, instance.b)) / 2;
+      break;
+    case 'luminosity':
+      c = 0.21 * instance.r + 0.72 * instance.g + 0.07 * instance.b;
+      break;
+    default:
+      throw new TypeError(`Unexpected grayscale's mode: '${ mode }'`);
+  }
+  return new (instance.constructor as IColorConstructor)(c, c, c, instance.a);
+}
+
+export function ColorInvert(instance: IColor, amount: number = 1): IColor {
+  if ((0 <= amount) && (amount <= 1)) {
+    return new (instance.constructor as IColorConstructor)(
+      amount * (1 - instance.r) + (1 - amount) * instance.r,
+      amount * (1 - instance.g) + (1 - amount) * instance.g,
+      amount * (1 - instance.b) + (1 - amount) * instance.b,
+      instance.a,
+    );
+  } else {
+    throw new RangeError(`Expected 'amount' in the range [0, 1]`);
+  }
+}
+
+export function ColorLighten(instance: IColor, amount: number): IColor {
+  const hsla: IHSLAObject = ColorToHSLAObject(instance);
+  hsla.l = Math.max(0, Math.min(1, hsla.l + amount));
+  return ColorStaticFromHSLObject(instance.constructor as IColorConstructor, hsla);
+}
+
+export function ColorDarken(instance: IColor, amount: number): IColor {
+  return ColorLighten(instance, -amount);
+}
+
 
 export function ColorToRGB(instance: IColor, alpha: boolean = false): string {
-  const privates: IColorPrivate = (instance as IColorInternal)[COLOR_PRIVATE];
-  return `rgb${ alpha ? 'a' : '' }(${ Math.round(privates.r * 255) }, ${ Math.round(privates.g * 255) }, ${ Math.round(privates.b * 255) }${ alpha ? (', ' + privates.a) : '' })`;
+  // const privates: IColorPrivate = (instance as IColorInternal)[COLOR_PRIVATE];
+  return `rgb${ alpha ? 'a' : '' }(${ Math.round(instance.r * 255) }, ${ Math.round(instance.g * 255) }, ${ Math.round(instance.b * 255) }${ alpha ? (', ' + instance.a) : '' })`;
 }
 
 export function ColorToHSL(instance: IColor, alpha: boolean = false): string {
@@ -167,7 +223,7 @@ export function ColorToHSLAObject(instance: IColor): IHSLAObject {
   const privates: IColorPrivate = (instance as IColorInternal)[COLOR_PRIVATE];
 
   const max: number = Math.max(privates.r, privates.g, privates.b);
-  const min : number= Math.min(privates.r, privates.g, privates.b);
+  const min: number = Math.min(privates.r, privates.g, privates.b);
 
   const hslaObject: IHSLAObject = {
     h: 0,
@@ -176,13 +232,13 @@ export function ColorToHSLAObject(instance: IColor): IHSLAObject {
     a: privates.a
   };
 
-  if(max === min) { // achromatic
+  if (max === min) { // achromatic
     hslaObject.h = 0;
     hslaObject.s = 0;
   } else {
     const d: number = max - min;
     hslaObject.s = hslaObject.l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch(max) {
+    switch (max) {
       case privates.r:
         hslaObject.h = (privates.g - privates.b) / d + (privates.g < privates.b ? 6 : 0);
         break;
@@ -201,7 +257,7 @@ export function ColorToHSLAObject(instance: IColor): IHSLAObject {
 
 export function ColorToHex(instance: IColor, alpha: boolean = false): string {
   const privates: IColorPrivate = (instance as IColorInternal)[COLOR_PRIVATE];
-  return `#${ NumberToHex(Math.round(privates.r * 255), 2) }${ NumberToHex(Math.round(privates.g * 255), 2) }${ NumberToHex(Math.round(privates.b * 255), 2) }${  (alpha ? NumberToHex(Math.round(privates.a * 255), 2) : '') }`;
+  return `#${ NumberToHex(Math.round(privates.r * 255), 2) }${ NumberToHex(Math.round(privates.g * 255), 2) }${ NumberToHex(Math.round(privates.b * 255), 2) }${ (alpha ? NumberToHex(Math.round(privates.a * 255), 2) : '') }`;
 }
 
 
@@ -216,21 +272,47 @@ export function ColorStaticParse(ctor: IColorConstructor, input: string): IColor
     const style: CSSStyleDeclaration = window.getComputedStyle(element);
     const rgbColor: string = style.color;
     document.body.removeChild(element);
-    return ColorFromRGBString(rgbColor);
+    return ColorFromRGBString(ctor, rgbColor);
   } else {
     return null;
   }
 }
 
+export function ColorStaticFromHSLObject(ctor: IColorConstructor, hslaObject: IHSLAObject): IColor {
+  let r: number, g: number, b: number;
+
+  if (hslaObject.s === 0) {
+    r = g = b = hslaObject.l; // achromatic
+  } else {
+    const q: number = hslaObject.l < 0.5 ? hslaObject.l * (1 + hslaObject.s) : hslaObject.l + hslaObject.s - hslaObject.l * hslaObject.s;
+    const p: number = 2 * hslaObject.l - q;
+    r = HueToRGB(p, q, hslaObject.h + 1 / 3);
+    g = HueToRGB(p, q, hslaObject.h);
+    b = HueToRGB(p, q, hslaObject.h - 1 / 3);
+  }
+
+  return new ctor(
+    r * 255,
+    g * 255,
+    b * 255,
+    hslaObject.a ? (hslaObject.a * 255) : 255
+  );
+}
 
 
 /** CLASS **/
 
 export class Color implements IColor {
 
+
   static parse(input: string): IColor | null {
     return ColorStaticParse(this, input);
   }
+
+  static fromHSLAObject(hslaObject: IHSLAObject): IColor {
+    return ColorStaticFromHSLObject(this, hslaObject);
+  }
+
 
   constructor(
     r: number,
@@ -238,7 +320,7 @@ export class Color implements IColor {
     b: number,
     a: number = 1,
   ) {
-    ConstructColor(this, r, g, b, a)
+    ConstructColor(this, r, g, b, a);
   }
 
   get r(): number {
@@ -276,10 +358,36 @@ export class Color implements IColor {
     ColorSetA(this, value);
   }
 
+  /** COMPARISION **/
+
+  equals(color: IColor): boolean {
+    return ColorEquals(this, color);
+  }
+
+  /** OPERATIONS **/
+
   mix(color: IColor, proportion: number): IColor {
     return ColorMix(this, color, proportion);
   }
 
+  grayscale(mode?: TGrayScaleMode): IColor {
+    return ColorGrayscale(this, mode);
+  }
+
+  invert(amount?: number): IColor {
+    return ColorInvert(this, amount);
+  }
+
+  lighten(amount: number): IColor {
+    return ColorLighten(this, amount);
+  }
+
+  darken(amount: number): IColor {
+    return ColorDarken(this, amount);
+  }
+
+
+  /** CONVERT **/
 
   toRGB(alpha?: boolean): string {
     return ColorToRGB(this, alpha);
@@ -289,7 +397,7 @@ export class Color implements IColor {
     return this.toRGB(true);
   }
 
-  toHSL(alpha?: boolean) {
+  toHSL(alpha?: boolean): string {
     return ColorToHSL(this, alpha);
   }
 

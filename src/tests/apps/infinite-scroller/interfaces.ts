@@ -4,7 +4,6 @@ import {
 import { ILoadElementsEvent } from './events/load-elements-event/interfaces';
 import { IUnloadElementsEvent } from './events/unload-elements-event/interfaces';
 import { ICancellablePromise, ICancellablePromiseOptions } from '@lifaon/observables';
-import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
 
 /** TYPES **/
 

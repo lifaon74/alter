@@ -4,13 +4,13 @@ import {
   TAnimationFunction, THTMLElementsAnimationFunction, TStylePropertyChangeMap, TStylePropertyName, TStylePropertyTuple,
   TStylePropertyValue, TStyleState, TStyleStateMap, TStyleStateTuples
 } from './types';
-import { CreateCSSPropertyTransition } from '../transitions/transition-functions';
 import { IsObject } from '../../../../misc/helpers/is/IsObject';
 import { TTimingFunction, TTimingFunctionOrName } from '../timing-functions/types';
 import {
   CreateReverseTimingFunction, TimingFunctionOrNameToTimingFunction
 } from '../timing-functions/timing-functions';
 import { IsAnimationProgression } from '../functions';
+import { CreateCSSPropertyTransition } from '../transitions/css-property';
 
 
 /** CREATE **/
@@ -24,7 +24,9 @@ export function CreateReverseAnimation<TAnimation extends TAnimationFunction<any
   return ApplyTimingFunctionToAnimation(CreateReverseTimingFunction(), animation);
 }
 
-
+/**
+ * Creates an <animation> for a specific HTMLElement based on a 'property' and a <transition>
+ */
 export function CreateCSSPropertyAnimationForStaticElement(
   element: HTMLElement,
   propertyName: string,
@@ -37,6 +39,9 @@ export function CreateCSSPropertyAnimationForStaticElement(
   };
 }
 
+/**
+ * Creates an <animation> requiring a list of HTMLElements based on a 'property' and a <transition>
+ */
 export function CreateCSSPropertyAnimationForFutureElementsHavingTransition(
   propertyName: string,
   transition: TTransitionFunction<string>,
@@ -51,7 +56,8 @@ export function CreateCSSPropertyAnimationForFutureElementsHavingTransition(
 }
 
 /**
- * INFO: this function requires to call a 0 and 1 'progress'
+ * Creates an <animation> requiring a list of HTMLElements, from a computed 'origin' to a computed 'target'
+ * INFO: this function requires to call a 'start' and 'end' progression
  */
 export function CreateCSSPropertyAnimationForFutureElementsHavingComputedPropertyValue(
   propertyName: string,
@@ -90,12 +96,16 @@ export function CreateCSSPropertyAnimationForFutureElementsHavingComputedPropert
   };
 }
 
+/**
+ * Creates an <animation> requiring a list of HTMLElements, from a known 'origin' to a known 'target'
+ * INFO: this function uses an optional call with an 'end' progression
+ */
 export function CreateCSSPropertyAnimationForFutureElementsHavingDefinedPropertyValue(
   propertyName: string,
   origin: string,
   target: string,
 ): THTMLElementsAnimationFunction {
-  return CreateCSSPropertyAnimationForFutureElementsHavingTransition(
+  const animation: THTMLElementsAnimationFunction = CreateCSSPropertyAnimationForFutureElementsHavingTransition(
     propertyName,
     CreateCSSPropertyTransition(
       propertyName,
@@ -103,10 +113,20 @@ export function CreateCSSPropertyAnimationForFutureElementsHavingDefinedProperty
       target,
     ),
   );
+  return (progression: TAnimationProgression, elements: ArrayLike<HTMLElement>) => {
+    if (progression === 'end') {
+      for (let i = 0, l = elements.length; i < l; i++) {
+        elements[i].style.setProperty(propertyName, target);
+      }
+    } else {
+      animation(progression, elements);
+    }
+  };
 }
 
 /**
- * INFO: this function requires to call a 0 and 1 'progress'
+ * Creates an <animation> requiring a list of HTMLElements, from a potentially computed 'origin' to a potentially computed 'target'
+ * INFO: this function requires to call a 'start' and 'end' progression
  */
 export function CreateCSSPropertyAnimationForFutureElements(
   propertyName: string,
@@ -123,7 +143,8 @@ export function CreateCSSPropertyAnimationForFutureElements(
 
 
 /**
- * INFO: this function requires to call a 0 and 1 'progress'
+ * Creates an <animation> requiring a list of HTMLElements, from a style's state to another (represented as a Map)
+ * INFO: this function requires to call a 'start' and 'end' progression
  */
 export function CreateAnimationFromStylePropertyChangeMap(
   styleChangeMap: TStylePropertyChangeMap,
@@ -145,12 +166,13 @@ export function CreateAnimationFromStylePropertyChangeMap(
 
 
 /**
- * INFO: this function requires to call a 0 and 1 'progress'
+ * Creates an <animation> requiring a list of HTMLElements, from a style's state to another, with a specific <timing function>
+ * INFO: this function requires to call a 'start' and 'end' progression
  */
 export function CreateCSSAnimation(
   origin: TStyleState,
   target: TStyleState,
-  timingFunction: TTimingFunctionOrName
+  timingFunction: TTimingFunctionOrName = 'ease'
 ): THTMLElementsAnimationFunction {
   return ApplyTimingFunctionToAnimation(
     TimingFunctionOrNameToTimingFunction(timingFunction),
@@ -187,6 +209,9 @@ export function SetElementsOfCSSPropertyAnimationFromQuerySelector(
 
 /** HELPER FUNCTIONS **/
 
+/**
+ * Applies a <timing function> to an <animation>
+ */
 export function ApplyTimingFunctionToAnimation<TAnimation extends TAnimationFunction<any[]>>(
   timingFunction: TTimingFunction,
   animation: TAnimation,
@@ -246,7 +271,7 @@ export function NormalizeOriginAndTarget(
 }
 
 /**
- * returns true if 'input' is a style property's value which requires to be computed
+ * Returns true if 'input' is a style property's value which requires to be computed
  */
 export function IsComputedStylePropertyValue(input: TStylePropertyValue): boolean {
   return (input === void 0)
@@ -279,7 +304,6 @@ export function ResolveComputedStylePropertyValue(
 ): string {
   if (propertyValue === void 0) {
     return getComputedStyle(element).getPropertyValue(propertyName);
-    ;
   } else if (propertyValue === null) {
     const currentPropertyValue = element.style.getPropertyValue(propertyName);
     element.style.removeProperty(propertyName);

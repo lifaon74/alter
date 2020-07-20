@@ -5,7 +5,6 @@ import { IRoutePathInternal, IRoutePathPrivate, ROUTE_PATH_PRIVATE } from './pri
 import { ConstructRoutePath } from './constructor';
 import { MergeMaps } from '../../../../misc/helpers/map/merge';
 import { CancellablePromise, ICancellablePromise } from '@lifaon/observables';
-import { TAbortStrategy } from '@lifaon/observables/src/misc/advanced-abort-controller/advanced-abort-signal/types';
 
 
 /** METHODS **/
