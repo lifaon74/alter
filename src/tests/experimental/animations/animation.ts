@@ -1,11 +1,8 @@
 import { ICSSStatic, ICSSStyleValueStatic, ICSSUnitValueConstructor } from './houdini';
 import { ApplyTimingFunction, CreateEaseInOutTimingFunction } from './timing-functions/timing-functions';
-import {
-  CreateAnimateFunctionFromAnimation, CreateAnimateFunctionFromHTMLElementsAnimationWithKnownElements,
-  CreateDelayAnimateFunction, CreateParallelAnimateFunction, CreateSequentialAnimateFunction
-} from './animate/animate';
+import { CreateSequentialAnimateFunction, TStateWithDuration, } from './animate/animate';
 import { CreateCSSAnimation } from './animations/animations';
-import { animate, animate_elements, animate_loop, animate_seq, animation, state } from './shortcuts';
+import { animate, animate_delay, animate_par, animate_seq_states, animation, state } from './shortcuts';
 import { AdvancedAbortController } from '@lifaon/observables';
 import { CreateCSSPropertyTransition } from './transitions/css-property';
 
@@ -13,7 +10,6 @@ import { CreateCSSPropertyTransition } from './transitions/css-property';
 declare const CSSUnitValue: ICSSUnitValueConstructor;
 declare const CSSStyleValue: ICSSStyleValueStatic;
 declare const CSS: ICSSStatic;
-
 
 
 /** FUNCTIONS **/
@@ -180,19 +176,17 @@ async function testAnimation3() {
     'ease-in-out'
   );
 
-
-  const animate = CreateSequentialAnimateFunction<any[]>([
-    CreateAnimateFunctionFromAnimation(animation1, 2000),
-    CreateDelayAnimateFunction(1000),
-    CreateParallelAnimateFunction<any[]>([
-      CreateAnimateFunctionFromAnimation(animation2, 2000),
-      CreateAnimateFunctionFromHTMLElementsAnimationWithKnownElements(animation3, 2000, [document.body]),
-      // CreateHTMLElementsAnimateFunctionWithKnownElements(CreateReverseAnimation(animation3), 2000, [document.body]),
+  const _animate = CreateSequentialAnimateFunction<any[]>([
+    animate(animation1, { duration: 2000 }),
+    animate_delay(1000),
+    animate_par<any[]>([
+      animate(animation2, { duration: 2000 }),
+      animate(animation2, { duration: 2000, elements: [document.body] }),
     ]),
   ]);
 
   console.time('animate');
-  await animate(void 0, [element]).toPromise();
+  await _animate(void 0, [element]).toPromise();
   console.timeEnd('animate');
 }
 
@@ -200,12 +194,15 @@ async function testAnimation4() {
   const element = createDummyElement();
   document.body.appendChild(element);
 
-  const _animate = animate_elements(
+  const _animate = animate(
     animation({
       width: '100px',
     }, {
       width: '90%',
-    }), 2000, [element]);
+    }), {
+      duration: 2000,
+      elements: [element]
+    });
 
   await _animate().toPromise();
 }
@@ -246,7 +243,7 @@ async function testAnimation5() {
   // }
 
   const controller = new AdvancedAbortController();
-  const _animate = animate(animation1, 1000);
+  const _animate = animate(animation1, { duration: 1000 });
   // const _animate = animate_loop(animate_seq([
   //   animate(animation1, 1000),
   //   animate(animation2, 1000),
@@ -291,12 +288,30 @@ async function testAnimation6() {
       text-align: center;
     }
     
-    .scene > .cube > .front { background: hsla(  0, 100%, 50%, 0.7); }
-    .scene > .cube > .right { background: hsla( 60, 100%, 50%, 0.7); }
-    .scene > .cube > .back  { background: hsla(120, 100%, 50%, 0.7); }
-    .scene > .cube > .left { background: hsla(180, 100%, 50%, 0.7); }
-    .scene > .cube > .top { background: hsla(240, 100%, 50%, 0.7); }
-    .scene > .cube > .bottom { background: hsla(300, 100%, 50%, 0.7); }
+    .scene > .cube > .front {
+      background: hsla(  0, 100%, 50%, 0.7);
+      transform: rotateY(  0deg) translateZ(100px);
+    }
+    .scene > .cube > .right {
+      background: hsla( 60, 100%, 50%, 0.7);
+      transform: rotateY( 90deg) translateZ(100px);
+    }
+    .scene > .cube > .back  {
+      background: hsla(120, 100%, 50%, 0.7);
+      transform: rotateY(180deg) translateZ(100px);
+    }
+    .scene > .cube > .left {
+      background: hsla(180, 100%, 50%, 0.7);
+      transform: rotateY(-90deg) translateZ(100px);
+    }
+    .scene > .cube > .top {
+      background: hsla(240, 100%, 50%, 0.7);
+      transform: rotateX( 90deg) translateZ(100px);
+    }
+    .scene > .cube > .bottom {
+      background: hsla(300, 100%, 50%, 0.7);
+      transform: rotateX(-90deg) translateZ(100px);
+    }
     
    
     </style>
@@ -339,10 +354,13 @@ async function testAnimation6() {
   });
 
   const duration: number = 1000;
-  const _animate = animate_loop(animate_seq([
-    animate(animation(showFront, showRight), duration),
-    animate(animation(showRight, showRight), duration),
-  ]));
+  const _animate = animate_seq_states([
+      { state: showFront, duration: 0 },
+      { state: showRight, duration: 1 },
+      { state: showBack, duration: 1 },
+  ] , { selector: '' });
+
+  // _animate(void 0, 2000);
 }
 
 export async function testAnimation() {

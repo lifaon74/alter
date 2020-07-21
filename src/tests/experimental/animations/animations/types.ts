@@ -4,10 +4,11 @@ import { TAnimationProgressFunction } from '../types';
  * INFO: an <animation> is a function executing some action(s) depending on a 'progression'
  * @example: progression => element.style.setProperty('width', `${ progression * 400 }px`)
  */
-export type TAnimationFunction<TArgs extends any[]> = TAnimationProgressFunction<TArgs, void>;
+export type TAnimationFunction<GArgs extends any[]> = TAnimationProgressFunction<GArgs, void>;
 
 // a <html element animation> is a specific <animation>, which accepts a list of elements
-export type THTMLElementsAnimationFunction = TAnimationFunction<[ArrayLike<HTMLElement>]>;
+export type THTMLElements = ArrayLike<HTMLElement>;
+export type TAnimationFunctionRequiringFutureHTMLElements<GArgs extends any[]> = TAnimationFunction<[THTMLElements, ...GArgs]>;
 
 /*---*/
 

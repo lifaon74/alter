@@ -1,11 +1,19 @@
-import { TAnimationFunction, THTMLElementsAnimationFunction, TStyleState, TStyleStateMap } from './animations/types';
+import {
+  TAnimationFunction, TAnimationFunctionRequiringFutureHTMLElements, TStyleState, TStyleStateMap
+} from './animations/types';
 import { CreateCSSAnimation, NormalizeStyleState } from './animations/animations';
 import { TTimingFunction, TTimingFunctionOrName } from './timing-functions/types';
 import { TimingFunctionOrNameToTimingFunction } from './timing-functions/timing-functions';
-import { TAnimateFunction } from './animate/types';
 import {
-  CreateAnimateFunctionFromAnimation, CreateAnimateFunctionFromHTMLElementsAnimation, CreateDelayAnimateFunction,
-  CreateLoopAnimateFunction, CreateParallelAnimateFunction, CreateSequentialAnimateFunction
+  IReduceAnimateFunctionOptions, TAnimateFunction, TAnimateFunctionRequiringFutureDurationAndHTMLElements,
+  TAnimateFunctionRequiringFutureHTMLElements,
+  TInferReduceAnimateFunctionResult,
+  TInferReduceAnimationFunctionResult
+} from './animate/types';
+import {
+  CreateAndReduceAnimateFunctionFromAnimation, CreateDelayAnimateFunction, CreateLoopAnimateFunction,
+  CreateParallelAnimateFunction, CreateSequentialAnimateFunction, CreateSequentialAnimateFunctionFromStates,
+  TStateWithDuration
 } from './animate/animate';
 
 
@@ -21,23 +29,16 @@ export function animation(
   origin: TStyleState,
   target: TStyleState,
   timingFunction?: TTimingFunctionOrName
-): THTMLElementsAnimationFunction {
+): TAnimationFunctionRequiringFutureHTMLElements<[]> {
   return CreateCSSAnimation(origin, target, timingFunction);
 }
 
-export function animate<TArgs extends any[]>(
-  animation: TAnimationFunction<TArgs>,
-  duration: number,
-): TAnimateFunction<TArgs> {
-  return CreateAnimateFunctionFromAnimation<TArgs>(animation, duration);
-}
 
-export function animate_elements(
-  animation: THTMLElementsAnimationFunction,
-  duration: number,
-  elements: ArrayLike<HTMLElement> | string,
-): TAnimateFunction<[]> {
-  return CreateAnimateFunctionFromHTMLElementsAnimation(animation, duration, elements);
+export function animate<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions>(
+  animation: TAnimationFunctionRequiringFutureHTMLElements<GArgs>,
+  options?: GOptions,
+): TInferReduceAnimationFunctionResult<GArgs, GOptions> {
+  return CreateAndReduceAnimateFunctionFromAnimation<GArgs, GOptions>(animation, options);
 }
 
 
@@ -45,20 +46,27 @@ export function animate_delay(timeout: number): TAnimateFunction<[]> {
   return CreateDelayAnimateFunction(timeout);
 }
 
-export function animate_loop<TArgs extends any[]>(
-  animateFunction: TAnimateFunction<TArgs>
-): TAnimateFunction<TArgs> {
+export function animate_loop<GArgs extends any[]>(
+  animateFunction: TAnimateFunction<GArgs>
+): TAnimateFunction<GArgs> {
   return CreateLoopAnimateFunction(animateFunction);
 }
 
-export function animate_par<TArgs extends any[]>(
-  animateFunctions: TAnimateFunction<TArgs>[],
-): TAnimateFunction<TArgs> {
+export function animate_par<GArgs extends any[]>(
+  animateFunctions: TAnimateFunction<GArgs>[],
+): TAnimateFunction<GArgs> {
   return CreateParallelAnimateFunction(animateFunctions);
 }
 
-export function animate_seq<TArgs extends any[]>(
-  animateFunctions: TAnimateFunction<TArgs>[],
-): TAnimateFunction<TArgs> {
-  return CreateSequentialAnimateFunction<TArgs>(animateFunctions);
+export function animate_seq<GArgs extends any[]>(
+  animateFunctions: TAnimateFunction<GArgs>[],
+): TAnimateFunction<GArgs> {
+  return CreateSequentialAnimateFunction<GArgs>(animateFunctions);
+}
+
+export function animate_seq_states<GOptions extends IReduceAnimateFunctionOptions>(
+  items: Iterable<TStateWithDuration>,
+  options?: GOptions,
+): TInferReduceAnimateFunctionResult<[], GOptions> {
+  return CreateSequentialAnimateFunctionFromStates<GOptions>(items, options);
 }

@@ -1,31 +1,49 @@
-import { TAnimationFunction, THTMLElementsAnimationFunction } from '../animations/types';
+import {
+  TAnimationFunction, TAnimationFunctionRequiringFutureHTMLElements, THTMLElements, TStyleState
+} from '../animations/types';
 import { NormalizeProgression } from '../functions';
-import { TAnimateFunction } from './types';
+import {
+  IReduceAnimateFunctionOptions, TAnimateFunction, TAnimateFunctionRequiringFutureDuration,
+  TAnimateFunctionRequiringFutureDurationAndHTMLElements, TAnimateFunctionRequiringFutureHTMLElements,
+  TInferReduceAnimateFunctionResult, TInferReduceAnimationFunctionResult
+} from './types';
 import {
   $delay, CancellablePromise, IAdvancedAbortSignal, ICancellablePromise, ICancellablePromiseOptions,
   IsAdvancedAbortSignal, TNativePromiseLikeOrValue
 } from '@lifaon/observables';
 import { IsObject } from '../../../../misc/helpers/is/IsObject';
+import {
+  NormalizeIterableOfTupleOrObject, TIterableOfTupleOrObject, TTupleOrObject
+} from './normalize-iterable-of-tuple-or-object';
+import { CreateCSSAnimation } from '../animations/animations';
+import { TTimingFunctionOrName } from '../timing-functions/types';
+import { ArrayFrom } from '../../../../misc/helpers/array-helpers';
 
 // export interface ICreateAnimateFunctionOptions {
 //   // loop?: boolean;
 //   reverse?: boolean;
 // }
 
+/************************* FROM ANIMATION *************************/
+
+
 /**
- * Creates an <animate function> for an <animation> with a specific 'duration': when called, it runs <animation>
+ * Creates an <animate function> for an <animation>: when called with a 'duration', it runs <animation>
  */
-export function CreateAnimateFunctionFromAnimation<TArgs extends any[]>(
-  animation: TAnimationFunction<TArgs>,
-  duration: number,
-): TAnimateFunction<TArgs> {
-  return (options?: ICancellablePromiseOptions, ...args: TArgs): ICancellablePromise<void> => {
+export function CreateAnimateFunctionFromAnimationRequiringFutureDuration<GArgs extends any[]>(
+  animation: TAnimationFunction<GArgs>,
+): TAnimateFunctionRequiringFutureDuration<GArgs> {
+  return (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
 
     return new CancellablePromise<void>((
       resolve: (value?: TNativePromiseLikeOrValue<void>) => void,
       reject: (reason?: any) => void,
       signal: IAdvancedAbortSignal,
     ) => {
+      if (duration < 0) {
+        throw new RangeError(`Expected 'duration' in the range [0, +Infinity[`);
+      }
+
       const startTime: number = Date.now();
       let initialized: boolean = false;
       let handle: any;
@@ -66,49 +84,121 @@ export function CreateAnimateFunctionFromAnimation<TArgs extends any[]>(
   };
 }
 
+
+
+export function CreateAndReduceAnimateFunctionFromAnimation<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions>(
+  animation: TAnimationFunctionRequiringFutureHTMLElements<GArgs>,
+  options?: GOptions,
+): TInferReduceAnimationFunctionResult<GArgs, GOptions> {
+  return ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<[THTMLElements, ...GArgs], GOptions>(
+    CreateAnimateFunctionFromAnimationRequiringFutureDuration<[THTMLElements, ...GArgs]>(animation) as any,
+    options,
+  );
+}
+
+
+
+/************************* FIX ARGUMENTS *************************/
+
 /**
- * Creates an <animate function> for an <animation> (expecting a list of HTMLElements) with a specific 'duration' and list of elements
+ * Simplifies an <animate function> by fixing some of it's arguments like a duration or a list of elements
  */
-export function CreateAnimateFunctionFromHTMLElementsAnimationWithKnownElements(
-  animation: THTMLElementsAnimationFunction,
+export function ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions>(
+  animateFunction: TAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs[]>,
+  options?: GOptions,
+): TInferReduceAnimateFunctionResult<GArgs, GOptions> {
+  let _animateFunction: any;
+
+  const duration: number | undefined = (typeof options?.duration === 'number')
+    ? options.duration
+    : void 0;
+
+  const elements: THTMLElements | undefined = Array.isArray(options?.elements)
+    ? (options as GOptions).elements
+    : void 0;
+
+  const selector: string | undefined = (typeof options?.selector === 'string')
+    ? options.selector
+    : void 0;
+
+  const parentElement: ParentNode = (options?.parentElement === void 0)
+    ? document
+    : options.parentElement;
+
+  if (duration === void 0) {
+    if (elements === void 0) {
+      if (selector === void 0) {
+        _animateFunction = animateFunction;
+      } else {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
+          return animateFunction(options, duration, parentElement.querySelectorAll(selector), ...args);
+        };
+      }
+    } else {
+      if (selector === void 0) {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
+          return animateFunction(options, duration, elements, ...args);
+        };
+      } else {
+        throw new Error(`Cannot have simultaneously 'elements' and 'selector' on options`);
+      }
+    }
+  } else {
+    if (elements === void 0) {
+      if (selector === void 0) {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, elements: THTMLElements, ...args: GArgs): ICancellablePromise<void> => {
+          return animateFunction(options, duration, elements, ...args);
+        };
+      } else {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, ...args: GArgs): ICancellablePromise<void> => {
+          return animateFunction(options, duration, parentElement.querySelectorAll(selector), ...args);
+        };
+      }
+    } else {
+      if (selector === void 0) {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, ...args: GArgs): ICancellablePromise<void> => {
+          return animateFunction(options, duration, elements, ...args);
+        };
+      } else {
+        throw new Error(`Cannot have simultaneously 'elements' and 'selector' on options`);
+      }
+    }
+  }
+
+  return _animateFunction;
+}
+
+
+export function SetDurationOfAnimateFunctionRequiringFutureDuration<GArgs extends any[]>(
+  animateFunction: TAnimateFunctionRequiringFutureDuration<GArgs>,
   duration: number,
-  elements: ArrayLike<HTMLElement>,
-): TAnimateFunction<[]> {
-  const _animation: TAnimateFunction<[ArrayLike<HTMLElement>]> = CreateAnimateFunctionFromAnimation(animation, duration);
-  return (options?: ICancellablePromiseOptions) => {
-    return _animation(options, elements);
+): TAnimateFunction<GArgs> {
+  return (options?: ICancellablePromiseOptions, ...args: GArgs): ICancellablePromise<void> => {
+    return animateFunction(options, duration, ...args);
   };
 }
 
-/**
- * Creates an <animate function> for an <animation> (expecting a list of HTMLElements) with a specific 'duration' and css selector for the elements
- */
-export function CreateAnimateFunctionFromHTMLElementsAnimationWithCSSSelector(
-  animation: THTMLElementsAnimationFunction,
-  duration: number,
+export function SetElementsOfAnimateFunctionRequiringFutureElements<GArgs extends any[]>(
+  animateFunction: TAnimateFunctionRequiringFutureHTMLElements<GArgs>,
+  elements: THTMLElements,
+): TAnimateFunction<GArgs> {
+  return (options?: ICancellablePromiseOptions, ...args: GArgs): ICancellablePromise<void> => {
+    return animateFunction(options, elements, ...args);
+  };
+}
+
+export function SetElementsAsQuerySelectorOfAnimateFunctionRequiringFutureElements<GArgs extends any[]>(
+  animateFunction: TAnimateFunctionRequiringFutureHTMLElements<GArgs>,
   selector: string,
-  parentElement: ParentNode = document,
-): TAnimateFunction<[]> {
-  const _animation: TAnimateFunction<[ArrayLike<HTMLElement>]> = CreateAnimateFunctionFromAnimation(animation, duration);
-  return (options?: ICancellablePromiseOptions) => {
-    return _animation(options, parentElement.querySelectorAll(selector));
+  parentElement: ParentNode = document
+): TAnimateFunction<GArgs> {
+  return (options?: ICancellablePromiseOptions, ...args: GArgs): ICancellablePromise<void> => {
+    return animateFunction(options, parentElement.querySelectorAll(selector), ...args);
   };
 }
 
-/**
- * Creates an <animate function> for an <animation> (expecting a list of HTMLElements) with a specific 'duration' and list of elements or a selctor
- */
-export function CreateAnimateFunctionFromHTMLElementsAnimation(
-  animation: THTMLElementsAnimationFunction,
-  duration: number,
-  elements: ArrayLike<HTMLElement> | string,
-): TAnimateFunction<[]> {
-  return (typeof elements === 'string')
-     ? CreateAnimateFunctionFromHTMLElementsAnimationWithCSSSelector(animation, duration, elements)
-     : CreateAnimateFunctionFromHTMLElementsAnimationWithKnownElements(animation, duration, elements);
-}
 
-/*-------------------------*/
+/************************* FROM OTHER ANIMATE FUNCTIONS *************************/
 
 /**
  * Creates an <animate function> used to delay some execution
@@ -119,16 +209,19 @@ export function CreateDelayAnimateFunction(timeout: number): TAnimateFunction<[]
   };
 }
 
-export function CreateLoopAnimateFunction<TArgs extends any[]>(
-  animateFunction: TAnimateFunction<TArgs>
-): TAnimateFunction<TArgs> {
-  return (options?: ICancellablePromiseOptions, ...args: TArgs) => {
+/**
+ * Creates an <animate function> which runs in loop an <animate function>
+ */
+export function CreateLoopAnimateFunction<GArgs extends any[]>(
+  animateFunction: TAnimateFunction<GArgs>
+): TAnimateFunction<GArgs> {
+  return (options?: ICancellablePromiseOptions, ...args: GArgs) => {
     const loop = (signal: IAdvancedAbortSignal): ICancellablePromise<void> => {
       return animateFunction({ signal }, ...args)
         .then((result: void, signal: IAdvancedAbortSignal) => {
           return loop(signal);
         });
-    }
+    };
     if (IsObject(options) && IsAdvancedAbortSignal((options as ICancellablePromiseOptions).signal)) {
       return loop((options as ICancellablePromiseOptions).signal as IAdvancedAbortSignal);
     } else {
@@ -140,12 +233,12 @@ export function CreateLoopAnimateFunction<TArgs extends any[]>(
 /**
  * Creates an <animate function> which runs in parallel many <animate functions>
  */
-export function CreateParallelAnimateFunction<TArgs extends any[]>(
-  animateFunctions: TAnimateFunction<TArgs>[],
-): TAnimateFunction<TArgs> {
-  return (options?: ICancellablePromiseOptions, ...args: TArgs) => {
+export function CreateParallelAnimateFunction<GArgs extends any[]>(
+  animateFunctions: TAnimateFunction<GArgs>[],
+): TAnimateFunction<GArgs> {
+  return (options?: ICancellablePromiseOptions, ...args: GArgs) => {
     return CancellablePromise.all(
-      animateFunctions.map((animate: TAnimateFunction<TArgs>) => {
+      animateFunctions.map((animate: TAnimateFunction<GArgs>) => {
         return (signal: IAdvancedAbortSignal) => animate({ signal }, ...args);
       })
     ).then(() => {
@@ -156,43 +249,61 @@ export function CreateParallelAnimateFunction<TArgs extends any[]>(
 /**
  * Creates an <animate function> which runs in sequence many <animate functions>
  */
-export function CreateSequentialAnimateFunction<TArgs extends any[]>(
-  animateFunctions: TAnimateFunction<TArgs>[],
-): TAnimateFunction<TArgs> {
-  return (options?: ICancellablePromiseOptions, ...args: TArgs) => {
-    return animateFunctions.reduce((promise: ICancellablePromise<void>, animateFunction: TAnimateFunction<TArgs>) => {
+export function CreateSequentialAnimateFunction<GArgs extends any[]>(
+  animateFunctions: TAnimateFunction<GArgs>[],
+): TAnimateFunction<GArgs> {
+  return (options?: ICancellablePromiseOptions, ...args: GArgs) => {
+    return animateFunctions.reduce((promise: ICancellablePromise<void>, animateFunction: TAnimateFunction<GArgs>) => {
       return promise.then((value: void, signal: IAdvancedAbortSignal) => animateFunction({ signal }, ...args));
     }, CancellablePromise.resolve<void>(void 0, options));
+  };
+}
+
+
+export function CreateSequentialWeightedAnimateFunctionWithFutureDuration<GArgs extends any[]>(
+  weightedAnimateFunctions: [TAnimateFunctionRequiringFutureDuration<GArgs>, number][],
+): TAnimateFunctionRequiringFutureDuration<GArgs> {
+  return (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs) => {
+    return weightedAnimateFunctions.reduce(
+      (
+        promise: ICancellablePromise<void>,
+        [animateFunction, weight]: [TAnimateFunctionRequiringFutureDuration<GArgs>, number],
+      ) => {
+        return promise.then((value: void, signal: IAdvancedAbortSignal) => {
+          return animateFunction({ signal }, weight * duration, ...args);
+        });
+      },
+      CancellablePromise.resolve<void>(void 0, options)
+    );
   };
 }
 
 /*-----------------------*/
 
 
-
-// export interface TAnimationWithWeightObject<TArgs extends any[]> {
-//   animation: TAnimateFunction<TArgs>;
+// export interface TAnimationWithWeightObject<GArgs extends any[]> {
+//   animation: TAnimateFunction<GArgs>;
 //   weight: number;
 // }
 //
 //
-// export type TAnimationWithWeightTuple<TArgs extends any[]> = [TAnimateFunction<TArgs>, number];
+// export type TAnimationWithWeightTuple<GArgs extends any[]> = [TAnimateFunction<GArgs>, number];
 //
-// export type TAnimationWithWeight<TArgs extends any[]> = TAnimationWithWeightObject<TArgs> | TAnimationWithWeightTuple<TArgs>;
+// export type TAnimationWithWeight<GArgs extends any[]> = TAnimationWithWeightObject<GArgs> | TAnimationWithWeightTuple<GArgs>;
 //
 //
-// export interface TNormalizedAnimationWithWeight<TArgs extends any[]> extends TAnimationWithWeightObject<TArgs> {
+// export interface TNormalizedAnimationWithWeight<GArgs extends any[]> extends TAnimationWithWeightObject<GArgs> {
 //   startProgression: number;
 //   endProgression: number;
 // }
 //
-// export function NormalizeAnimationWithWeightIterable<TArgs extends any[]>(
-//   animationsWithWeight: Iterable<TAnimationWithWeight<TArgs>>
-// ): TNormalizedAnimationWithWeight<TArgs>[] {
+// export function NormalizeAnimationWithWeightIterable<GArgs extends any[]>(
+//   animationsWithWeight: Iterable<TAnimationWithWeight<GArgs>>
+// ): TNormalizedAnimationWithWeight<GArgs>[] {
 //
-//   const preNormalizedAnimationsWithWeight: TAnimationWithWeightObject<TArgs>[] = Array.from(
+//   const preNormalizedAnimationsWithWeight: TAnimationWithWeightObject<GArgs>[] = Array.from(
 //     animationsWithWeight,
-//     (animationWithWeight: TAnimationWithWeight<TArgs>, index: number) => {
+//     (animationWithWeight: TAnimationWithWeight<GArgs>, index: number) => {
 //       if (Array.isArray(animationWithWeight)) {
 //         return {
 //           animation: animationWithWeight[0],
@@ -206,7 +317,7 @@ export function CreateSequentialAnimateFunction<TArgs extends any[]>(
 //     }
 //   );
 //
-//   const totalWeight: number = preNormalizedAnimationsWithWeight.reduce((totalWeight: number, animationWithWeight: TAnimationWithWeightObject<TArgs>, index: number) => {
+//   const totalWeight: number = preNormalizedAnimationsWithWeight.reduce((totalWeight: number, animationWithWeight: TAnimationWithWeightObject<GArgs>, index: number) => {
 //     if (Number.isFinite(totalWeight) && (totalWeight >= 0)) {
 //       return totalWeight + animationWithWeight.weight;
 //     } else {
@@ -219,10 +330,10 @@ export function CreateSequentialAnimateFunction<TArgs extends any[]>(
 //   }
 //
 //   let startProgression: number = 0;
-//   return preNormalizedAnimationsWithWeight.map((animationWithWeight: TAnimationWithWeightObject<TArgs>) => {
+//   return preNormalizedAnimationsWithWeight.map((animationWithWeight: TAnimationWithWeightObject<GArgs>) => {
 //     const weight: number = animationWithWeight.weight / totalWeight;
 //     const endProgression: number = startProgression + weight;
-//     const normalizedAnimationWithWeight: TNormalizedAnimationWithWeight<TArgs> =  {
+//     const normalizedAnimationWithWeight: TNormalizedAnimationWithWeight<GArgs> =  {
 //       animation: animationWithWeight.animation,
 //       weight,
 //       startProgression,
@@ -232,12 +343,12 @@ export function CreateSequentialAnimateFunction<TArgs extends any[]>(
 //   });
 // }
 //
-// export function CreateSequentialAnimateFunctionFromAnimationsWithWeight<TArgs extends any[]>(
-//   animationsWithWeight: Iterable<TAnimationWithWeight<TArgs>>
-// ): TAnimateFunction<TArgs> {
-//   const normalizedAnimationsWithWeight: TNormalizedAnimationWithWeight<TArgs>[] = NormalizeAnimationWithWeightIterable<TArgs>(animationsWithWeight);
+// export function CreateSequentialAnimateFunctionFromAnimationsWithWeight<GArgs extends any[]>(
+//   animationsWithWeight: Iterable<TAnimationWithWeight<GArgs>>
+// ): TAnimateFunction<GArgs> {
+//   const normalizedAnimationsWithWeight: TNormalizedAnimationWithWeight<GArgs>[] = NormalizeAnimationWithWeightIterable<GArgs>(animationsWithWeight);
 //
-//   return (options?: ICancellablePromiseOptions, ...args: TArgs) => ICancellablePromise<void> {
+//   return (options?: ICancellablePromiseOptions, ...args: GArgs) => ICancellablePromise<void> {
 //
 //   };
 // }
@@ -245,71 +356,140 @@ export function CreateSequentialAnimateFunction<TArgs extends any[]>(
 
 /*--*/
 
-export interface TAnimationWithDurationObject<TArgs extends any[]> {
-  animation: TAnimationFunction<TArgs>;
+/************************* FROM ANIMATIONS WITH DURATION *************************/
+
+export type TAnimationWithDurationKeys = ['animation', 'duration'];
+
+export interface TAnimationWithDurationObject<GArgs extends any[]> {
+  animation: TAnimationFunction<GArgs>;
   duration: number;
 }
 
+export type TAnimationWithDuration<GArgs extends any[]> = TTupleOrObject<TAnimationWithDurationKeys, TAnimationWithDurationObject<GArgs>>;
 
-export type TAnimationWithDurationTuple<TArgs extends any[]> = [TAnimationFunction<TArgs>, number];
-
-export type TAnimationWithDuration<TArgs extends any[]> = TAnimationWithDurationObject<TArgs> | TAnimationWithDurationTuple<TArgs>;
-
-export function NormalizeAnimationWithDurationIterable<TArgs extends any[]>(
-  animationsWithDuration: Iterable<TAnimationWithDuration<TArgs>>
-): TAnimationWithDurationObject<TArgs>[] {
-  return Array.from(
-    animationsWithDuration,
-    (animationWithDuration: TAnimationWithDuration<TArgs>, index: number) => {
-      if (Array.isArray(animationWithDuration)) {
-        return {
-          animation: animationWithDuration[0],
-          duration: animationWithDuration[1],
-        };
-      } else if (IsObject(animationWithDuration)) {
-        return animationWithDuration;
-      } else {
-        throw new TypeError(`Expected TAnimationWithDuration at index ${ index }`);
-      }
-    }
+export function NormalizeAnimationWithDurationIterable<GArgs extends any[]>(
+  items: TIterableOfTupleOrObject<TAnimationWithDurationKeys, TAnimationWithDurationObject<GArgs>>
+): TAnimationWithDurationObject<GArgs>[] {
+  return NormalizeIterableOfTupleOrObject<TAnimationWithDurationKeys, TAnimationWithDurationObject<GArgs>>(
+    ['animation', 'duration'],
+    items
   );
 }
 
-export function CreateSequentialAnimateFunctionFromAnimationsWithDuration<TArgs extends any[]>(
-  animationsWithDuration: Iterable<TAnimationWithDuration<TArgs>>
-): TAnimateFunction<TArgs> {
-  return CreateSequentialAnimateFunction<TArgs>(
-    NormalizeAnimationWithDurationIterable<TArgs>(animationsWithDuration)
-      .map((normalizedAnimationWithDuration: TAnimationWithDurationObject<TArgs>) => {
-        return CreateAnimateFunctionFromAnimation<TArgs>(normalizedAnimationWithDuration.animation, normalizedAnimationWithDuration.duration);
-      })
+
+/**
+ * Creates an <animate function> which runs in sequence many <animations>, each having a specific duration scaled in the future
+ */
+export function CreateSequentialAnimateFunctionFromAnimationsWithDurationRequiringFutureDuration<GArgs extends any[]>(
+  items: TIterableOfTupleOrObject<TAnimationWithDurationKeys, TAnimationWithDurationObject<GArgs>>
+): TAnimateFunctionRequiringFutureDuration<GArgs> {
+  const _items: TAnimationWithDurationObject<GArgs>[] = NormalizeAnimationWithDurationIterable<GArgs>(items);
+  const total: number = _items.reduce((total: number, item: TAnimationWithDurationObject<GArgs>) => {
+    return total + item.duration;
+  }, 0);
+  return CreateSequentialWeightedAnimateFunctionWithFutureDuration<GArgs>(
+    _items.map((item: TAnimationWithDurationObject<GArgs>) => {
+      return [
+        CreateAnimateFunctionFromAnimationRequiringFutureDuration<GArgs>(item.animation),
+        (item.duration / total),
+      ];
+    })
+  );
+}
+
+/**
+ * Creates an <animate function> which runs in sequence many <animations>, each having a specific duration
+ */
+export function CreateSequentialAnimateFunctionFromAnimationsWithDuration<GArgs extends any[]>(
+  items: TIterableOfTupleOrObject<TAnimationWithDurationKeys, TAnimationWithDurationObject<GArgs>>
+): TAnimateFunction<GArgs> {
+  return SetDurationOfAnimateFunctionRequiringFutureDuration<GArgs>(
+    CreateSequentialAnimateFunctionFromAnimationsWithDurationRequiringFutureDuration<GArgs>(items),
+    -1
   );
 }
 
 
 /*--*/
 
+export interface TStateWithDuration {
+  state: TStyleState;
+  duration: number;
+  timingFunction?: TTimingFunctionOrName;
+}
 
+function GetTotalDurationOfStatesWithDuration(items: TStateWithDuration[]): number {
+  return items.reduce((total: number, item: TStateWithDuration) => {
+    return total + item.duration;
+  }, 0);
+}
 
-// export function animate_seq_states<TArgs extends any[]>(
-//   states: TStyleState[],
-// ): TAnimateFunction<TArgs> {
-//   const length: number = states.length;
-//
-//   if (length < 2) {
-//     throw new Error(`Min 2 states required`);
-//   } else {
-//     const animations: any[] = [];
-//     for (let i = 1; i < length; i++) {
-//       animations.push();
-//     }
-//   }
-//
-//   // [
-//   //   animate(animation(showFront, showRight), duration),
-//   //   animate(animation(showRight, showRight), duration),
-//   // ])
+export function CreateSequentialAnimateFunctionFromStatesWithDurationRequiringFutureDurationAndHTMLElements(
+  items: Iterable<TStateWithDuration>
+): TAnimateFunctionRequiringFutureDurationAndHTMLElements<[]> {
+  const _items: TStateWithDuration[] = ArrayFrom(items);
+  const length: number = _items.length;
+
+  if (length < 2) {
+    throw new Error(`Min 2 states required`);
+  } else if (_items[0].duration !== 0) {
+    throw new Error(`The first state must have a duration of 0`);
+  } else if (_items[0].timingFunction !== void 0) {
+    throw new Error(`The first state must not have a timing function`);
+  } else {
+    const total: number = GetTotalDurationOfStatesWithDuration(_items);
+    const weightedAnimateFunctions: [TAnimateFunctionRequiringFutureDurationAndHTMLElements<[]>, number][] = [];
+    for (let i = 1; i < length; i++) {
+      const stateA: TStateWithDuration = _items[i - 1];
+      const stateB: TStateWithDuration = _items[i];
+      weightedAnimateFunctions.push([
+        CreateAnimateFunctionFromAnimationRequiringFutureDuration<[THTMLElements]>(
+          CreateCSSAnimation(stateA.state, stateB.state, stateB.timingFunction),
+        ),
+        (stateB.duration / total),
+      ]);
+    }
+
+    return CreateSequentialWeightedAnimateFunctionWithFutureDuration<[THTMLElements]>(weightedAnimateFunctions);
+  }
+}
+
+// /**
+//  * Creates an <animate function> which runs in sequence many <animations>, each having a specific duration
+//  */
+// export function CreateSequentialAnimateFunctionFromStatesWithDuration(
+//   items: Iterable<TStateWithDuration>
+// ): TAnimateFunctionRequiringFutureHTMLElements<[]> {
+//   const _items: TStateWithDuration[] = ArrayFrom(items);
+//   const total: number = GetTotalDurationOfStatesWithDuration(_items);
+//   return SetDurationOfAnimateFunctionRequiringFutureDuration<[THTMLElements]>(
+//     CreateSequentialAnimateFunctionFromStatesWithDurationRequiringFutureDurationAndHTMLElements(_items),
+//     total
+//   );
 // }
+
+export function CreateSequentialAnimateFunctionFromStates<GOptions extends IReduceAnimateFunctionOptions>(
+  items: Iterable<TStateWithDuration>,
+  options?: GOptions,
+): TInferReduceAnimateFunctionResult<[], GOptions> {
+  const _items: TStateWithDuration[] = ArrayFrom(items);
+
+  const duration: number | undefined = (IsObject(options) && (typeof options.duration === 'number'))
+    ? (options.duration <= 0)
+      ? GetTotalDurationOfStatesWithDuration(_items)
+      : options.duration
+    : void 0;
+
+  return ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<[], GOptions>(
+    CreateSequentialAnimateFunctionFromStatesWithDurationRequiringFutureDurationAndHTMLElements(_items),
+    {
+      ...options,
+      duration
+    } as GOptions
+  );
+}
+
+
 
 
 
