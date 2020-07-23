@@ -1,51 +1,7 @@
-import { ICSSStatic, ICSSStyleValueStatic, ICSSUnitValueConstructor } from './houdini';
 import { ApplyTimingFunction, CreateEaseInOutTimingFunction } from './timing-functions/timing-functions';
-import { CreateSequentialAnimateFunction, } from './animate/animate';
-import { CreateCSSAnimation } from './animations/animations';
-import { animate, animate_delay, animate_par, animation, state } from './shortcuts';
-import { AdvancedAbortController } from '@lifaon/observables';
 import { CreateCSSPropertyTransition } from './transitions/css-property';
-import { IReduceAnimateFunctionOptions } from './animate/types';
-
-
-declare const CSSUnitValue: ICSSUnitValueConstructor;
-declare const CSSStyleValue: ICSSStyleValueStatic;
-declare const CSS: ICSSStatic;
-
-
-/** FUNCTIONS **/
-
-
-/*----------------------------*/
-
-
-// export class StyleState<TState extends TStyleState> {
-//   readonly state: Readonly<TState>;
-//
-//   constructor(state: TState) {
-//     this.state = Object.freeze(state);
-//   }
-// }
-
-
-// export class Animation<TVariables extends string[]> {
-//   readonly variables: IReadonlyTuple<TVariables>;
-//
-//   constructor(variables: TVariables) {
-//     this.variables = new ReadonlyTuple(variables);
-//   }
-// }
-
-// export class Animation {
-//   readonly startState: TStyleState;
-//   readonly endState: TStyleState;
-//
-//   constructor(variables: TVariables) {
-//     this.variables = new ReadonlyTuple(variables);
-//   }
-// }
-
-/*----------------------------*/
+import { animate, animate_seq_states, animation, state } from './shortcuts';
+import { AdvancedAbortController } from '@lifaon/observables';
 
 
 function createDummyElement(
@@ -65,83 +21,45 @@ function createDummyElement(
   return element;
 }
 
-async function testTransitions1() {
+async function testTransition1() {
   const element = createDummyElement();
   document.body.appendChild(element);
 
   const timingFunction = CreateEaseInOutTimingFunction();
 
   // const transition = CreateFixedCSSNumericValueTransition(CSS.px(0), CSS.px(5000));
-  const transition = CreateCSSPropertyTransition('background-color', 'red', 'blue');
+  const { transition, isComputed } = CreateCSSPropertyTransition('background-color', 'red', 'blue');
 
   const _transition = ApplyTimingFunction(timingFunction, transition);
 
   for (let i = 0, l = 10; i <= l; i++) {
-    console.log(_transition(i / l));
+    console.log(_transition(i / l, element));
   }
 }
 
-// async function testAnimation1() {
-//   const element = createDummyElement();
-//   document.body.appendChild(element);
-//
-//
-//   const timingFunction = CreateEaseInOutTimingFunction();
-//
-//   let propertyName: string;
-//   let transition: TTransitionFunction<string>;
-//
-//   // propertyName = 'background-color';
-//   // transition = CreateCSSPropertyTransition(propertyName, 'red', 'blue');
-//
-//   propertyName = 'width';
-//   transition = CreateCSSPropertyTransition(propertyName, '0', '500px');
-//
-//   transition = ApplyTimingFunctionToTransition(transition, timingFunction);
-//   const animation = CreateCSSPropertyAnimation(element, propertyName, transition);
-//
-//
-//   // const animation2 = CreateSequentialAnimation([
-//   //   [animation, 1000],
-//   //   [animation, 2000],
-//   // ] as Iterable<TAnimationWithWeight>);
-//
-//   // for (let i = 0, l = 10; i <= l; i++) {
-//   //   animation2(i / l);
-//   // }
-//
-//   const animate = CreateAnimateFunction(animation, 2000);
-//
-//   await animate();
-// }
+async function testAnimation2() {
+  const element = createDummyElement();
+  element.innerText = 'hello world';
+  document.body.appendChild(element);
 
-// async function testAnimation2() {
-//   const element = createDummyElement();
-//   element.innerText = 'hello world';
-//   element.style.setProperty('display', 'inline-block');
-//   element.style.setProperty('overflow', 'auto');
-//   document.body.appendChild(element);
-//
-//
-//   const animation = CreateCSSAnimation(
-//     {
-//       width: '400px',
-//       'background-color': 'red'
-//     },
-//     {
-//       width: 'auto',
-//       'background-color': 'blue'
-//     },
-//     'ease-in-out'
-//   );
-//
-//   const animate = CreateAnimateFunction(animation, 2000);
-//
-//   console.time('animate');
-//   await animate(void 0, [element]).toPromise();
-//   console.timeEnd('animate');
-// }
+  const animations = [
+    ['200px', '400px'],
+    ['auto', '400px'],
+    ['400px', 'auto'],
+    [void 0, 'auto'],
+    [null, '400px'],
+    ['400px', void 0],
+  ].map(([a, b]) => {
+    return animation({
+      width: a,
+    }, {
+      width: b,
+    });
+  });
 
+  const _animate = animate(animations[5], { duration: 2000 });
+  await _animate(void 0, [element]).toPromise();
+}
 
 async function testAnimation3() {
   const element = createDummyElement();
@@ -149,7 +67,7 @@ async function testAnimation3() {
   document.body.appendChild(element);
 
 
-  const animation1 = CreateCSSAnimation(
+  const animation1 = animation(
     {
       width: '400px',
     },
@@ -159,7 +77,7 @@ async function testAnimation3() {
     'ease-in-out'
   );
 
-  const animation2 = CreateCSSAnimation(
+  const animation2 = animation(
     {},
     {
       height: '400px',
@@ -167,7 +85,7 @@ async function testAnimation3() {
     'ease-in-out'
   );
 
-  const animation3 = CreateCSSAnimation(
+  const animation3 = animation(
     {
       // 'background-color': 'white',
     },
@@ -177,14 +95,17 @@ async function testAnimation3() {
     'ease-in-out'
   );
 
-  const _animate = CreateSequentialAnimateFunction<any[]>([
-    animate(animation1, { duration: 2000 }),
-    animate_delay(1000),
-    animate_par<any[]>([
-      animate(animation2, { duration: 2000 }),
-      animate(animation3, { duration: 2000, elements: [document.body] }),
-    ]),
-  ]);
+  // const _animate = animate(animation1, { duration: 2000 });
+  const _animate = animate(animation2, { duration: 2000 });
+
+  // const _animate = animate_seq<[HTMLElementArray]>([
+  //   animate(animation1, { duration: 2000 }),
+  //   animate_delay(1000),
+  //   animate_par<any[]>([
+  //     animate(animation2, { duration: 2000 }),
+  //     animate(animation3, { duration: 2000, elements: [document.body] }),
+  //   ]),
+  // ]);
 
   console.time('animate');
   await _animate(void 0, [element]).toPromise();
@@ -220,7 +141,7 @@ async function testAnimation5() {
     // transform: 'perspective(0) rotateY(-45deg)',
     // transform: 'translateY(0) rotate(0)',
     // transform: 'perspective(400px) rotateY(-45deg)',
-    transform: 'translateY(0) rotate(-45deg)',
+    transform: 'translateY(0) rotate(45deg)',
   });
 
   const state2 = state({
@@ -343,45 +264,32 @@ async function testAnimation6() {
   });
 
   const showLeft = state({
-    transform: `translateZ(-100px) rotateY(  90deg)`,
+    transform: `translateZ(-100px) rotateY(90deg)`,
   });
 
   const showTop = state({
-    transform: `translateZ(-100px) rotateX( -90deg)`,
+    transform: `translateZ(-100px) rotateX(-90deg)`,
   });
 
   const showBottom = state({
-    transform: `translateZ(-100px) rotateX(  90deg)`,
+    transform: `translateZ(-100px) rotateX(90deg)`,
   });
 
-  const options = {
-    selector: '.cube',
-    parentElement: document.body,
-  };
-  // const _animate = animate_seq_states([
-  //     { state: showFront, duration: 0 },
-  //     { state: showRight, duration: 1 },
-  //     { state: showBack, duration: 1 },
-  //     { state: showLeft, duration: 1 },
-  //     { state: showTop, duration: 1 },
-  //     { state: showBottom, duration: 1 },
-  // ] , options);
+  const _animate = animate_seq_states([
+    { state: showFront, duration: 0 },
+    { state: showRight, duration: 1 },
+    { state: showBack, duration: 1 },
+    { state: showLeft, duration: 1 },
+    { state: showTop, duration: 1 },
+    { state: showBottom, duration: 1 },
+  ], { selector: '.cube' });
 
-  const _animate = animate(
-    animation({}, showBottom),
-    options
-  );
-
-
-  _animate(void 0, 4000);
+  _animate(void 0, 2000);
 }
 
 export async function testAnimation() {
-  // await testTransitions1();
-  // await testAnimation1();
+  // await testTransition1();
   // await testAnimation2();
   // await testAnimation3();
-  // await testAnimation4();
-  // await testAnimation5();
   await testAnimation6();
 }

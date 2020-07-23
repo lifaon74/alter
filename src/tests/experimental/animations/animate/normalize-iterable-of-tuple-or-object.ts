@@ -2,7 +2,9 @@ import { IsObject } from '../../../../misc/helpers/is/IsObject';
 
 export type TPropertyKeys = PropertyKey[];
 export type TObjectFromKeys<GKeys extends TPropertyKeys> = Record<GKeys[number], any>;
-export type TTupleOrObject<GKeys extends TPropertyKeys, GObject extends TObjectFromKeys<GKeys>> = GObject | TTupleFromInterface<GKeys, GObject>;
+export type TTupleOrObject<GKeys extends TPropertyKeys, GObject extends TObjectFromKeys<GKeys>> =
+  GObject
+  | TTupleFromInterface<GKeys, GObject>;
 
 export type TTupleFromInterface<GKeys extends TPropertyKeys, GObject extends TObjectFromKeys<GKeys>> = {
   [GKey in keyof GKeys]: GKeys[GKey] extends keyof GObject ? GObject[GKeys[GKey]] : never;

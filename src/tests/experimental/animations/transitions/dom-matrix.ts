@@ -1,16 +1,16 @@
-import { TTransitionFunction } from './types';
-import { mat4 } from 'gl-matrix';
-import { TProgression } from '../types';
-import { CreateTransformMatrixTransition } from './transform-matrix';
+import { TProgressFunction, TProgression } from '../types';
+import { CreateTransformMatrixTransition, TTransformMatrixTransitionFunction } from './transform-matrix';
+
+export type TDOMMatrixTransitionFunction = TProgressFunction<[], DOMMatrix>;
 
 /**
  * Creates a transition from a DOMMatrix to another
  */
-export function CreateDOMMatrixTransitionUnoptimized(
+export function CreateDOMMatrixTransitionNotOptimized(
   origin: DOMMatrix,
   target: DOMMatrix,
-): TTransitionFunction<DOMMatrix> {
-  const transition: TTransitionFunction<mat4> = CreateTransformMatrixTransition(
+): TDOMMatrixTransitionFunction {
+  const transition: TTransformMatrixTransitionFunction = CreateTransformMatrixTransition(
     origin.toFloat32Array(),
     target.toFloat32Array(),
   );
@@ -22,10 +22,10 @@ export function CreateDOMMatrixTransitionUnoptimized(
 export function CreateDOMMatrixTransition(
   origin: DOMMatrix,
   target: DOMMatrix,
-): TTransitionFunction<DOMMatrix> {
+): TDOMMatrixTransitionFunction {
   return DOMMatrixEquals(origin, target)
     ? (() => target)
-    : CreateDOMMatrixTransitionUnoptimized(origin, target);
+    : CreateDOMMatrixTransitionNotOptimized(origin, target);
 }
 
 export function DOMMatrixEquals(a: DOMMatrix, b: DOMMatrix): boolean {

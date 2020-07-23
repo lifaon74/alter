@@ -1,10 +1,11 @@
 import { mat4, quat, vec3, vec4 } from 'gl-matrix';
-import { TTransitionFunction } from './types';
 import { DecomposeMat4 } from './mat4/decompose';
 import { MatrixToString } from './mat4/to-string';
-import { TProgression } from '../types';
+import { TProgressFunction, TProgression } from '../types';
 import { InterpolateDecomposedMat4 } from './mat4/interpolate';
 import { RecomposeMat4 } from './mat4/recompose';
+
+export type TTransformMatrixTransitionFunction = TProgressFunction<[], mat4>;
 
 /**
  * Creates a transition from a 4x4 transform matrix to another
@@ -12,7 +13,7 @@ import { RecomposeMat4 } from './mat4/recompose';
 export function CreateGenericTransformMatrixTransition(
   origin: mat4,
   target: mat4,
-): TTransitionFunction<mat4> {
+): TTransformMatrixTransitionFunction {
   // https://medium.com/swlh/understanding-3d-matrix-transforms-with-pixijs-c76da3f8bd8
   // https://research.cs.wisc.edu/graphics/Courses/838-s2002/Papers/polar-decomp.pdf
   //
@@ -152,7 +153,7 @@ export function CreateGenericTransformMatrixTransition(
 export function CreateTransformMatrixTransition(
   origin: mat4,
   target: mat4,
-): TTransitionFunction<mat4> {
+): TTransformMatrixTransitionFunction {
   return TransformMatrixEquals(origin, target)
     ? (() => target)
     : CreateGenericTransformMatrixTransition(origin, target);
@@ -198,7 +199,7 @@ export function TransformMatrixEquals(a: mat4, b: mat4): boolean {
 //   targetPerspective: vec4,
 //   originQuaternion: quat,
 //   targetQuaternion: quat,
-// ): TTransitionFunction<mat4> {
+// ): TTransformMatrixTransitionFunction {
 //
 //   const currentTranslation: vec3 = vec3.create();
 //   const currentScale: vec3 = vec3.create();
@@ -257,7 +258,7 @@ export function TransformMatrixEquals(a: mat4, b: mat4): boolean {
 //   currentSkew: vec3,
 //   currentPerspective: vec4,
 //   currentQuaternion: quat,
-// ): TTransitionFunction<mat4> {
+// ): TTransformMatrixTransitionFunction {
 //   const currentMatrix: mat4 = mat4.create();
 //   const _translation: vec3 = vec3.create();
 //   return (progression: TProgression): mat4 => {
@@ -274,7 +275,7 @@ export function TransformMatrixEquals(a: mat4, b: mat4): boolean {
 // // export function CreateTranslateTransformMatrixTransition(
 // //   origin: mat4,
 // //   translation: vec3,
-// // ): TTransitionFunction<mat4> {
+// // ): TTransformMatrixTransitionFunction {
 // //   const currentMatrix: mat4 = mat4.create();
 // //   const _translation: vec3 = vec3.create();
 // //   return (progression: TProgression): mat4 => {
@@ -291,7 +292,7 @@ export function TransformMatrixEquals(a: mat4, b: mat4): boolean {
 //
 // // export function CreateScalingTransformMatrixTransition(
 // //   scaling: vec3,
-// // ): TTransitionFunction<mat4> {
+// // ): TTransformMatrixTransitionFunction {
 // //   const currentMatrix: mat4 = mat4.create();
 // //   return (progression: TProgression): mat4 => {
 // //     InterpolateScalingMat4(scaling, currentMatrix, progression);
@@ -302,7 +303,7 @@ export function TransformMatrixEquals(a: mat4, b: mat4): boolean {
 // export function CreateTransformMatrixTransition(
 //   origin: mat4,
 //   target: mat4,
-// ): TTransitionFunction<mat4> {
+// ): TTransformMatrixTransitionFunction {
 //   if (TransformMatrixEquals(origin, target)) {
 //     return () => target;
 //   } else {

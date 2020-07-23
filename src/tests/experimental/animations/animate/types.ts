@@ -1,5 +1,5 @@
 import { ICancellablePromise, ICancellablePromiseOptions } from '@lifaon/observables';
-import { THTMLElements } from '../animations/types';
+import { HTMLElementArray } from '../types';
 
 
 /**
@@ -17,8 +17,8 @@ export type TInferAnimateFunctionArguments<GAnimateFunction extends TAnimateFunc
 /* SHORTCUTS */
 
 export type TAnimateFunctionRequiringFutureDurationArguments<GArgs extends any[]> = [number, ...GArgs];
-export type TAnimateFunctionRequiringFutureHTMLElementsArguments<GArgs extends any[]> = [THTMLElements, ...GArgs];
-export type TAnimateFunctionRequiringFutureDurationAndHTMLElementsArguments<GArgs extends any[]> = [number, THTMLElements, ...GArgs];
+export type TAnimateFunctionRequiringFutureHTMLElementsArguments<GArgs extends any[]> = [HTMLElementArray, ...GArgs];
+export type TAnimateFunctionRequiringFutureDurationAndHTMLElementsArguments<GArgs extends any[]> = [number, HTMLElementArray, ...GArgs];
 
 export type TAnimateFunctionRequiringFutureDuration<GArgs extends any[]> = TAnimateFunction<TAnimateFunctionRequiringFutureDurationArguments<GArgs>>;
 export type TAnimateFunctionRequiringFutureHTMLElements<GArgs extends any[]> = TAnimateFunction<TAnimateFunctionRequiringFutureHTMLElementsArguments<GArgs>>;
@@ -39,7 +39,7 @@ export interface IReduceAnimateFunctionDurationOptions {
 
 
 export interface IReduceAnimateFunctionElementsOptions {
-  elements?: THTMLElements;
+  elements?: HTMLElementArray;
 }
 
 export interface IReduceAnimateFunctionQuerySelectorOptions {
@@ -56,7 +56,7 @@ export interface IReduceAnimateFunctionOptions extends IReduceAnimateFunctionDur
 
 
 export type TReduceAnimateFunctionElementsOrQuerySelectorOptionsContainsElements<GOptions extends IReduceAnimateFunctionElementsOrQuerySelectorOptions> =
-  GOptions['elements'] extends THTMLElements
+  GOptions['elements'] extends HTMLElementArray
     ? true
     : (
       GOptions['selector'] extends string
@@ -79,8 +79,8 @@ export type TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsRes
         : [number, ...GArgs]
       ) : (
       TReduceAnimateFunctionDurationOptionsContainsDuration<GOptions> extends true
-        ? [THTMLElements, ...GArgs]
-        : [number, THTMLElements, ...GArgs]
+        ? [HTMLElementArray, ...GArgs]
+        : [number, HTMLElementArray, ...GArgs]
       );
 
 

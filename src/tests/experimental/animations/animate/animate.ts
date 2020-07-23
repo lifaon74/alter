@@ -1,6 +1,4 @@
-import {
-  TAnimationFunction, TAnimationFunctionRequiringFutureHTMLElements, THTMLElements, TStyleState
-} from '../animations/types';
+import { TAnimationFunction, TAnimationFunctionRequiringFutureHTMLElements } from '../animations/types';
 import { NormalizeProgression } from '../functions';
 import {
   IReduceAnimateFunctionOptions, TAnimateFunction, TAnimateFunctionRequiringFutureDuration,
@@ -19,6 +17,8 @@ import {
 import { CreateCSSAnimation } from '../animations/animations';
 import { TTimingFunctionOrName } from '../timing-functions/types';
 import { ArrayFrom } from '../../../../misc/helpers/array-helpers';
+import { HTMLElementArray, TProgressionSpecialState } from '../types';
+import { TStyleState } from '../style-state/types';
 
 // export interface ICreateAnimateFunctionOptions {
 //   // loop?: boolean;
@@ -60,7 +60,7 @@ export function CreateAnimateFunctionFromAnimationRequiringFutureDuration<GArgs 
       const loop = () => {
         if (!initialized) {
           initialized = true;
-          animation('start', ...args);
+          animation(TProgressionSpecialState.START, ...args);
         }
 
         const progress: number = NormalizeProgression((Date.now() - startTime) / duration);
@@ -70,7 +70,7 @@ export function CreateAnimateFunctionFromAnimationRequiringFutureDuration<GArgs 
         if (progress < 1) {
           handle = requestAnimationFrame(loop);
         } else {
-          animation('end', ...args);
+          animation(TProgressionSpecialState.END, ...args);
           clear();
           resolve();
         }
@@ -96,7 +96,7 @@ export function CreateAndReduceAnimateFunctionRequiringFutureHTMLElementsFromAni
   options?: GOptions,
 ): TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult<GArgs, GOptions> {
   return ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs, GOptions>(
-    CreateAnimateFunctionFromAnimationRequiringFutureDuration<[THTMLElements, ...GArgs]>(animation),
+    CreateAnimateFunctionFromAnimationRequiringFutureDuration<[HTMLElementArray, ...GArgs]>(animation),
     options,
   );
 }
@@ -119,7 +119,7 @@ export function ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArg
     ? options.duration
     : void 0;
 
-  const elements: THTMLElements | undefined = Array.isArray(options?.elements)
+  const elements: HTMLElementArray | undefined = Array.isArray(options?.elements)
     ? (options as GOptions).elements
     : void 0;
 
@@ -152,7 +152,7 @@ export function ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArg
   } else {
     if (elements === void 0) {
       if (selector === void 0) {
-        _animateFunction = (options: ICancellablePromiseOptions | undefined, elements: THTMLElements, ...args: GArgs): ICancellablePromise<void> => {
+        _animateFunction = (options: ICancellablePromiseOptions | undefined, elements: HTMLElementArray, ...args: GArgs): ICancellablePromise<void> => {
           return animateFunction(options, duration, elements, ...args);
         };
       } else {
@@ -186,7 +186,7 @@ export function SetDurationOfAnimateFunctionRequiringFutureDuration<GArgs extend
 
 export function SetElementsOfAnimateFunctionRequiringFutureElements<GArgs extends any[]>(
   animateFunction: TAnimateFunctionRequiringFutureHTMLElements<GArgs>,
-  elements: THTMLElements,
+  elements: HTMLElementArray,
 ): TAnimateFunction<GArgs> {
   return (options?: ICancellablePromiseOptions, ...args: GArgs): ICancellablePromise<void> => {
     return animateFunction(options, elements, ...args);
@@ -449,14 +449,14 @@ export function CreateSequentialAnimateFunctionFromStatesWithDurationRequiringFu
       const stateA: TStateWithDuration = _items[i - 1];
       const stateB: TStateWithDuration = _items[i];
       weightedAnimateFunctions.push([
-        CreateAnimateFunctionFromAnimationRequiringFutureDuration<[THTMLElements]>(
+        CreateAnimateFunctionFromAnimationRequiringFutureDuration<[HTMLElementArray]>(
           CreateCSSAnimation(stateA.state, stateB.state, stateB.timingFunction),
         ),
         (stateB.duration / total),
       ]);
     }
 
-    return CreateSequentialWeightedAnimateFunctionWithFutureDuration<[THTMLElements]>(weightedAnimateFunctions);
+    return CreateSequentialWeightedAnimateFunctionWithFutureDuration<[HTMLElementArray]>(weightedAnimateFunctions);
   }
 }
 

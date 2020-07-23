@@ -1,17 +1,19 @@
-import { TAnimationFunctionRequiringFutureHTMLElements, TStyleState, TStyleStateMap } from './animations/types';
-import { CreateCSSAnimation, NormalizeStyleState } from './animations/animations';
 import { TTimingFunction, TTimingFunctionOrName } from './timing-functions/types';
 import { TimingFunctionOrNameToTimingFunction } from './timing-functions/timing-functions';
-import {
-  IReduceAnimateFunctionOptions, TAnimateFunction,
-  TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult,
-  TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult
-} from './animate/types';
+import { NormalizeStyleState } from './style-state/style-state';
+import { TStyleState, TStyleStateMap } from './style-state/types';
+import { TAnimationFunctionRequiringFutureHTMLElements } from './animations/types';
+import { CreateCSSAnimation } from './animations/animations';
 import {
   CreateAndReduceAnimateFunctionRequiringFutureHTMLElementsFromAnimation, CreateDelayAnimateFunction,
   CreateLoopAnimateFunction, CreateParallelAnimateFunction, CreateSequentialAnimateFunction,
   CreateSequentialAnimateFunctionFromStates, TStateWithDuration
 } from './animate/animate';
+import {
+  IReduceAnimateFunctionOptions, TAnimateFunction,
+  TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult,
+  TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult
+} from './animate/types';
 
 
 export function state(style: TStyleState): TStyleStateMap {

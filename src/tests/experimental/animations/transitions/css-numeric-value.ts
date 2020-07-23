@@ -1,14 +1,15 @@
 import { ICSSNumericValue } from '../houdini';
-import { TTransitionFunction } from './types';
-import { TProgression } from '../types';
+import { TProgressFunction, TProgression } from '../types';
+
+export type TCSSNumericValueTransitionFunction = TProgressFunction<[], ICSSNumericValue>;
 
 /**
  * Creates a transition from a CSSNumericValue to another
  */
-export function CreateCSSNumericValueTransitionUnOptimized(
+export function CreateCSSNumericValueTransitionNotOptimized(
   origin: ICSSNumericValue,
   target: ICSSNumericValue,
-): TTransitionFunction<ICSSNumericValue> {
+): TCSSNumericValueTransitionFunction {
   return (progression: TProgression): ICSSNumericValue => {
     return target.sub(origin).mul(progression).add(origin);
   };
@@ -17,10 +18,16 @@ export function CreateCSSNumericValueTransitionUnOptimized(
 export function CreateCSSNumericValueTransition(
   origin: ICSSNumericValue,
   target: ICSSNumericValue,
-): TTransitionFunction<ICSSNumericValue> {
+): TCSSNumericValueTransitionFunction {
+  // return FastenTransition<[], ICSSNumericValue>(
+  //   origin,
+  //   target,
+  //   CSSNumericValueEquals,
+  //   CreateCSSNumericValueTransitionNotOptimized
+  // );
   return origin.equals(target)
     ? (() => target)
-    : CreateCSSNumericValueTransitionUnOptimized(origin, target);
+    : CreateCSSNumericValueTransitionNotOptimized(origin, target);
 }
 
 export function CSSNumericValueEquals(a: ICSSNumericValue, b: ICSSNumericValue): boolean {

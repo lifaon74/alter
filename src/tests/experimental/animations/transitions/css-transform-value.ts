@@ -1,24 +1,38 @@
 import { ICSSMatrixComponentConstructor, ICSSTransformValue, ICSSTransformValueConstructor } from '../houdini';
-import { TTransitionFunction } from './types';
-import { TProgression } from '../types';
-import { CreateDOMMatrixTransition, DOMMatrixEquals } from './dom-matrix';
+import { TProgressFunction, TProgression } from '../types';
+import { CreateDOMMatrixTransition, DOMMatrixEquals, TDOMMatrixTransitionFunction } from './dom-matrix';
 
 declare const CSSTransformValue: ICSSTransformValueConstructor;
 declare const CSSMatrixComponent: ICSSMatrixComponentConstructor;
 
+export type TCSSTransformValueTransitionFunction = TProgressFunction<[], ICSSTransformValue>;
+
 /**
  * Creates a transition from a CSSTransformValue to another
  */
+export function CreateCSSTransformValueTransitionNotOptimized(
+  origin: ICSSTransformValue,
+  target: ICSSTransformValue,
+): TCSSTransformValueTransitionFunction {
+  const transition: TDOMMatrixTransitionFunction = CreateDOMMatrixTransition(
+    origin.toMatrix(),
+    target.toMatrix(),
+  );
+  return (progression: TProgression): ICSSTransformValue => {
+    return new CSSTransformValue([new CSSMatrixComponent(transition(progression))]);
+  };
+}
+
 export function CreateCSSTransformValueTransition(
   origin: ICSSTransformValue,
   target: ICSSTransformValue,
-): TTransitionFunction<ICSSTransformValue> {
+): TCSSTransformValueTransitionFunction {
   const originMatrix: DOMMatrix = origin.toMatrix();
   const targetMatrix: DOMMatrix = target.toMatrix();
   if (DOMMatrixEquals(originMatrix, targetMatrix)) {
     return () => target;
   } else {
-    const transition: TTransitionFunction<DOMMatrix> = CreateDOMMatrixTransition(
+    const transition: TDOMMatrixTransitionFunction = CreateDOMMatrixTransition(
       originMatrix,
       targetMatrix,
     );

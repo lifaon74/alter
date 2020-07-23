@@ -1,6 +1,9 @@
 import { CubicBezier } from './cubic-bezier';
 import { TTimingFunction, TTimingFunctionName, TTimingFunctionOrName } from './types';
-import { TGenericProgressFunction, TProgression } from '../types';
+import {
+  TGenericProgressFunctionWithSpecialState, TProgression, TProgressionSpecialState, TProgressionWithSpecialState
+} from '../types';
+import { IsProgressionSpecialState } from '../functions';
 
 // https://css-tricks.com/emulating-css-timing-functions-javascript/
 
@@ -76,11 +79,41 @@ export function TimingFunctionOrNameToTimingFunction(input: TTimingFunctionOrNam
 
 /** APPLY **/
 
-export function ApplyTimingFunction<TCallback extends TGenericProgressFunction>(
+// export function ApplyTimingFunction<GCallback extends TGenericProgressFunction>(
+//   timingFunction: TTimingFunction,
+//   callback: GCallback,
+// ): GCallback {
+//   return ((progression: TProgression, ...args: any[]): any => {
+//     return callback(timingFunction(progression), ...args);
+//   }) as GCallback;
+// }
+
+export function ApplyTimingFunction<GCallback extends TGenericProgressFunctionWithSpecialState>(
   timingFunction: TTimingFunction,
-  callback: TCallback,
-): TCallback {
-  return ((progression: TProgression, ...args: any[]): any => {
-    return callback(timingFunction(progression), ...args);
-  }) as TCallback;
+  callback: GCallback,
+): GCallback {
+  return ((progression: TProgressionWithSpecialState, ...args: any[]): any => {
+    return callback(IsProgressionSpecialState(progression) ? progression : timingFunction(progression), ...args);
+  }) as GCallback;
+}
+
+export function CreateReverseProgressFunction<GCallback extends TGenericProgressFunctionWithSpecialState>(
+  callback: GCallback,
+  invertStartAndEnd: boolean = false
+): GCallback {
+  return ((progression: TProgressionWithSpecialState, ...args: any[]): any => {
+    let _progression: TProgressionWithSpecialState;
+    switch (progression) {
+      case TProgressionSpecialState.START:
+        _progression = invertStartAndEnd ? TProgressionSpecialState.END : TProgressionSpecialState.START;
+        break;
+      case TProgressionSpecialState.END:
+        _progression = invertStartAndEnd ? TProgressionSpecialState.START : TProgressionSpecialState.END;
+        break;
+      default:
+        _progression = (1 - progression);
+        break;
+    }
+    return callback(_progression, ...args);
+  }) as GCallback;
 }

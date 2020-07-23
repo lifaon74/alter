@@ -12,6 +12,34 @@ export interface ICSSStyleValueStatic {
 
 /*---*/
 
+
+export interface ICSSVariableReferenceValue {
+  variable: string;
+  readonly fallback?: ICSSUnparsedValue;
+}
+
+export type ICSSUnparsedSegment = string | ICSSVariableReferenceValue;
+
+export interface ICSSUnparsedValue extends ICSSStyleValue {
+  readonly length: number;
+  [Symbol.iterator]: ICSSUnparsedSegment;
+
+  [index: number]: ICSSUnparsedSegment;
+}
+
+
+/*---*/
+
+export interface ICSSKeywordValueConstructor {
+  new(value: string): ICSSKeywordValue;
+}
+
+export interface ICSSKeywordValue extends ICSSStyleValue {
+  value: string;
+}
+
+/*---*/
+
 export type ICSSNumberish = number | ICSSNumericValue;
 
 export type ICSSNumericBaseType =
@@ -103,6 +131,7 @@ export interface ICSSUnitValue extends ICSSNumericValue {
 
 export interface ICSSTransformComponent {
   is2D: boolean;
+
   toMatrix(): DOMMatrix;
 }
 
@@ -116,8 +145,11 @@ export interface ICSSTransformValueConstructor extends ICSSTransformValueStatic 
 export interface ICSSTransformValue extends ICSSStyleValue {
   readonly length: number;
   readonly is2D: boolean;
+
   toMatrix(): DOMMatrix;
+
   [key: number]: ICSSTransformComponent;
+
   [Symbol.iterator]: Generator<ICSSTransformComponent>
 }
 
@@ -133,7 +165,6 @@ export interface ICSSMatrixComponentConstructor extends ICSSTransformValueStatic
 export interface ICSSMatrixComponent extends ICSSTransformComponent {
   matrix: DOMMatrix;
 }
-
 
 
 /*---*/
@@ -216,8 +247,9 @@ export interface ICSSStatic {
 
 /*---*/
 
-declare const CSSUnitValue: ICSSUnitValueConstructor;
 declare const CSSStyleValue: ICSSStyleValueStatic;
+declare const CSSKeywordValue: ICSSKeywordValueConstructor;
+declare const CSSUnitValue: ICSSUnitValueConstructor;
 declare const CSSNumericValue: ICSSStyleValueStatic;
 declare const CSSTransformValue: ICSSTransformValueConstructor;
 declare const CSSMatrixComponent: ICSSMatrixComponentConstructor;
