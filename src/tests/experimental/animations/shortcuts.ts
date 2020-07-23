@@ -1,19 +1,16 @@
-import {
-  TAnimationFunction, TAnimationFunctionRequiringFutureHTMLElements, TStyleState, TStyleStateMap
-} from './animations/types';
+import { TAnimationFunctionRequiringFutureHTMLElements, TStyleState, TStyleStateMap } from './animations/types';
 import { CreateCSSAnimation, NormalizeStyleState } from './animations/animations';
 import { TTimingFunction, TTimingFunctionOrName } from './timing-functions/types';
 import { TimingFunctionOrNameToTimingFunction } from './timing-functions/timing-functions';
 import {
-  IReduceAnimateFunctionOptions, TAnimateFunction, TAnimateFunctionRequiringFutureDurationAndHTMLElements,
-  TAnimateFunctionRequiringFutureHTMLElements,
-  TInferReduceAnimateFunctionResult,
-  TInferReduceAnimationFunctionResult
+  IReduceAnimateFunctionOptions, TAnimateFunction,
+  TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult,
+  TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult
 } from './animate/types';
 import {
-  CreateAndReduceAnimateFunctionFromAnimation, CreateDelayAnimateFunction, CreateLoopAnimateFunction,
-  CreateParallelAnimateFunction, CreateSequentialAnimateFunction, CreateSequentialAnimateFunctionFromStates,
-  TStateWithDuration
+  CreateAndReduceAnimateFunctionRequiringFutureHTMLElementsFromAnimation, CreateDelayAnimateFunction,
+  CreateLoopAnimateFunction, CreateParallelAnimateFunction, CreateSequentialAnimateFunction,
+  CreateSequentialAnimateFunctionFromStates, TStateWithDuration
 } from './animate/animate';
 
 
@@ -37,8 +34,8 @@ export function animation(
 export function animate<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions>(
   animation: TAnimationFunctionRequiringFutureHTMLElements<GArgs>,
   options?: GOptions,
-): TInferReduceAnimationFunctionResult<GArgs, GOptions> {
-  return CreateAndReduceAnimateFunctionFromAnimation<GArgs, GOptions>(animation, options);
+): TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult<GArgs, GOptions> {
+  return CreateAndReduceAnimateFunctionRequiringFutureHTMLElementsFromAnimation<GArgs, GOptions>(animation, options);
 }
 
 
@@ -67,6 +64,6 @@ export function animate_seq<GArgs extends any[]>(
 export function animate_seq_states<GOptions extends IReduceAnimateFunctionOptions>(
   items: Iterable<TStateWithDuration>,
   options?: GOptions,
-): TInferReduceAnimateFunctionResult<[], GOptions> {
+): TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult<[], GOptions> {
   return CreateSequentialAnimateFunctionFromStates<GOptions>(items, options);
 }

@@ -1,10 +1,11 @@
 import { ICSSStatic, ICSSStyleValueStatic, ICSSUnitValueConstructor } from './houdini';
 import { ApplyTimingFunction, CreateEaseInOutTimingFunction } from './timing-functions/timing-functions';
-import { CreateSequentialAnimateFunction, TStateWithDuration, } from './animate/animate';
+import { CreateSequentialAnimateFunction, } from './animate/animate';
 import { CreateCSSAnimation } from './animations/animations';
-import { animate, animate_delay, animate_par, animate_seq_states, animation, state } from './shortcuts';
+import { animate, animate_delay, animate_par, animation, state } from './shortcuts';
 import { AdvancedAbortController } from '@lifaon/observables';
 import { CreateCSSPropertyTransition } from './transitions/css-property';
+import { IReduceAnimateFunctionOptions } from './animate/types';
 
 
 declare const CSSUnitValue: ICSSUnitValueConstructor;
@@ -181,7 +182,7 @@ async function testAnimation3() {
     animate_delay(1000),
     animate_par<any[]>([
       animate(animation2, { duration: 2000 }),
-      animate(animation2, { duration: 2000, elements: [document.body] }),
+      animate(animation3, { duration: 2000, elements: [document.body] }),
     ]),
   ]);
 
@@ -219,7 +220,7 @@ async function testAnimation5() {
     // transform: 'perspective(0) rotateY(-45deg)',
     // transform: 'translateY(0) rotate(0)',
     // transform: 'perspective(400px) rotateY(-45deg)',
-    transform: 'translateY(0) rotate(45deg)',
+    transform: 'translateY(0) rotate(-45deg)',
   });
 
   const state2 = state({
@@ -353,14 +354,26 @@ async function testAnimation6() {
     transform: `translateZ(-100px) rotateX(  90deg)`,
   });
 
-  const duration: number = 1000;
-  const _animate = animate_seq_states([
-      { state: showFront, duration: 0 },
-      { state: showRight, duration: 1 },
-      { state: showBack, duration: 1 },
-  ] , { selector: '' });
+  const options = {
+    selector: '.cube',
+    parentElement: document.body,
+  };
+  // const _animate = animate_seq_states([
+  //     { state: showFront, duration: 0 },
+  //     { state: showRight, duration: 1 },
+  //     { state: showBack, duration: 1 },
+  //     { state: showLeft, duration: 1 },
+  //     { state: showTop, duration: 1 },
+  //     { state: showBottom, duration: 1 },
+  // ] , options);
 
-  // _animate(void 0, 2000);
+  const _animate = animate(
+    animation({}, showBottom),
+    options
+  );
+
+
+  _animate(void 0, 4000);
 }
 
 export async function testAnimation() {

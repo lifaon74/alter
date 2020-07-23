@@ -4249,10 +4249,10 @@ typescript-tuple@^2.2.1:
   dependencies:
     typescript-compare "^0.0.2"
 
-typescript@^4.0.0-dev.20200707:
-  version "4.0.0-dev.20200707"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.0-dev.20200707.tgz#38ed24f891de16b16abdf735d42553cabb5fef72"
-  integrity sha512-jgN+EglZZMJvVBOV2EbBOyGhms0hJhYo78HaS4+AWV+hi720nakmJI1BFlyDsWyZI4xStxIQVpznHktrFj3lwA==
+typescript@^4.0.0-dev.20200722:
+  version "4.0.0-dev.20200722"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.0-dev.20200722.tgz#b59dd5a3cd84a98d5aae0e4f3a3c58f0c81a3b9b"
+  integrity sha512-MmJ1YyPNK3JYeKLiTg5sQXdeZaMgt99Fg4BMRZhJmhoq1/x2V1cpXMYvE1rtIYl9K7NvmTDdU3WDW7ZOD6ybaw==
 
 ua-parser-js@0.7.17:
   version "0.7.17"

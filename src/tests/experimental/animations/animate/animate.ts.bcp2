@@ -5,8 +5,7 @@ import { NormalizeProgression } from '../functions';
 import {
   IReduceAnimateFunctionOptions, TAnimateFunction, TAnimateFunctionRequiringFutureDuration,
   TAnimateFunctionRequiringFutureDurationAndHTMLElements, TAnimateFunctionRequiringFutureHTMLElements,
-  TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult,
-  TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult
+  TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult, TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult
 } from './types';
 import {
   $delay, CancellablePromise, IAdvancedAbortSignal, ICancellablePromise, ICancellablePromiseOptions,
@@ -34,11 +33,7 @@ import { ArrayFrom } from '../../../../misc/helpers/array-helpers';
 export function CreateAnimateFunctionFromAnimationRequiringFutureDuration<GArgs extends any[]>(
   animation: TAnimationFunction<GArgs>,
 ): TAnimateFunctionRequiringFutureDuration<GArgs> {
-  return (
-    options: ICancellablePromiseOptions | undefined,
-    duration: number,
-    ...args: GArgs
-  ): ICancellablePromise<void> => {
+  return (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
 
     return new CancellablePromise<void>((
       resolve: (value?: TNativePromiseLikeOrValue<void>) => void,
@@ -90,8 +85,8 @@ export function CreateAnimateFunctionFromAnimationRequiringFutureDuration<GArgs 
 }
 
 
-export function CreateAndReduceAnimateFunctionRequiringFutureHTMLElementsFromAnimation<GArgs extends any[],
-  GOptions extends IReduceAnimateFunctionOptions>(
+
+export function CreateAndReduceAnimateFunctionRequiringFutureHTMLElementsFromAnimation<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions>(
   animation: TAnimationFunctionRequiringFutureHTMLElements<GArgs>,
   options?: GOptions,
 ): TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult<GArgs, GOptions> {
@@ -102,17 +97,16 @@ export function CreateAndReduceAnimateFunctionRequiringFutureHTMLElementsFromAni
 }
 
 
+
 /************************* FIX ARGUMENTS *************************/
 
 /**
  * Simplifies an <animate function> by fixing some of it's arguments like a duration or a list of elements
  */
-export function ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs extends any[],
-  GOptions extends IReduceAnimateFunctionOptions>(
-  animateFunction: TAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs>,
+export function ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions>(
+  animateFunction: TAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs[]>,
   options?: GOptions,
 ): TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult<GArgs, GOptions> {
-
   let _animateFunction: any;
 
   const duration: number | undefined = (typeof options?.duration === 'number')
@@ -136,13 +130,13 @@ export function ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArg
       if (selector === void 0) {
         _animateFunction = animateFunction;
       } else {
-        _animateFunction = (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
           return animateFunction(options, duration, parentElement.querySelectorAll(selector), ...args);
         };
       }
     } else {
       if (selector === void 0) {
-        _animateFunction = (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, duration: number, ...args: GArgs): ICancellablePromise<void> => {
           return animateFunction(options, duration, elements, ...args);
         };
       } else {
@@ -152,17 +146,17 @@ export function ReduceAnimateFunctionRequiringFutureDurationAndHTMLElements<GArg
   } else {
     if (elements === void 0) {
       if (selector === void 0) {
-        _animateFunction = (options: ICancellablePromiseOptions | undefined, elements: THTMLElements, ...args: GArgs): ICancellablePromise<void> => {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, elements: THTMLElements, ...args: GArgs): ICancellablePromise<void> => {
           return animateFunction(options, duration, elements, ...args);
         };
       } else {
-        _animateFunction = (options: ICancellablePromiseOptions | undefined, ...args: GArgs): ICancellablePromise<void> => {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, ...args: GArgs): ICancellablePromise<void> => {
           return animateFunction(options, duration, parentElement.querySelectorAll(selector), ...args);
         };
       }
     } else {
       if (selector === void 0) {
-        _animateFunction = (options: ICancellablePromiseOptions | undefined, ...args: GArgs): ICancellablePromise<void> => {
+        _animateFunction =  (options: ICancellablePromiseOptions | undefined, ...args: GArgs): ICancellablePromise<void> => {
           return animateFunction(options, duration, elements, ...args);
         };
       } else {

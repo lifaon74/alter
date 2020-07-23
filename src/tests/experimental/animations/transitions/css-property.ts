@@ -62,6 +62,7 @@ export function CreateCSSPropertyTransition(
       }
     }
 
+    console.log(originAsCSSStyleValue, targetAsCSSStyleValue);
     throw new Error(`Cannot apply a transition on '${ origin }' and '${ target }'`);
   }
 }

@@ -1,6 +1,7 @@
 import { ICancellablePromise, ICancellablePromiseOptions } from '@lifaon/observables';
 import { THTMLElements } from '../animations/types';
 
+
 /**
  * INFO: a <animate function> is a function executing some action(s) depending on the elapsed time, and returns a fulfilled promised when finished
  * @example: (elements: HTMLElement[]) => moveElements(elements)
@@ -8,16 +9,26 @@ import { THTMLElements } from '../animations/types';
 
 export type TAnimateFunction<GArgs extends any[]> = (options?: ICancellablePromiseOptions, ...args: GArgs) => ICancellablePromise<void>;
 
-export type TAnimateFunctionRequiringFutureDuration<GArgs extends any[]> = TAnimateFunction<[number, ...GArgs]>;
+export type TInferAnimateFunctionArguments<GAnimateFunction extends TAnimateFunction<any[]>> =
+  GAnimateFunction extends TAnimateFunction<infer GArgs>
+    ? GArgs
+    : any;
 
-export type TAnimateFunctionRequiringFutureHTMLElements<GArgs extends any[]> = TAnimateFunction<[THTMLElements, ...GArgs]>;
-export type TAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs extends any[]> = TAnimateFunction<[number, THTMLElements, ...GArgs]>;
+/* SHORTCUTS */
 
-export type TOptionalDuration = (number | void);
+export type TAnimateFunctionRequiringFutureDurationArguments<GArgs extends any[]> = [number, ...GArgs];
+export type TAnimateFunctionRequiringFutureHTMLElementsArguments<GArgs extends any[]> = [THTMLElements, ...GArgs];
+export type TAnimateFunctionRequiringFutureDurationAndHTMLElementsArguments<GArgs extends any[]> = [number, THTMLElements, ...GArgs];
 
-// export type TInferAnimateFunctionFromOptionalDuration<GArgs extends any[], TDuration extends TOptionalDuration> = TDuration extends void
-//   ? TAnimateFunctionRequiringFutureDuration<GArgs>
-//   : TAnimateFunction<GArgs>;
+export type TAnimateFunctionRequiringFutureDuration<GArgs extends any[]> = TAnimateFunction<TAnimateFunctionRequiringFutureDurationArguments<GArgs>>;
+export type TAnimateFunctionRequiringFutureHTMLElements<GArgs extends any[]> = TAnimateFunction<TAnimateFunctionRequiringFutureHTMLElementsArguments<GArgs>>;
+export type TAnimateFunctionRequiringFutureDurationAndHTMLElements<GArgs extends any[]> = TAnimateFunction<TAnimateFunctionRequiringFutureDurationAndHTMLElementsArguments<GArgs>>;
+
+
+export type TInferAnimateFunctionRequiringFutureDurationAndHTMLElementsArguments<GAnimateFunction extends TAnimateFunctionRequiringFutureDurationAndHTMLElements<any[]>> =
+  GAnimateFunction extends TAnimateFunctionRequiringFutureDurationAndHTMLElements<infer GArgs>
+    ? GArgs
+    : any;
 
 
 /*--*/
@@ -59,7 +70,8 @@ export type TReduceAnimateFunctionDurationOptionsContainsDuration<GOptions exten
     : false;
 
 
-export type TInferReduceAnimateFunctionResultArguments<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions> =
+// INFO: GArgs are arguments of TAnimateFunctionRequiringFutureDurationAndHTMLElements without [number, THTMLElements, ...GArgs]
+export type TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResultArguments<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions> =
   TReduceAnimateFunctionElementsOrQuerySelectorOptionsContainsElements<GOptions> extends true
     ? (
       TReduceAnimateFunctionDurationOptionsContainsDuration<GOptions> extends true
@@ -71,13 +83,27 @@ export type TInferReduceAnimateFunctionResultArguments<GArgs extends any[], GOpt
         : [number, THTMLElements, ...GArgs]
       );
 
-export type TInferReduceAnimateFunctionResult<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions> =
-  TAnimateFunction<TInferReduceAnimateFunctionResultArguments<GArgs, GOptions>>;
+
+// INFO: GArgs are arguments of TAnimateFunctionRequiringFutureDurationAndHTMLElements without [number, THTMLElements, ...GArgs]
+export type TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult<GArgs extends any[],
+  GOptions extends IReduceAnimateFunctionOptions> =
+  TAnimateFunction<TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResultArguments<GArgs, GOptions>>;
 
 
+// INFO: GArgs are arguments of TAnimationFunctionRequiringFutureHTMLElements without [THTMLElements, ...GArgs]
+export type TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult<GArgs extends any[],
+  GOptions extends IReduceAnimateFunctionOptions> =
+  TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult<GArgs, GOptions>;
 
-export type TInferReduceAnimationFunctionResult<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions> =
-  TInferReduceAnimateFunctionResult<[THTMLElements, ...GArgs], GOptions>;
+
+// const a: TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult<TAnimationFunction<[]>, {}> = null as any;
+// const a: TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult<TAnimationFunctionRequiringFutureHTMLElements<[]>, {}> = null as any;
+// const b: (((...args: []) => void) extends ((...args: [number, ...any[]]) => void) ? true : false) = null as any;
+// const b: (((...args: []) => void) extends ((...args: [number]) => void) ? true : false) = null as any;
+
+
+// export type TInferReduceAnimationFunctionRequiringFutureHTMLElementsFromAnimationResult<GArgs extends any[], GOptions extends IReduceAnimateFunctionOptions> =
+//   TInferReduceAnimateFunctionRequiringFutureDurationAndHTMLElementsResult<GArgs, GOptions>;
 
 // const a0: TInferReduceAnimateFunctionResultArguments<[], void> = null as any;
 
