@@ -16,6 +16,7 @@ import { debugQueryParamsChange } from './debug/debug-router/debug-query-params-
 import { debugNavigation } from './debug/debug-router/debug-navigation';
 import { testAnimation } from './experimental/animations/animation';
 import { debugColor } from '../misc/color/debug';
+import { debugTouchFrameObservable } from './experimental/touch-frame-observable/debug';
 
 
 
@@ -39,4 +40,5 @@ export async function test() {
   // await debugNavigation();
   await testAnimation();
   // await debugColor();
+  // await debugTouchFrameObservable();
 }

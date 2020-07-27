@@ -1,6 +1,6 @@
 import { ApplyTimingFunction, CreateEaseInOutTimingFunction } from './timing-functions/timing-functions';
 import { CreateCSSPropertyTransition } from './transitions/css-property';
-import { animate, animate_seq_states, animation, state } from './shortcuts';
+import { animate, animate_seq, animate_seq_css_states, css_animation, css_state, scroll_animation } from './shortcuts';
 import { AdvancedAbortController } from '@lifaon/observables';
 
 
@@ -19,6 +19,26 @@ function createDummyElement(
   element.style.fontSize = '20px';
   element.innerText = 'A';
   return element;
+}
+
+function createBackgroundImage(size: number): string {
+  const imageData = new ImageData(size, size);
+  const s_t_4: number = size * 4;
+  const s_d_2: number = size / 2;
+  for (let i = 0, l = imageData.data.length; i < l; i += 4) {
+    const x: number = (i / 4) % size;
+    const y: number = Math.floor(i / s_t_4);
+    const c: number = ((x < s_d_2) && (y < s_d_2)) || ((x >= s_d_2) && (y >= s_d_2)) ? 200 : 255;
+    imageData.data[i + 0] = c;
+    imageData.data[i + 1] = c;
+    imageData.data[i + 2] = c;
+    imageData.data[i + 3] = 255;
+  }
+  const ctx = document.createElement('canvas').getContext('2d') as CanvasRenderingContext2D;
+  ctx.canvas.width = size;
+  ctx.canvas.height = size;
+  ctx.putImageData(imageData, 0, 0);
+  return ctx.canvas.toDataURL();
 }
 
 async function testTransition1() {
@@ -50,7 +70,7 @@ async function testAnimation2() {
     [null, '400px'],
     ['400px', void 0],
   ].map(([a, b]) => {
-    return animation({
+    return css_animation({
       width: a,
     }, {
       width: b,
@@ -67,7 +87,7 @@ async function testAnimation3() {
   document.body.appendChild(element);
 
 
-  const animation1 = animation(
+  const animation1 = css_animation(
     {
       width: '400px',
     },
@@ -77,7 +97,7 @@ async function testAnimation3() {
     'ease-in-out'
   );
 
-  const animation2 = animation(
+  const animation2 = css_animation(
     {},
     {
       height: '400px',
@@ -85,7 +105,7 @@ async function testAnimation3() {
     'ease-in-out'
   );
 
-  const animation3 = animation(
+  const animation3 = css_animation(
     {
       // 'background-color': 'white',
     },
@@ -117,7 +137,7 @@ async function testAnimation4() {
   document.body.appendChild(element);
 
   const _animate = animate(
-    animation({
+    css_animation({
       width: '100px',
     }, {
       width: '90%',
@@ -133,7 +153,7 @@ async function testAnimation5() {
   const element = createDummyElement();
   document.body.appendChild(element);
 
-  const state1 = state({
+  const state1 = css_state({
     // transform: 'translateY(0)',
     // transform: 'scale(0)',
     // transform: 'rotate(0)',
@@ -144,7 +164,7 @@ async function testAnimation5() {
     transform: 'translateY(0) rotate(45deg)',
   });
 
-  const state2 = state({
+  const state2 = css_state({
     // transform: 'translateY(200px)',
     // transform: 'scale(2)',
     // transform: 'rotate(45deg)',
@@ -156,7 +176,7 @@ async function testAnimation5() {
     transform: 'translateY(200px) rotate(45deg)',
   });
 
-  const animation1 = animation(state1, state2);
+  const animation1 = css_animation(state1, state2);
   // const animation2 = animation(state2, state1);
 
   // for (let i = 0, l = 10; i <= l; i++) {
@@ -251,31 +271,31 @@ async function testAnimation6() {
 
   document.body.innerHTML = html;
 
-  const showFront = state({
+  const showFront = css_state({
     transform: `translateZ(-100px) rotateY(0deg)`,
   });
 
-  const showRight = state({
+  const showRight = css_state({
     transform: `translateZ(-100px) rotateY(-90deg)`,
   });
 
-  const showBack = state({
+  const showBack = css_state({
     transform: `translateZ(-100px) rotateY(-180deg)`,
   });
 
-  const showLeft = state({
+  const showLeft = css_state({
     transform: `translateZ(-100px) rotateY(90deg)`,
   });
 
-  const showTop = state({
+  const showTop = css_state({
     transform: `translateZ(-100px) rotateX(-90deg)`,
   });
 
-  const showBottom = state({
+  const showBottom = css_state({
     transform: `translateZ(-100px) rotateX(90deg)`,
   });
 
-  const _animate = animate_seq_states([
+  const _animate = animate_seq_css_states([
     { state: showFront, duration: 0 },
     { state: showRight, duration: 1 },
     { state: showBack, duration: 1 },
@@ -287,9 +307,33 @@ async function testAnimation6() {
   _animate(void 0, 2000);
 }
 
+async function testAnimation7() {
+  const element = createDummyElement('100px', '10000px');
+  document.body.style.overflow = 'auto';
+  element.style.backgroundColor = 'transparent';
+  // element.style.backgroundImage = `url(${ createBackgroundImage(32) })`;
+  element.style.backgroundImage = `linear-gradient(red, blue)`;
+  element.style.backgroundRepeat = `repeat`;
+  document.body.appendChild(element);
+
+
+  const _animate = animate_seq([
+    animate(
+      scroll_animation('vertical', void 0, 5000),
+      { duration: 2000 }
+    ),
+    animate(
+      scroll_animation('vertical', void 0, 0),
+      { duration: 2000 }
+    )
+  ]);
+  await _animate(void 0, [document.body]).toPromise();
+}
+
 export async function testAnimation() {
   // await testTransition1();
   // await testAnimation2();
   // await testAnimation3();
-  await testAnimation6();
+  // await testAnimation6();
+  await testAnimation7();
 }

@@ -1,6 +1,7 @@
 import { ICSSMatrixComponentConstructor, ICSSTransformValue, ICSSTransformValueConstructor } from '../houdini';
 import { TProgressFunction, TProgression } from '../types';
-import { CreateDOMMatrixTransition, DOMMatrixEquals, TDOMMatrixTransitionFunction } from './dom-matrix';
+import { CreateDOMMatrixTransition, TDOMMatrixTransitionFunction } from './dom-matrix';
+import { DOMMatrixEquals } from '../../../../misc/helpers/dom-matrix';
 
 declare const CSSTransformValue: ICSSTransformValueConstructor;
 declare const CSSMatrixComponent: ICSSMatrixComponentConstructor;

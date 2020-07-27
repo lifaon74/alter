@@ -9,6 +9,12 @@ import {
 import { TStylePropertyChangeMap, TStylePropertyName, TStylePropertyValue, TStyleState } from '../style-state/types';
 import { OriginAndTargetStyleStatesToChangeMap } from '../style-state/style-state';
 import { IsProgressionSpecialState } from '../functions';
+import {
+  CreateScrollValueTransition, ScrollDirectionToHTMLElementProperty, TAnimatableScrollValueTransition,
+  TComputedScrollValueTransition, TScrollDirection, TScrollHTMLElementProperty,
+  TScrollOptionalValue,
+  TScrollValueTransition
+} from '../transitions/scroll';
 
 
 /** CREATE **/
@@ -21,30 +27,38 @@ export function CreateCSSPropertyAnimationFromAnimatableCSSPropertyTransitionReq
   transition: TAnimatableCSSPropertyTransition,
 ): TAnimationFunctionRequiringFutureHTMLElements<[]> {
   return (progression: TProgressionWithSpecialState, elements: HTMLElementArray): void => {
-    const value: string = transition(progression);
-    for (let i = 0, l = elements.length; i < l; i++) {
-      elements[i].style.setProperty(propertyName, value);
+    if (!IsProgressionSpecialState(progression)) {
+      const value: string = transition(progression);
+      for (let i = 0, l = elements.length; i < l; i++) {
+        elements[i].style.setProperty(propertyName, value);
+      }
     }
   };
 }
 
 /**
- * Creates an <elements animation> from an <computed css property transition>
+ * Creates an <elements animation> from a <computed css property transition>
  */
 export function CreateCSSPropertyAnimationFromComputedCSSPropertyTransitionRequiringFutureHTMLElements(
   propertyName: string,
   transition: TComputedCSSPropertyTransition,
 ): TAnimationFunctionRequiringFutureHTMLElements<[]> {
   return (progression: TProgressionWithSpecialState, elements: HTMLElementArray): void => {
-    for (let i = 0, l = elements.length; i < l; i++) {
-      const element: HTMLElement = elements[i];
-      element.style.setProperty(propertyName, transition(progression, element));
+    if (IsProgressionSpecialState(progression)) {
+      for (let i = 0, l = elements.length; i < l; i++) {
+        transition(progression, elements[i]);
+      }
+    } else {
+      for (let i = 0, l = elements.length; i < l; i++) {
+        const element: HTMLElement = elements[i];
+        element.style.setProperty(propertyName, transition(progression, element));
+      }
     }
   };
 }
 
 /**
- * Creates an <elements animation> from an <css property transition>
+ * Creates an <elements animation> from a <css property transition>
  */
 export function CreateCSSPropertyAnimationFromCSSPropertyTransitionRequiringFutureHTMLElements(
   propertyName: string,
@@ -56,32 +70,6 @@ export function CreateCSSPropertyAnimationFromCSSPropertyTransitionRequiringFutu
 }
 
 
-export function CreateCSSPropertyAnimationForSpecialStatesFromAnimatableCSSPropertyTransitionRequiringFutureHTMLElements(
-  transition: TAnimatableCSSPropertyTransition,
-): TAnimationFunctionRequiringFutureHTMLElements<[]> {
-  return () => {
-  };
-}
-
-export function CreateCSSPropertyAnimationForSpecialStatesFromComputedCSSPropertyTransitionRequiringFutureHTMLElements(
-  transition: TComputedCSSPropertyTransition,
-): TAnimationFunctionRequiringFutureHTMLElements<[]> {
-  return (progression: TProgressionWithSpecialState, elements: HTMLElementArray): void => {
-    for (let i = 0, l = elements.length; i < l; i++) {
-      transition(progression, elements[i]);
-    }
-  };
-}
-
-export function CreateCSSPropertyAnimationForSpecialStatesFromCSSPropertyTransitionRequiringFutureHTMLElements(
-  transition: TCSSPropertyTransition,
-): TAnimationFunctionRequiringFutureHTMLElements<[]> {
-  return transition.isComputed
-    ? CreateCSSPropertyAnimationForSpecialStatesFromComputedCSSPropertyTransitionRequiringFutureHTMLElements(transition.transition)
-    : CreateCSSPropertyAnimationForSpecialStatesFromAnimatableCSSPropertyTransitionRequiringFutureHTMLElements(transition.transition);
-}
-
-
 /**
  * Applies 'origin' and 'target' styles when progression is 0 or 1, else calls normal animation
  */
@@ -89,8 +77,7 @@ export function WrapCSSPropertyAnimationForStylePropertyValueRequiringFutureHTML
   propertyName: string,
   origin: TStylePropertyValue,
   target: TStylePropertyValue,
-  animationForProgressionWithSpecialState: TAnimationFunctionRequiringFutureHTMLElements<GArgs>,
-  animationForStandardProgression: TAnimationFunctionRequiringFutureHTMLElements<GArgs>,
+  animation: TAnimationFunctionRequiringFutureHTMLElements<GArgs>,
 ): TAnimationFunctionRequiringFutureHTMLElements<GArgs> {
   return (progression: TProgressionWithSpecialState, elements: HTMLElementArray, ...args: GArgs): void => {
     if (progression === 0) {
@@ -101,10 +88,8 @@ export function WrapCSSPropertyAnimationForStylePropertyValueRequiringFutureHTML
       for (let i = 0, l = elements.length; i < l; i++) {
         SetCSSStyleProperty(elements[i], propertyName, target);
       }
-    } else if (IsProgressionSpecialState(progression)) {
-      animationForProgressionWithSpecialState(progression, elements, ...args);
     } else {
-      animationForStandardProgression(progression, elements, ...args);
+      animation(progression, elements, ...args);
     }
   };
 }
@@ -127,7 +112,6 @@ export function CreateCSSPropertyAnimationForStylePropertyValueRequiringFutureHT
     propertyName,
     origin,
     target,
-    CreateCSSPropertyAnimationForSpecialStatesFromCSSPropertyTransitionRequiringFutureHTMLElements(transition),
     CreateCSSPropertyAnimationFromCSSPropertyTransitionRequiringFutureHTMLElements(propertyName, transition)
   );
 }
@@ -168,21 +152,4 @@ export function CreateCSSAnimation(
     CreateAnimationFromStylePropertyChangeMap(OriginAndTargetStyleStatesToChangeMap(origin, target)),
   );
 }
-
-/*------------------------------*/
-
-/**
- * Creates an <elements animation> from a style's state to another, with a specific <timing function>
- */
-export function CreateScrollAnimation(
-  origin: TStyleState,
-  target: TStyleState,
-  timingFunction: TTimingFunctionOrName = 'ease'
-): TAnimationFunctionRequiringFutureHTMLElements<[]> {
-  return ApplyTimingFunction(
-    TimingFunctionOrNameToTimingFunction(timingFunction),
-    CreateAnimationFromStylePropertyChangeMap(OriginAndTargetStyleStatesToChangeMap(origin, target)),
-  );
-}
-
 
