@@ -34,13 +34,13 @@
       ></div>
       <div
           class="maximize-button"
-          *if="$and($not(data.isMaximized), data.enableUserResize)"
+          *if="$and($not(data.$isMaximized), data.$enableUserResize)"
           [title]="$translate('window.header.button.maximize')"
           (click)="data.onClickMaximizeButton"
       ></div>
       <div
           class="reduce-button"
-          *if="$and(data.isMaximized, data.enableUserResize)"
+          *if="$and(data.$isMaximized, data.$enableUserResize)"
           [title]="$translate('window.header.button.reduce')"
           (click)="data.onClickReduceButton"
       ></div>

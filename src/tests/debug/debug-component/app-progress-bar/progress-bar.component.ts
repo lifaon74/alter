@@ -1,4 +1,4 @@
-import { ISource, Source } from '@lifaon/observables';
+import { IObservable, ISource, mapPipe, Source } from '@lifaon/observables';
 import { Component } from '../../../../core/component/component/class/decorator';
 import { Template } from '../../../../core/template/implementation';
 import { DEFAULT_TEMPLATE_BUILD_OPTIONS } from '../../../../core/template/helpers';
@@ -7,11 +7,10 @@ import { IComponent } from '../../../../core/component/component/interfaces';
 import { OnCreate } from '../../../../core/component/component/implements';
 import { IComponentContext } from '../../../../core/component/component/context/interfaces';
 import { IAttributeChange } from '../../../../core/component/component/context/types';
-import { Input, TInput } from '../../../../core/component/input/decorator';
 
 
 export interface IData {
-  percent: ISource<string>;
+  percent: IObservable<string>;
 }
 
 /**
@@ -46,30 +45,30 @@ export class AppProgressBar extends HTMLElement implements IComponent<IData>, On
     return ['ratio'];
   }
 
-  @Input((value: number, instance: AppProgressBar) => {
-    instance.setAttribute('ratio', value.toString(10));
-    instance.context.data.percent.emit(`${ Math.round(value * 100) }%`);
-  })
-  ratio: TInput<number>;
+  // @Input((value: number, instance: AppProgressBar) => {
+  //   instance.setAttribute('ratio', value.toString(10));
+  //   instance.context.data.percent.emit(`${ Math.round(value * 100) }%`);
+  // })
+  readonly ratio: ISource<number>;
 
   protected context: IComponentContext<IData>;
 
   constructor() {
     super();
+    this.ratio = new Source<number>().emit(0.5);
   }
 
   onCreate(context: IComponentContext<IData>): void {
     this.context = context;
     this.context.data = {
-      percent: new Source<string>()
+      percent: this.ratio.pipeThrough(mapPipe((ratio: number) => `${ Math.round(ratio * 100) }%`))
     };
-    this.ratio = 0.5;
 
     this.context.attributeListener
       .addListener('ratio', ({ current }: IAttributeChange<string>) => {
         const ratio: number = parseFloat(current);
-        if (ratio !== this.ratio) {
-          this.ratio = ratio;
+        if (ratio !== this.ratio.value) {
+          this.ratio.emit(ratio);
         }
       }).activate();
   }
