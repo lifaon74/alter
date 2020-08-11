@@ -12,7 +12,7 @@ import { ConstructClassWithPrivateMembers } from '../../../misc/helpers/ClassWit
 import { ENVIRONMENT } from '../../../environment';
 
 
-/** CONSTRUCTOR **/
+/** PRIVATES **/
 
 export const NODE_STATE_OBSERVABLE_PRIVATE = Symbol('node-state-instance-private');
 
@@ -34,6 +34,8 @@ export interface INodeStateObservableInternal extends INodeStateObservable {
   [NODE_STATE_OBSERVABLE_PRIVATE]: INodeStateObservablePrivate;
 }
 
+
+/** CONSTRUCTOR **/
 
 export const STATIC_DOM_TREE_CHANGE_OBSERVABLE: IDOMChangeObservable = new DOMChangeObservable(document, {
   childList: true,
@@ -98,11 +100,20 @@ export function ConstructNodeStateObservable(
         }
         privates.state = connected ? 'connected' : 'disconnected';
       }
+
     }).observe(STATIC_DOM_TREE_CHANGE_OBSERVABLE);
 
     privates.attachDetected = false;
     privates.detachDetected = false;
-    privates.state = doc.contains(privates.node) ? 'connected' : 'disconnected';
+    privates.state = doc.contains(node)
+      ? 'connected'
+      : 'disconnected';
+
+    // const finalizer = new FinalizationRegistry((...args: any[]) => {
+    //   console.log('from finalizer', ...args);
+    // });
+    //
+    // finalizer.register(weakElement);
 
     // register instance
     if (!NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP.has(node)) {
@@ -113,6 +124,7 @@ export function ConstructNodeStateObservable(
 }
 
 /** FUNCTIONS **/
+
 
 /** HANDLERS FOR MUTATIONS EVENTS **/
 
@@ -245,13 +257,15 @@ export function NodeStateObservableDeactivateDOMObserver(instance: INodeStateObs
 
 
 export function NodeStateObservableUpdateDOMObserverState(instance: INodeStateObservable): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+
   if (
-    !(instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver
+    !privates.useDOMObserver
     && (instance.observers.length === 0)
   ) {
     NodeStateObservableDeactivateDOMObserver(instance);
   } else if (
-    (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].useDOMObserver
+    privates.useDOMObserver
     && (instance.observers.length > 0)
   ) {
     NodeStateObservableActivateDOMObserver(instance);
@@ -259,7 +273,19 @@ export function NodeStateObservableUpdateDOMObserverState(instance: INodeStateOb
 }
 
 
-/** STATIC METHODS **/
+/**
+ * Must be called when a 'destroy' is detected
+ */
+export function NodeStateObservableCheckWeakRefOnNode(instance: INodeStateObservable): void {
+  const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];
+  privates.state = 'destroyed';
+  NodeStateObservableDeactivateDOMObserver(instance);
+  privates.context.dispatch('destroy', void 0);
+}
+
+/** METHODS **/
+
+/* STATIC METHODS */
 
 export const NODE_TO_NODE_STATE_OBSERVABLES_WEAK_MAP: WeakMap<Node, INodeStateObservable[]> = new WeakMap<Node, INodeStateObservable[]>();
 
@@ -274,11 +300,13 @@ export function NodeStateObservableStaticOf(node: Node): INodeStateObservable {
   }
 }
 
-/** METHODS **/
+/* GETTERS/SETTERS */
 
 export function NodeStateObservableGetState(instance: INodeStateObservable): TNodeState {
   return (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE].state;
 }
+
+/* METHODS */
 
 export function NodeStateObservableUseDOMObserver(instance: INodeStateObservable, use: boolean): void {
   const privates: INodeStateObservablePrivate = (instance as INodeStateObservableInternal)[NODE_STATE_OBSERVABLE_PRIVATE];

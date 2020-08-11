@@ -35,32 +35,6 @@ $window-buttons-close-thickness: 1px;
 $window-buttons-close-length: $window-buttons-width / 3;
 
 
-* {
-  &,
-  &::before,
-  &::after {
-    box-sizing: border-box;
-    //transform: translateZ(0);
-    //will-change: transform, opacity, left, top, contents;
-  }
-}
-
-html,
-body {
-  border: 0;
-  margin: 0;
-  padding: 0;
-
-  width: 100%;
-  height: 100%;
-
-  position: fixed;
-  top: 0;
-  right: 0;
-  overflow: hidden;
-}
-
-
 @mixin has-nth-children($count, $selector: '*') {
   & > #{$selector}:first-child:nth-last-child(#{$count}),
   & > #{$selector}:first-child:nth-last-child(#{$count}) ~ #{$selector} {
@@ -183,21 +157,22 @@ body {
       overflow: hidden;
 
       & > .header-elements {
-        display: flex;
+        display: table;
         position: absolute;
         top: 0;
         right: 0;
-        min-width: 100%;
+        width: 100%;
         height: 100%;
         background-color: $window-header-background-color;
 
         & > * {
-          // display: table-cell;
+          display: table-cell;
           height: 100%;
           position: relative;
         }
 
         & > .home {
+          width: 1px;
           font-size: 0;
           text-align: center;
           white-space: nowrap;
@@ -256,7 +231,6 @@ body {
         }
 
         & > .tabs {
-          margin-left: auto;
           //left: 0;
           //right: $window-buttons-width;
 
@@ -269,7 +243,7 @@ body {
         }
 
         & > .window-buttons {
-          // width: 1px;
+          width: 1px;
           font-size: 0;
           text-align: right;
           white-space: nowrap;
@@ -404,7 +378,6 @@ body {
       bottom: 0;
       border: 1px solid $window-border-color;
       border-top: 0;
-      overflow: hidden;
     }
   }
 

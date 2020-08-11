@@ -21,7 +21,7 @@ import { debugTouchFrameObservable } from './experimental/touch-frame-observable
 
 
 export async function test() {
-  // await testCustomNode();
+  // await debugCustomNode();
   // await debugParser();
   // await debugDynamicCssRule();
   // await debugComponents();

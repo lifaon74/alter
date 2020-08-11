@@ -14,6 +14,9 @@ import { DynamicForLoopNode } from '../../core/custom-node/dynamic-node/dynamic-
 import { DynamicStyle } from '../../core/custom-node/dynamic-node/dynamic-element-node/dynamic-style/implementation';
 import { Expression, IObservable, IObserver, IPipe, ISource, mapPipe, Pipe, Source, TimerObservable } from '@lifaon/observables';
 
+declare const WeakRef: any;
+declare const FinalizationRegistry: any;
+
 
 function debugExtendableHTMLElement() {
   class A extends ExtendableHTMLElement {
@@ -29,6 +32,21 @@ function debugExtendableHTMLElement() {
   console.log(a.a);
   document.body.appendChild(a);
   console.log((document.body.querySelector('a-node') as A).a);
+}
+
+function debugWeakRef() {
+  const weakElement = document.createElement('div');
+  // const weakRef = new WeakRef(weakElement);
+
+  const finalizer = new FinalizationRegistry((...args: any[]) => {
+    console.log('from finalizer', ...args);
+  });
+
+  finalizer.register(weakElement);
+
+  // setInterval(() => {
+  //   console.log(weakRef.deref() !== void 0);
+  // }, 1000);
 }
 
 function debugNodeStateObservable() {
@@ -51,8 +69,8 @@ function debugNodeStateObservable() {
   //     console.log('connect 2');
   //   });
 
-  AttachNode(node, document.body);
-  // document.body.appendChild(node);
+  // AttachNode(node, document.body);
+  document.body.appendChild(node);
 
   (window as any).observable = observable;
   (window as any).node = node;
@@ -551,7 +569,8 @@ export function debugCustomNode() {
 
 
   // debugExtendableHTMLElement();
-  // debugNodeStateObservable();
+  // debugWeakRef();
+  debugNodeStateObservable();
 
   // debugContainerNode();
 

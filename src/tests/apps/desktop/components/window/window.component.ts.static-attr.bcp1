@@ -237,9 +237,9 @@ export function AppWindowComponentSetPosition(
 
 export interface IData {
   // percent: ISource<string>;
-  $isMaximized: ISource<boolean>;
-  $enableUserResize: ISource<boolean>;
-  $enableUserMove: ISource<boolean>;
+  isMaximized: ISource<boolean>;
+  enableUserResize: ISource<boolean>;
+  enableUserMove: ISource<boolean>;
   onClickMenuButton: IObserver<MouseEvent>;
   onClickMinimizeButton: IObserver<MouseEvent>;
   onClickMaximizeButton: IObserver<MouseEvent>;
@@ -266,74 +266,51 @@ export interface IWindowTheme {
 })
 export class AppWindowComponent extends HTMLElement implements IComponent<IData>, OnCreate<IData>, OnInit, OnDestroy {
 
-  // @Input((value: IWindowTheme, instance: AppWindowComponent) => {
-  //   console.log('new theme', value);
-  // })
-  // theme: TInput<IWindowTheme>;
+  @Input((value: IWindowTheme, instance: AppWindowComponent) => {
+    console.log('new theme', value);
+  })
+  theme: TInput<IWindowTheme>;
 
-  // @Input((value: boolean, instance: AppWindowComponent) => {
-  //   instance._allResizeActivable.toggle(value);
-  //   instance.refreshEnableUserResize();
-  //   instance.classList.toggle('enable-user-resize', value);
-  // })
-  // enableUserResize: TInput<boolean>;
-  //
-  // @Input((value: boolean, instance: AppWindowComponent) => {
-  //   instance._moveActivable.toggle(value);
-  //   instance.refreshEnableUserMove();
-  //   instance.classList.toggle('enable-user-move', value);
-  // })
-  // enableUserMove: TInput<boolean>;
+  @Input((value: boolean, instance: AppWindowComponent) => {
+    instance._allResizeActivable.toggle(value);
+    instance.refreshEnableUserResize();
+    instance.classList.toggle('enable-user-resize', value);
+  })
+  enableUserResize: TInput<boolean>;
 
-  // @Output()
-  // emitMaximize: TOutput<void>;
+  @Input((value: boolean, instance: AppWindowComponent) => {
+    instance._moveActivable.toggle(value);
+    instance.refreshEnableUserMove();
+    instance.classList.toggle('enable-user-move', value);
+  })
+  enableUserMove: TInput<boolean>;
 
+  @Output()
+  emitMaximize: TOutput<void>;
+
+  protected _cancellableContext: ICancellableContext;
   protected _top: number;
   protected _bottom: number;
   protected _left: number;
   protected _right: number;
-  protected _enableUserResize: boolean;
-  protected _enableUserMove: boolean;
 
-  protected _data: IData;
-
+  protected context: IComponentContext<IData>;
   protected _allResizeActivable: IActivable;
   protected _moveActivable: IActivable;
 
   constructor() {
     super();
+    this._cancellableContext = new CancellableContext();
     this._top = 0;
     this._bottom = 0;
     this._left = 0;
     this._right = 0;
-    this._enableUserResize = false;
-    this._enableUserMove = false;
 
-    this._data = {
-      $isMaximized: new Source<boolean>().emit(this.isMaximized),
-      $enableUserResize: new Source<boolean>().emit(this.enableUserResize),
-      $enableUserMove: new Source<boolean>().emit(this.enableUserMove),
-      onClickMenuButton: new Observer<MouseEvent>(() => {
-        console.log('menu');
-      }).activate(),
-      onClickMinimizeButton: new Observer<MouseEvent>(() => {
-        console.log('minimize');
-      }).activate(),
-      onClickMaximizeButton: new Observer<MouseEvent>(() => {
-        if (this.enableUserResize) {
-          this.uniformResize(0);
-        }
-      }).activate(),
-      onClickReduceButton: new Observer<MouseEvent>(() => {
-        if (this.enableUserResize) {
-          this.uniformResize(0.2);
-        }
-      }).activate(),
-      onClickCloseButton: new Observer<MouseEvent>(() => {
-        console.log('close');
-      }).activate(),
-      // percent: new Source<string>()
-    };
+    this.animations = false;
+    this.setLeft(0.1, true);
+    this.setTop(0.1, true);
+    this.setRight(0.1, false);
+    this.setBottom(0.1, false);
 
     const translateService = LoadService(TranslateService);
 
@@ -374,30 +351,13 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     return 1 - this._top - this._bottom;
   }
 
-
-  get enableUserResize(): boolean {
-    return this._enableUserResize;
+  get animations(): boolean {
+    return this.classList.contains('animations-enabled');
   }
 
-  set enableUserResize(value: boolean) {
-    this._enableUserResize = value;
-    this._data.$enableUserResize.emit(value);
-    this.classList.toggle('enable-user-resize', value);
-    this._allResizeActivable.toggle(value);
+  set animations(value: boolean) {
+    this.classList.toggle('animations-enabled', value);
   }
-
-
-  get enableUserMove(): boolean {
-    return this._enableUserMove;
-  }
-
-  set enableUserMove(value: boolean) {
-    this._enableUserMove = value;
-    this._data.$enableUserMove.emit(value);
-    this.classList.toggle('enable-user-move', value);
-    this._moveActivable.toggle(value);
-  }
-
 
   get container(): HTMLElement {
     return ParentElementOrThrow(this);
@@ -481,27 +441,87 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     this.setBottom(position, false);
   }
 
+  runAnimation(callback: () => void): Promise<void> {
+    return new Promise<void>((resolve: any) => {
+      this.animations = true;
+      const observer = new EventsObservable<HTMLElementEventMap>(this, 'transitionend')
+        .addListener('transitionend', () => {
+          console.log('transitionend');
+          observer.deactivate();
+          this.animations = false;
+          resolve();
+        }).activate();
+      callback();
+    });
+  }
+
+
+  enableUserInteractions(enable: boolean): void {
+    this.enableUserResize = enable;
+    this.enableUserMove = enable;
+  }
+
   onCreate(context: IComponentContext<IData>): void {
-    context.data = this._data;
+    this.context = context;
+    this.context.data = {
+      isMaximized: new Source<boolean>().emit(this.isMaximized),
+      enableUserResize: new Source<boolean>().emit(this.enableUserResize),
+      enableUserMove: new Source<boolean>().emit(this.enableUserMove),
+      onClickMenuButton: new Observer<MouseEvent>(() => {
+        console.log('menu');
+      }).activate(),
+      onClickMinimizeButton: new Observer<MouseEvent>(() => {
+        console.log('minimize');
+      }).activate(),
+      onClickMaximizeButton: new Observer<MouseEvent>(() => {
+        if (this.enableUserResize) {
+          this.runAnimation(() => {
+            this.uniformResize(0);
+          });
+        }
+      }).activate(),
+      onClickReduceButton: new Observer<MouseEvent>(() => {
+        if (this.enableUserResize) {
+          this.runAnimation(() => {
+            this.uniformResize(0.2);
+          });
+        }
+      }).activate(),
+      onClickCloseButton: new Observer<MouseEvent>(() => {
+        console.log('close');
+      }).activate(),
+      // percent: new Source<string>()
+    };
   }
 
   onInit(): void {
     this._allResizeActivable = AppWindowComponentCreateAllResizeActivable(this);
     this._moveActivable = AppWindowComponentCreateMoveActivable(this);
 
-    this.setLeft(0.1, true);
-    this.setTop(0.1, true);
-    this.setRight(0.1, false);
-    this.setBottom(0.1, false);
     this.enableUserResize = true;
     this.enableUserMove = true;
   }
 
   onDestroy(): void {
+    this._cancellableContext.clearAll('destroyed');
+  }
 
+
+  protected refreshEnableUserResize(): void {
+    if (this.context) {
+      this.context.data.enableUserResize.emit(this.enableUserResize);
+    }
+  }
+
+  protected refreshEnableUserMove(): void {
+    if (this.context) {
+      this.context.data.enableUserMove.emit(this.enableUserMove);
+    }
   }
 
   protected refreshIsMaximized(): void {
-    this._data.$isMaximized.emit(this.isMaximized);
+    if (this.context) {
+      this.context.data.isMaximized.emit(this.isMaximized);
+    }
   }
 }

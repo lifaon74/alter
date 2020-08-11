@@ -14,41 +14,59 @@
 
 <div class="frame">
   <div class="header">
-    <div class="tabs">
-
-    </div>
-    <div class="window-buttons">
-      <div
-          class="menu-button"
-          [title]="$translate('window.header.button.menu')"
-          (click)="data.onClickMenuButton"
-      >
-        <div></div>
-        <div></div>
-        <div></div>
+    <div class="header-elements">
+      <div class="home">
+        <div
+            class="home-button"
+        >
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
       </div>
-      <div
-          class="minimize-button"
-          [title]="$translate('window.header.button.minimize')"
-          (click)="data.onClickMinimizeButton"
-      ></div>
-      <div
-          class="maximize-button"
-          *if="$and($not(data.$isMaximized), data.$enableUserResize)"
-          [title]="$translate('window.header.button.maximize')"
-          (click)="data.onClickMaximizeButton"
-      ></div>
-      <div
-          class="reduce-button"
-          *if="$and(data.$isMaximized, data.$enableUserResize)"
-          [title]="$translate('window.header.button.reduce')"
-          (click)="data.onClickReduceButton"
-      ></div>
-      <div
-          class="close-button"
-          [title]="$translate('window.header.button.close')"
-          (click)="data.onClickCloseButton"
-      ></div>
+
+      <div class="tabs">
+        <div class="tabs-relative-container">
+<!--          <div class="tabs-absolute-container">-->
+
+<!--          </div>-->
+        </div>
+      </div>
+
+      <div class="window-buttons">
+        <div
+            class="menu-button"
+            [title]="$translate('window.header.button.menu')"
+            (click)="data.onClickMenuButton"
+        >
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+        <div
+            class="minimize-button"
+            [title]="$translate('window.header.button.minimize')"
+            (click)="data.onClickMinimizeButton"
+        ></div>
+        <div
+            class="maximize-button"
+            *if="$and($not(data.$isMaximized), data.$enableUserResize)"
+            [title]="$translate('window.header.button.maximize')"
+            (click)="data.onClickMaximizeButton"
+        ></div>
+        <div
+            class="reduce-button"
+            *if="$and(data.$isMaximized, data.$enableUserResize)"
+            [title]="$translate('window.header.button.reduce')"
+            (click)="data.onClickReduceButton"
+        ></div>
+        <div
+            class="close-button"
+            [title]="$translate('window.header.button.close')"
+            (click)="data.onClickCloseButton"
+        ></div>
+      </div>
     </div>
   </div>
 

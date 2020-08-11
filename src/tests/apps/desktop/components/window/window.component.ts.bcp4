@@ -5,16 +5,42 @@ import { IComponent } from '../../../../../core/component/component/interfaces';
 import { OnCreate, OnDestroy, OnInit } from '../../../../../core/component/component/implements';
 import { IComponentContext } from '../../../../../core/component/component/context/interfaces';
 import {
-  Activable, CancellableContext, IActivable, ICancellableContext, IObserver, ISource, Observer, Source, EventsObservable
+  Activable, CancellableContext, IActivable, ICancellableContext, IObserver, ISource, Observer, Source,
+  EventsObservable, IObservable, $and, $equal, IObservableContext, DistinctValueObservable, CreateObservableEmitter,
+  IDistinctValueObservable, IDistinctValueObservableContext, IDistinctValueObservableTypedConstructor,
+  FunctionObservable, IFunctionObservable, CreateDistinctObservableEmitter, ReadDistinctValueObservable, Pipe, IPipe
 } from '@lifaon/observables';
 import { IDragObject } from '../../../../../misc/drag-observable/types';
 import { DragObservable } from '../../../../../misc/drag-observable/implementation';
 import { DESKTOP_TEMPLATE_BUILD_OPTIONS } from '../template-build-options';
 import { Output, TOutput } from '../../../../../core/component/ouput/decorator';
-import { Input, TInput } from '../../../../../core/component/input/decorator';
 import { DESKTOP_STYLE_BUILD_OPTIONS } from '../style-build-options';
 import { LoadService } from '../../../../../core/services/services-loader';
 import { TranslateService } from '../../../../../side/localization/translate/implementation';
+import { HostBind } from '../../../../../core/component/host-binding/decorator';
+
+
+// export function $distinctObservable<G>(value?: G) {
+//   const result = CreateObservableEmitter<IDistinctValueObservableTypedConstructor<G>>(DistinctValueObservable);
+//   if (value !== void 0) {
+//     result[1].emit(value);
+//   }
+//   return result;
+// }
+//
+// export function value$<G>(observable: IObservable<G>): G {
+//   let value: G;
+//   observable
+//     .pipeTo((_value: G) => {
+//       value = _value;
+//     })
+//     .activate()
+//     .deactivate();
+//   // @ts-ignore
+//   return value;
+// }
+
+/*----------------------*/
 
 /***
  * TODO:
@@ -94,18 +120,18 @@ function AppWindowComponentCreateResizeActivable(
   const dragStartObserver = dragObservable
     .addListener('drag-start', () => {
       elementPositionX = (horizontalPosition === 'left')
-        ? instance.left
+        ? ReadDistinctValueObservable(instance.$left)
         : (
           (horizontalPosition === 'center')
             ? 0
-            : instance.right
+            : ReadDistinctValueObservable(instance.$right)
         );
       elementPositionY = (verticalPosition === 'top')
-        ? instance.top
+        ? ReadDistinctValueObservable(instance.$top)
         : (
           (verticalPosition === 'center')
             ? 0
-            : instance.bottom
+            : ReadDistinctValueObservable(instance.$bottom)
         );
     });
 
@@ -174,8 +200,8 @@ function AppWindowComponentCreateMoveActivable(instance: AppWindowComponent): IA
 
   const dragStartObserver = dragObservable
     .addListener('drag-start', () => {
-      elementPositionX = instance.left;
-      elementPositionY = instance.top;
+      elementPositionX = ReadDistinctValueObservable(instance.$left);
+      elementPositionY = ReadDistinctValueObservable(instance.$top);
     });
 
   const dragMoveObserver = dragObservable
@@ -207,10 +233,11 @@ function AppWindowComponentSetInternalPosition(
   origin: TPositionOrigin,
   value: number,
 ): void {
-  if (value !== instance[`_${ origin }`]) {
-    instance[`_${ origin }`] = value;
-    instance.style.setProperty(origin, `${ value * 100 }%`);
-  }
+  instance[`_${ origin }Context`].emit(value);
+  // if (value !== instance[`_${ origin }`]) {
+  //   instance[`_${ origin }Context`].emit(value);
+  //   instance.style.setProperty(origin, `${ value * 100 }%`);
+  // }
 }
 
 export function AppWindowComponentSetPosition(
@@ -222,14 +249,26 @@ export function AppWindowComponentSetPosition(
 ): void {
   IsFiniteNumberOrThrow(value);
   const oppositeOrigin: TPositionOrigin = GetOppositePositionOrigin(origin);
+  const oppositeOriginValue: number = ReadDistinctValueObservable(instance[`$${ oppositeOrigin }`]);
   let _value: number;
   if (force) {
     _value = value;
-    AppWindowComponentSetInternalPosition(instance, oppositeOrigin, Math.min(instance[oppositeOrigin], 1 - _value - minSpacing));
+    AppWindowComponentSetInternalPosition(instance, oppositeOrigin, Math.min(oppositeOriginValue, 1 - _value - minSpacing));
   } else {
-    _value = Math.min(value, 1 - instance[oppositeOrigin] - minSpacing);
+    _value = Math.min(value, 1 - oppositeOriginValue - minSpacing);
   }
   AppWindowComponentSetInternalPosition(instance, origin, _value);
+}
+
+
+
+
+function GetWidth(left: number, right: number): number {
+  return 1 - left - right;
+}
+
+function GetHeight(top: number, bottom: number): number {
+  return 1 - top - bottom;
 }
 
 /*---------------------*/
@@ -237,7 +276,7 @@ export function AppWindowComponentSetPosition(
 
 export interface IData {
   // percent: ISource<string>;
-  $isMaximized: ISource<boolean>;
+  $isMaximized: IObservable<boolean>;
   $enableUserResize: ISource<boolean>;
   $enableUserMove: ISource<boolean>;
   onClickMenuButton: IObserver<MouseEvent>;
@@ -266,53 +305,78 @@ export interface IWindowTheme {
 })
 export class AppWindowComponent extends HTMLElement implements IComponent<IData>, OnCreate<IData>, OnInit, OnDestroy {
 
-  // @Input((value: IWindowTheme, instance: AppWindowComponent) => {
-  //   console.log('new theme', value);
-  // })
+  // @Input()
   // theme: TInput<IWindowTheme>;
 
-  // @Input((value: boolean, instance: AppWindowComponent) => {
-  //   instance._allResizeActivable.toggle(value);
-  //   instance.refreshEnableUserResize();
-  //   instance.classList.toggle('enable-user-resize', value);
-  // })
-  // enableUserResize: TInput<boolean>;
-  //
-  // @Input((value: boolean, instance: AppWindowComponent) => {
-  //   instance._moveActivable.toggle(value);
-  //   instance.refreshEnableUserMove();
-  //   instance.classList.toggle('enable-user-move', value);
-  // })
-  // enableUserMove: TInput<boolean>;
+  @HostBind('[class.enable-user-resize]', DESKTOP_TEMPLATE_BUILD_OPTIONS)
+  readonly $enableUserResize: ISource<boolean>;
 
-  // @Output()
-  // emitMaximize: TOutput<void>;
+  @HostBind('[class.enable-user-move]', DESKTOP_TEMPLATE_BUILD_OPTIONS)
+  readonly $enableUserMove: ISource<boolean>;
 
-  protected _top: number;
-  protected _bottom: number;
-  protected _left: number;
-  protected _right: number;
-  protected _enableUserResize: boolean;
-  protected _enableUserMove: boolean;
+  readonly $isMaximized: IObservable<boolean>;
+
+  readonly $top: IDistinctValueObservable<number>;
+  readonly $bottom: IDistinctValueObservable<number>;
+  readonly $left: IDistinctValueObservable<number>;
+  readonly $right: IDistinctValueObservable<number>;
+
+  readonly $width: IFunctionObservable<typeof GetWidth>;
+  readonly $height: IFunctionObservable<typeof GetHeight>;
+
+
+  readonly $left$: IPipe<any ,any>;
+
+  // protected _cancellableContext: ICancellableContext;
+
+  protected _topContext: IDistinctValueObservableContext<number>;
+  protected _bottomContext: IDistinctValueObservableContext<number>;
+  protected _leftContext: IDistinctValueObservableContext<number>;
+  protected _rightContext: IDistinctValueObservableContext<number>;
+
+  protected _enableUserResizeObserver: IObserver<boolean>;
+  protected _enableUserMoveObserver: IObserver<boolean>;
+
+  protected _topObserver: IObserver<number>;
+  protected _bottomObserver: IObserver<number>;
+  protected _leftObserver: IObserver<number>;
+  protected _rightObserver: IObserver<number>;
 
   protected _data: IData;
-
   protected _allResizeActivable: IActivable;
   protected _moveActivable: IActivable;
 
   constructor() {
     super();
-    this._top = 0;
-    this._bottom = 0;
-    this._left = 0;
-    this._right = 0;
-    this._enableUserResize = false;
-    this._enableUserMove = false;
+    // this._cancellableContext = new CancellableContext();
+
+    [this.$top, this._topContext] = CreateDistinctObservableEmitter<number>(0);
+    [this.$bottom, this._bottomContext] = CreateDistinctObservableEmitter<number>(0);
+    [this.$left, this._leftContext] = CreateDistinctObservableEmitter<number>(0);
+    [this.$right, this._rightContext] = CreateDistinctObservableEmitter<number>(0);
+
+    this.$width = new FunctionObservable(GetWidth, [this.$left, this.$right]);
+    this.$height = new FunctionObservable(GetHeight, [this.$top, this.$bottom]);
+
+    this.$left$ = new Pipe(() => {
+      return {
+        observable:
+      }
+    });
+
+    this.$enableUserResize = new Source<boolean>().emit(true)
+    this.$enableUserMove = new Source<boolean>().emit(true)
+    this.$isMaximized = $and(
+      $equal(this.$top, 0),
+      $equal(this.$bottom, 0),
+      $equal(this.$left, 0),
+      $equal(this.$right, 0),
+    );
 
     this._data = {
-      $isMaximized: new Source<boolean>().emit(this.isMaximized),
-      $enableUserResize: new Source<boolean>().emit(this.enableUserResize),
-      $enableUserMove: new Source<boolean>().emit(this.enableUserMove),
+      $isMaximized: this.$isMaximized,
+      $enableUserResize: this.$enableUserResize,
+      $enableUserMove: this.$enableUserMove,
       onClickMenuButton: new Observer<MouseEvent>(() => {
         console.log('menu');
       }).activate(),
@@ -320,13 +384,17 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
         console.log('minimize');
       }).activate(),
       onClickMaximizeButton: new Observer<MouseEvent>(() => {
-        if (this.enableUserResize) {
-          this.uniformResize(0);
+        if (this.$enableUserResize) {
+          this.runAnimation(() => {
+            this.uniformResize(0);
+          });
         }
       }).activate(),
       onClickReduceButton: new Observer<MouseEvent>(() => {
-        if (this.enableUserResize) {
-          this.uniformResize(0.2);
+        if (this.$enableUserResize) {
+          this.runAnimation(() => {
+            this.uniformResize(0.2);
+          });
         }
       }).activate(),
       onClickCloseButton: new Observer<MouseEvent>(() => {
@@ -334,6 +402,12 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
       }).activate(),
       // percent: new Source<string>()
     };
+
+    this.animations = false;
+    this.setLeft(0.1, true);
+    this.setTop(0.1, true);
+    this.setRight(0.1, false);
+    this.setBottom(0.1, false);
 
     const translateService = LoadService(TranslateService);
 
@@ -350,125 +424,73 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     (window as any).w = this;
   }
 
-  get left(): number {
-    return this._left;
+
+  get animations(): boolean {
+    return this.classList.contains('animations-enabled');
   }
 
-  get right(): number {
-    return this._right;
+  set animations(value: boolean) {
+    this.classList.toggle('animations-enabled', value);
   }
-
-  get top(): number {
-    return this._top;
-  }
-
-  get bottom(): number {
-    return this._bottom;
-  }
-
-  get width(): number {
-    return 1 - this._left - this._right;
-  }
-
-  get height(): number {
-    return 1 - this._top - this._bottom;
-  }
-
-
-  get enableUserResize(): boolean {
-    return this._enableUserResize;
-  }
-
-  set enableUserResize(value: boolean) {
-    this._enableUserResize = value;
-    this._data.$enableUserResize.emit(value);
-    this.classList.toggle('enable-user-resize', value);
-    this._allResizeActivable.toggle(value);
-  }
-
-
-  get enableUserMove(): boolean {
-    return this._enableUserMove;
-  }
-
-  set enableUserMove(value: boolean) {
-    this._enableUserMove = value;
-    this._data.$enableUserMove.emit(value);
-    this.classList.toggle('enable-user-move', value);
-    this._moveActivable.toggle(value);
-  }
-
 
   get container(): HTMLElement {
     return ParentElementOrThrow(this);
   }
 
-  get isMaximized(): boolean {
-    return (this._left === 0)
-      && (this._right === 0)
-      && (this._top === 0)
-      && (this._bottom === 0);
-  }
-
-
   setLeft(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'left', value, force);
-    this.refreshIsMaximized();
   }
 
   setRight(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'right', value, force);
-    this.refreshIsMaximized();
   }
 
   setTop(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'top', value, force);
-    this.refreshIsMaximized();
   }
 
   setBottom(value: number, force?: boolean) {
     AppWindowComponentSetPosition(this, 'bottom', value, force);
-    this.refreshIsMaximized();
   }
 
 
   setWidthFromLeft(value: number): void {
-    this.setRight(1 - this._left - value, false);
+    this.setRight(1 - ReadDistinctValueObservable(this.$left) - value, false);
   }
 
   setWidthFromRight(value: number): void {
-    this.setLeft(1 - this._right - value, false);
+    this.setLeft(1 - ReadDistinctValueObservable(this.$right) - value, false);
   }
 
   setHeightFromTop(value: number): void {
-    this.setBottom(1 - this._top - value, false);
+    this.setBottom(1 - ReadDistinctValueObservable(this.$top) - value, false);
   }
 
   setHeightFromBottom(value: number): void {
-    this.setTop(1 - this._bottom - value, false);
+    this.setTop(1 - ReadDistinctValueObservable(this.$bottom) - value, false);
   }
 
 
   setLeftKeepingWidth(value: number): void {
-    const width: number = this.width;
+    const width: number = ReadDistinctValueObservable(this.$width);
     this.setLeft(value, true);
     this.setWidthFromLeft(width);
   }
 
   setRightKeepingWidth(value: number): void {
-    const width: number = this.width;
+    const width: number = ReadDistinctValueObservable(this.$width);
     this.setRight(value, true);
     this.setWidthFromRight(width);
   }
 
   setTopKeepingHeight(value: number): void {
-    const height: number = this.height;
+    const height: number = ReadDistinctValueObservable(this.$height);
     this.setTop(value, true);
     this.setHeightFromTop(height);
   }
 
   setBottomKeepingHeight(value: number): void {
-    const height: number = this.height;
+    const height: number = ReadDistinctValueObservable(this.$height);
     this.setBottom(value, true);
     this.setHeightFromBottom(height);
   }
@@ -481,6 +503,22 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     this.setBottom(position, false);
   }
 
+  runAnimation(callback: () => void): Promise<void> {
+    return new Promise<void>((resolve: any) => {
+      this.animations = true;
+      const observer = new EventsObservable<HTMLElementEventMap>(this, 'transitionend')
+        .addListener('transitionend', (event: Event) => {
+          if (event.target === this) {
+            observer.deactivate();
+            this.animations = false;
+            resolve();
+          }
+        }).activate();
+      callback();
+    });
+  }
+
+
   onCreate(context: IComponentContext<IData>): void {
     context.data = this._data;
   }
@@ -489,19 +527,40 @@ export class AppWindowComponent extends HTMLElement implements IComponent<IData>
     this._allResizeActivable = AppWindowComponentCreateAllResizeActivable(this);
     this._moveActivable = AppWindowComponentCreateMoveActivable(this);
 
-    this.setLeft(0.1, true);
-    this.setTop(0.1, true);
-    this.setRight(0.1, false);
-    this.setBottom(0.1, false);
-    this.enableUserResize = true;
-    this.enableUserMove = true;
+    this._enableUserResizeObserver = this.$enableUserResize.pipeTo((enabled: boolean) => {
+      this._allResizeActivable.toggle(enabled);
+    }).activate();
+
+    this._enableUserMoveObserver = this.$enableUserMove.pipeTo((enabled: boolean) => {
+      this._moveActivable.toggle(enabled);
+    }).activate();
+
+    this._topObserver = this.$top.pipeTo((value: number) => {
+      this.style.setProperty('top', `${ value * 100 }%`);
+    }).activate();
+
+    this._bottomObserver = this.$bottom.pipeTo((value: number) => {
+      this.style.setProperty('bottom', `${ value * 100 }%`);
+    }).activate();
+
+    this._leftObserver = this.$left.pipeTo((value: number) => {
+      this.style.setProperty('left', `${ value * 100 }%`);
+    }).activate();
+
+    this._rightObserver = this.$right.pipeTo((value: number) => {
+      this.style.setProperty('right', `${ value * 100 }%`);
+    }).activate();
   }
 
   onDestroy(): void {
-
+    this._enableUserResizeObserver.deactivate();
+    this._enableUserMoveObserver.deactivate();
+    this._topObserver.deactivate();
+    this._bottomObserver.deactivate();
+    this._leftObserver.deactivate();
+    this._rightObserver.deactivate();
+    // this._cancellableContext.clearAll('destroyed');
   }
 
-  protected refreshIsMaximized(): void {
-    this._data.$isMaximized.emit(this.isMaximized);
-  }
+
 }

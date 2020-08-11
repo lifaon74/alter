@@ -28,7 +28,6 @@ const NodeDOMStateMap: WeakMap<Node, DOMState> = new WeakMap<Node, DOMState>();
 
 /**
  * Returns the state of a Node
- * @param node
  */
 export function GetNodeDOMState(node: Node): DOMState {
   let state: DOMState;
